@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Антидефект 3.0 Pro — Автозамена, ФСМС и КиЛИ</title>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eceef4; --surface:#ffffff; --surface-2:#f4f5fa; --ink:#171a2b; --muted:#5a5f78; --line:#d5d8e5;
+  --accent:#3f3aa6; --accent-strong:#2f2b85; --on-accent:#ffffff; --accent-soft:#e8e8f8;
+  --crit:#b3261e; --crit-soft:#fbe9e7; --warn:#855600; --warn-soft:#fcf0d2; --tip:#2a5788; --tip-soft:#e3edf8; --ok:#1f6a39; --ok-soft:#e1f1e5;
+  --mark:#fff0a8; --mark-ink:#3d3000; --gold:#c99a45; --gold-soft:#fdf7e7;
+  --font-body:"Golos Text",sans-serif; --font-mono:"IBM Plex Mono",monospace; --r:10px;
+}
+*{box-sizing:border-box} [hidden]{display:none!important}
+body{margin:0;font:16px/1.5 var(--font-body);color:var(--ink);background:var(--bg)}
+.wrap{max-width:940px;margin:0 auto;padding:0 16px}
+a{color:var(--accent)}
+.top{background:var(--surface);border-bottom:1px solid var(--line)}
+.topin{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between;padding-top:14px;padding-bottom:0}
+.brand{display:flex;gap:12px;align-items:center;padding-bottom:12px}
+.brand svg{flex:none;color:var(--accent)}
+.brand .name{font-size:21px;font-weight:700;line-height:1.15}
+.brand .sub{font-size:13px;color:var(--muted)}
+.ver{font:500 11px var(--font-mono);color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 5px;margin-left:8px;vertical-align:2px}
+.tabs{display:flex;gap:4px;overflow-x:auto;max-width:100%;scrollbar-width:none}
+.tabs a{padding:9px 14px 11px;text-decoration:none;color:var(--muted);font-weight:500;font-size:15px;border-bottom:3px solid transparent;white-space:nowrap}
+.tabs a.on{color:var(--ink);border-bottom-color:var(--accent)}
+main{padding-top:16px;padding-bottom:30px;display:flex;flex-direction:column;gap:14px}
+.view{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.step{font:600 11px var(--font-mono);letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+h2{font-size:18px;margin:0 0 8px;text-wrap:balance} h3{font-size:15px;margin:16px 0 6px} p{margin:0 0 8px}
+.hint{font-size:13px;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center} .between{justify-content:space-between}
+.note{display:flex;gap:10px;align-items:flex-start;background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+.note.warnn{background:var(--warn-soft)} .note.warnn svg{color:var(--warn)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:8px 12px;font:inherit;font-size:14px;cursor:pointer;color:var(--ink);border-right:1px solid var(--line)}
+.seg button.on{background:var(--accent);color:var(--on-accent)}
+label.fld{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--muted)}
+input[type=text],input[type=password],textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font:16px/1.45 var(--font-body);background:var(--surface-2);color:var(--ink)}
+textarea{resize:vertical}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 14px;border-radius:8px;font:inherit;font-size:14px;font-weight:500;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:600}
+.btn.sm{padding:5px 10px;font-size:13px} .btn:disabled{opacity:.5;cursor:default}
+.sum{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.stamp{width:104px;height:104px;border-radius:50%;flex:none;display:grid;place-items:center;border:3px solid currentColor;outline:1px solid currentColor;outline-offset:3px;margin:4px;color:var(--muted);transform:rotate(-6deg)}
+.stamp b{display:block;font:600 32px/1 var(--font-mono);text-align:center}
+.stamp span{display:block;font:500 9.5px var(--font-mono);letter-spacing:1.2px;text-transform:uppercase;text-align:center;margin-top:3px}
+.stamp.g{color:var(--ok)} .stamp.y{color:var(--warn)} .stamp.r{color:var(--crit)}
+.verdict strong{font-size:18px;display:block}
+.counts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.pill{font-size:12px;padding:2px 9px;border-radius:999px;font-weight:600;white-space:nowrap}
+.pill.crit{background:var(--crit-soft);color:var(--crit)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.tip{background:var(--tip-soft);color:var(--tip)} .pill.ok{background:var(--ok-soft);color:var(--ok)}
+.bar{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin:10px 0 4px;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+.f{border:1px solid var(--line);border-left:5px solid var(--line);padding:11px 13px;margin:10px 0;background:var(--surface);border-radius:4px var(--r) var(--r) 4px;transition:.3s}
+.f.crit{border-left-color:var(--crit)} .f.warn{border-left-color:var(--warn)} .f.tip{border-left-color:var(--tip)}
+.f.closed{opacity:.5} .f.closed .msg{text-decoration:line-through}
+.f .topl{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:5px}
+.src{margin-left:auto;font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.f .msg{font-weight:600;font-size:15.5px;margin:0}
+.f blockquote{margin:7px 0 0;padding:6px 10px;border-left:3px solid var(--line);background:var(--surface-2);font:13px/1.45 var(--font-mono);white-space:pre-wrap;overflow-wrap:anywhere}
+.f .why{font-size:14px;margin:7px 0 0}
+.fixbox{margin-top:9px;border:1px dashed var(--accent);border-radius:8px;padding:9px 11px;background:var(--accent-soft)}
+.fixlabel{font:600 11px var(--font-mono);letter-spacing:.6px;text-transform:uppercase;color:var(--accent);display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:4px}
+.fixtext{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.5 var(--font-body);margin:0}
+.f .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:9px 16px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:900}
+.toast.show{opacity:1}
+#text,#kiliOut{min-height:260px;font:14px/1.45 var(--font-mono);margin-top:10px}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--accent);animation:sp 1s linear infinite;flex:none;display:inline-block;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes flashTa {
+  0% { box-shadow: 0 0 0 3px var(--ok); background: var(--ok-soft); }
+  100% { box-shadow: 0 0 0 0 transparent; background: var(--surface-2); }
+}
+.flash-green { animation: flashTa 1.5s ease-out !important; }
+#text::selection { background: #82d69c; color: #000; }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap topin">
+  <div class="brand">
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none"><circle cx="17" cy="17" r="15" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="17" r="11" stroke="currentColor" stroke-width="1"/><path d="M11.5 17.5l3.8 3.8 7.2-8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div><div class="name">Антидефект<span class="ver">3.0 Pro</span></div><div class="sub">Автозамена, защита ФСМС и разборы КиЛИ</div></div>
+  </div>
+  <nav class="tabs">
+    <a href="#check" data-v="check" class="on">Проверка и Автозамена</a>
+    <a href="#kili" data-v="kili">Аудит / КиЛИ и Рецензии</a>
+    <a href="#rules" data-v="rules">Настройки ИИ</a>
+  </nav>
+</div></header>
+
+<main class="wrap">
+<!-- ================= ПРОВЕРКА ================= -->
+<div class="view" id="v-check">
+<section class="card" id="inCard">
+  <div class="step">Шаг 1</div>
+  <div class="row between"><h2>История болезни / родов</h2>
+    <div class="seg" id="profile">
+      <button data-p="neo" class="on">Неонатология / ОИТН</button>
+      <button data-p="ob">Акушерство / роды</button>
+    </div>
+  </div>
+  <textarea id="text" placeholder="Вставьте полный текст истории из Дамумед (поступление, осмотры, дневники, назначения, эпикризы)..."></textarea>
+  <div class="row between" style="margin-top:10px">
+    <div class="row">
+      <button class="btn primary" id="run">Анализировать историю</button>
+      <button class="btn" id="formatDocs">Очистить от лишнего</button>
+      <button class="btn" id="dlWord">Выгрузить в Word</button>
+      <button class="btn" id="clear">Очистить</button>
+    </div>
+    <span class="hint" id="len">0 символов</span>
+  </div>
+</section>
+
+<section class="card" id="resCard" hidden>
+  <div class="sum">
+    <div class="stamp" id="stamp"><div><b id="score">–</b><span>балл</span></div></div>
+    <div class="verdict">
+      <strong id="verdict"></strong><span class="hint" id="verdictSub"></span>
+      <div class="counts" id="counts"></div>
+    </div>
+  </div>
+  <div class="bar"><i id="fixBar"></i></div><div class="hint" id="fixTxt"></div>
+</section>
+
+<section class="card" id="aiCard" hidden>
+  <div class="step">Шаг 2</div>
+  <div class="row between"><h2 style="margin:0">ИИ-эксперт и Защита ФСМС</h2></div>
+  <div class="note warnn" id="aiWarn" hidden><div>Внимание: не введён ключ API в настройках. Для поиска смысловых дефектов и генерации защиты ФСМС нужен ИИ.</div></div>
+  <div class="row" style="margin-bottom:12px"><button class="btn primary" id="aiRun">Запустить глубокую проверку ИИ</button> <span id="aiStat" class="hint"></span></div>
+  <div id="findings"></div>
+</section>
+</div>
+
+<!-- ================= АУДИТ И КиЛИ ================= -->
+<div class="view" id="v-kili" hidden>
+<section class="card">
+  <div class="step">Модуль эксперта и заведующего</div>
+  <h2>Экспертная рецензия и разбор КиЛИ</h2>
+  <p class="hint">Берёт текст истории из первой вкладки. При разборе летального исхода можно дополнительно вставить протокол патологоанатомического вскрытия ниже.</p>
+  <label class="fld" style="margin-top:8px"><span>Протокол вскрытия / патанатомический диагноз (необязательно, только для КиЛИ)</span>
+    <textarea id="kiliPath" rows="4" placeholder="Вставьте заключение патологоанатома для автоматического сличения диагнозов..."></textarea>
+  </label>
+  <div class="row" style="margin-top:12px">
+    <button class="btn primary" data-kact="review">📋 Сформировать экспертную рецензию</button>
+    <button class="btn gold" data-kact="timeline">⏱️ Авто-хронометраж ухудшения и СЛР</button>
+    <button class="btn" data-kact="compare">⚖️ Сличение диагнозов (Клиника vs Патанатомия)</button>
+  </div>
+  <div id="kiliStat" class="hint" style="margin-top:8px"></div>
+  <textarea id="kiliOut" placeholder="Здесь появится готовый текст рецензии или протокола КиЛИ..."></textarea>
+  <div class="row" style="margin-top:10px">
+    <button class="btn primary" id="kiliCopy">Скопировать</button>
+    <button class="btn" id="kiliWord">Выгрузить рецензию в Word</button>
+  </div>
+</section>
+</div>
+
+<!-- ================= ПРАВИЛА И НАСТРОЙКИ ================= -->
+<div class="view" id="v-rules" hidden>
+<section class="card">
+  <h2>Настройки ИИ (Голосовой и текстовый агент)</h2>
+  <p class="hint">Вставьте бесплатный ключ Google Gemini (начинается с AIza) или Anthropic Claude. Ключ никуда не передаётся и хранится только в вашем браузере.</p>
+  <div class="row" style="align-items:flex-end">
+    <label class="fld" style="flex:1"><span>Ключ API</span><input type="password" id="aiKey" placeholder="AIza... или sk-ant-..."></label>
+    <label class="fld" style="width:250px"><span>Провайдер</span><select id="aiModel"><option value="gemini-flash-latest">Gemini Flash (быстро)</option><option value="gemini-pro-latest">Gemini Pro (умно)</option><option value="claude-3-haiku-20240307">Claude Haiku</option></select></label>
+  </div>
+</section>
+<section class="card">
+  <h2>Правила вашей клиники (СОП)</h2>
+  <p class="hint">ИИ-эксперт будет учитывать эти правила при проверке историй.</p>
+  <textarea id="cfgSop" rows="6" placeholder="Например: Обоснование диагноза — не позже 3-х суток. Этапный эпикриз — каждые 10 суток..."></textarea>
+  <div class="row" style="margin-top:10px"><button class="btn primary" id="cfgSave">Сохранить настройки</button></div>
+</section>
+</div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const LS = { get:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}}, set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}} };
+function esc(s){return String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),2500);}
+
+const SEV = { crit:{label:"Критично",w:10}, warn:{label:"Важно",w:4}, tip:{label:"Совет",w:1} };
+let S = { profile:"neo", findings:[], ran:false };
+
+const AI = {
+  key: () => LS.get("ad_aiKey",""),
+  model: () => LS.get("ad_aiModel","gemini-flash-latest"),
+  isGemini: () => AI.key().startsWith("AIza"),
+  async ask(prompt, system) {
+    const k = AI.key();
+    if(!k) throw new Error("Ключ API не установлен во вкладке Настройки ИИ.");
+    if(AI.isGemini()) {
+      const body = { systemInstruction:{parts:[{text:system}]}, contents:[{role:"user",parts:[{text:prompt}]}] };
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI.model()}:generateContent`, {
+        method:"POST", headers:{"content-type":"application/json","x-goog-api-key":k}, body:JSON.stringify(body)
+      });
+      const j = await r.json();
+      if(!r.ok) throw new Error(j.error?.message || "Ошибка Gemini");
+      return j.candidates[0].content.parts.map(x=>x.text).join("");
+    } else {
+      const body = { model:AI.model(), max_tokens:4000, system:system, messages:[{role:"user",content:prompt}] };
+      const r = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST", headers:{"content-type":"application/json","x-api-key":k,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}, body:JSON.stringify(body)
+      });
+      const j = await r.json();
+      if(!r.ok) throw new Error(j.error?.message || "Ошибка Claude");
+      return j.content[0].text;
+    }
+  }
+};
+
+const RULES = [
+  {id:"r1", name:"Обоснование диагноза", re:/обосновани\w*\s+диагноз|диагноз\s+выставлен/i, sev:"crit", msg:"Нет обоснования клинического диагноза", fix:"Обоснование диагноза: на основании данных анамнеза, клинической картины и лабораторно-инструментальных исследований выставлен клинический диагноз."},
+  {id:"r2", name:"Объективный статус", re:/объективн|status\s+praesens|общее\s+состояние/i, sev:"crit", msg:"Нет объективного статуса", fix:"Объективный статус: состояние тяжёлое за счёт дыхательной недостаточности, ЧСС 145 в мин, SpO2 94%."},
+  {id:"r3", name:"Согласие", re:/информированн\w*\s+согласи|согласи\w*\s+на/i, sev:"crit", msg:"Нет информированного согласия", fix:"Информированное добровольное согласие на оказание медицинской помощи получено и подписано законным представителем."},
+  {id:"r4", name:"Апгар", only:"neo", re:/апгар/i, sev:"warn", msg:"Нет оценки по Апгар", fix:"Оценка по шкале Апгар 7/8 баллов."},
+  {id:"r5", name:"Кровопотеря", only:"ob", re:/кровопотер/i, sev:"warn", msg:"Не указана кровопотеря", fix:"Общая кровопотеря составила 300 мл."}
+];
+
+function analyzeText(text) {
+  const f = [];
+  RULES.forEach(r => {
+    if(r.only && r.only !== S.profile) return;
+    if(!r.re.test(text)) f.push({id:r.id, src:"rule", sev:r.sev, cat:"Формальности", msg:r.msg, fix:r.fix, action:"add_record"});
+  });
+  return f;
+}
+
+function renderFindings() {
+  if(!S.ran) return;
+  const list = S.findings.sort((a,b)=> (SEV[a.sev].w < SEV[b.sev].w ? 1 : -1));
+  $("#findings").innerHTML = list.length ? list.map(f => {
+    const isDone = f.done ? "closed" : "";
+    return `
+    <article class="f ${f.sev} ${isDone}" id="${f.id}">
+      <div class="topl"><span class="pill ${f.sev}">${SEV[f.sev].label}</span><span class="src">${f.src==="ai"?"ИИ-Эксперт":"Правило МЗ РК"}</span></div>
+      <p class="msg">${esc(f.msg)}</p>
+      ${f.why ? `<p class="why">${esc(f.why)}</p>` : ""}
+      ${f.quote ? `<blockquote>${esc(f.quote)}</blockquote>` : ""}
+      <div class="fixbox">
+        <div class="fixlabel"><span>Вариант исправления</span></div>
+        <p class="fixtext">${esc(f.fix)}</p>
+      </div>
+      <div class="acts">
+        <button class="btn primary sm" onclick="applyFix('${f.id}')">✨ Внедрить в историю</button>
+        ${f.src==="ai" ? `<button class="btn gold sm" onclick="generateDefense('${f.id}')">🛡️ Сгенерировать защиту ФСМС</button>` : ""}
+        <button class="btn sm" onclick="markDone('${f.id}')">Отметить решенным</button>
+      </div>
+    </article>`;
+  }).join("") : `<p class="hint">Дефектов не найдено. Отличная работа!</p>`;
+  
+  const crit = list.filter(x=>x.sev==="crit" && !x.done).length;
+  const score = Math.max(0, 100 - list.filter(x=>!x.done).reduce((a,b)=>a+SEV[b.sev].w, 0));
+  $("#score").textContent = score;
+  $("#stamp").className = "stamp " + (crit ? "r" : score >= 80 ? "g" : "y");
+  $("#verdict").textContent = crit ? `Найдено ${crit} критичных дефектов` : "Можно закрывать историю";
+  $("#fixBar").style.width = (list.filter(x=>x.done).length / (list.length||1) * 100) + "%";
+}
+
+window.applyFix = function(id) {
+  const f = S.findings.find(x => x.id === id); 
+  if(!f) return;
+  const ta = $("#text");
+  let text = ta.value;
+  let startIndex = -1;
+
+  if (f.action === "fix_text" && f.quote && text.includes(f.quote)) {
+    startIndex = text.indexOf(f.quote);
+    ta.value = text.replace(f.quote, f.fix);
+    toast("Текст истории автоматически заменён!");
+  } else {
+    const addition = "\n\n" + f.fix;
+    startIndex = text.trimEnd().length + 2;
+    ta.value = text.trimEnd() + addition;
+    toast("Блок добавлен в конец истории.");
+  }
+
+  ta.focus();
+  ta.setSelectionRange(startIndex, startIndex + f.fix.length);
+  ta.classList.remove("flash-green");
+  void ta.offsetWidth;
+  ta.classList.add("flash-green");
+
+  f.done = true;
+  renderFindings();
+};
+
+window.markDone = function(id) {
+  const f = S.findings.find(x=>x.id === id); if(f) f.done = !f.done;
+  renderFindings();
+};
+
+window.generateDefense = async function(id) {
+  const f = S.findings.find(x=>x.id === id); if(!f) return;
+  const sys = `Ты юрист и врач-эксперт в РК. Задача: написать короткий (3-4 предложения) бронебойный обосновывающий абзац для вставки в историю болезни, чтобы эксперт ФСМС не смог снять деньги по кодам 6.0/6.4 за отступление от протокола или тяжесть состояния. Напиши только сам текст для вставки, без вступлений.`;
+  const prompt = `Контекст дефекта: ${f.msg}. Почему это дефект: ${f.why}. Цитата из истории: ${f.quote}. Напиши обоснование (консилиум или индивидуальную реакцию), чтобы защитить врача.`;
+  try {
+    toast("Генерирую защиту ФСМС...");
+    const defense = await AI.ask(prompt, sys);
+    f.fix = defense.trim();
+    f.action = "add_record";
+    toast("Защита сгенерирована! Нажмите «Внедрить в историю».");
+    renderFindings();
+  } catch(e) { toast(e.message); }
+};
+
+$("#text").oninput = e => $("#len").textContent = e.target.value.length + " символов";
+$("#clear").onclick = () => { $("#text").value = ""; $("#len").textContent = "0 символов"; $("#resCard").hidden = true; $("#aiCard").hidden = true; };
+
+$("#run").onclick = () => {
+  const txt = $("#text").value.trim(); if(!txt) return toast("Вставьте текст истории");
+  S.findings = analyzeText(txt);
+  S.ran = true;
+  $("#resCard").hidden = false; $("#aiCard").hidden = false;
+  $("#aiWarn").hidden = !!AI.key();
+  renderFindings();
+};
+
+$("#aiRun").onclick = async () => {
+  if(!AI.key()) { toast("Введите ключ API в настройках"); location.hash = "#rules"; return; }
+  const txt = $("#text").value.trim(); if(!txt) return toast("Вставьте текст истории");
+  $("#aiStat").innerHTML = `<span class="spin"></span> ИИ читает историю (около 20 сек)...`;
+  const sop = LS.get("ad_sop","");
+  const sys = `Ты эксперт ФСМС в РК. Ищи клинические противоречия, нестыковки в дозах, отсутствие динамики, нарушение СОП (${sop}). Верни ТОЛЬКО JSON массив: [{ "msg":"суть ошибки", "why":"почему оштрафуют по классификатору", "quote":"точная дословная цитата из истории с ошибкой", "fix":"готовый исправленный текст", "sev":"crit|warn|tip", "action":"fix_text" }]`;
+  try {
+    const raw = await AI.ask("История:\n" + txt.slice(0,18000), sys);
+    let jsonMatch = raw.match(/\[[\s\S]*\]/);
+    if(jsonMatch) {
+      const arr = JSON.parse(jsonMatch[0]);
+      arr.forEach((a, i) => {
+        S.findings.push({ id:"ai"+i, src:"ai", sev:a.sev||"warn", cat:"Клиническая логика", msg:a.msg, why:a.why, quote:a.quote, fix:a.fix, action:a.action||"fix_text" });
+      });
+      toast("ИИ-проверка завершена");
+    } else throw new Error("Не удалось прочитать ответ ИИ");
+  } catch(e) { toast(e.message); }
+  $("#aiStat").textContent = "";
+  renderFindings();
+};
+
+// Модуль Аудита и КиЛИ
+$$("[data-kact]").forEach(btn => btn.onclick = async () => {
+  if(!AI.key()) { toast("Введите ключ API во вкладке Настройки ИИ"); location.hash = "#rules"; return; }
+  const txt = $("#text").value.trim();
+  if(!txt) return toast("Сначала вставьте текст истории на первой вкладке!");
+  const path = $("#kiliPath").value.trim();
+  const act = btn.dataset.kact;
+  $("#kiliStat").innerHTML = `<span class="spin"></span> Формирую документ...`;
+  const prompts = {
+    review: `Составь официальную экспертную рецензию на историю болезни для службы внутреннего аудита и КиЛИ МЗ РК: 1. Краткий анамнез и статус при поступлении. 2. Оценка своевременности и полноты диагностики по клиническим протоколам МЗ РК. 3. Оценка адекватности лечения и дозировок. 4. Выявленные дефекты ведения и оформления (с кодами риска ФСМС). 5. Заключение и рекомендации.`,
+    timeline: `Построй поминутный и почасовой авто-хронометраж ухудшения состояния и реанимационных мероприятий (СЛР) для разбора на КиЛИ. Проверь соответствие интервалов введения адреналина, интубации, коррекции КЩС и инфузии протоколам реанимации МЗ РК. Отметь все нестыковки по времени.`,
+    compare: `Проведи экспертное сличение заключительного клинического диагноза и патологоанатомического диагноза для протокола КиЛИ. Выдели: 1) Основное заболевание, 2) Осложнения, 3) Сопутствующие заболевания. Укажи, есть ли расхождение, категорию расхождения (I, II или III) и сформулируй юридически и клинически грамотное обоснование для комиссии.`
+  };
+  try {
+    const res = await AI.ask(`История болезни:\n${txt.slice(0,18000)}\n\nПротокол вскрытия:\n${path}`, prompts[act]);
+    $("#kiliOut").value = res.trim();
+    toast("Документ готов!");
+  } catch(e) { toast(e.message); }
+  $("#kiliStat").textContent = "";
+});
+
+function saveWord(txt, name) {
+  if(!txt) return toast("Пусто");
+  const html = `<html><head><meta charset='utf-8'></head><body>${txt.replace(/\n/g,"<br>")}</body></html>`;
+  const blob = new Blob(['\ufeff', html], {type: 'application/msword'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+$("#dlWord").onclick = () => saveWord($("#text").value.trim(), "История_исправленная.doc");
+$("#kiliWord").onclick = () => saveWord($("#kiliOut").value.trim(), "Рецензия_КиЛИ.doc");
+$("#kiliCopy").onclick = () => { navigator.clipboard.writeText($("#kiliOut").value); toast("Скопировано"); };
+
+$("#formatDocs").onclick = () => {
+  let t = $("#text").value;
+  t = t.replace(/(Трансфузия|Операционная|Внутривенно|Зонд|Дренаж\d|Стул|Диурез):\s*0/gi, "");
+  t = t.replace(/(\n\s*){3,}/g, "\n\n");
+  $("#text").value = t.trim();
+  toast("Текст очищен от системного мусора");
+};
+
+$("#aiKey").value = LS.get("ad_aiKey","");
+$("#aiKey").onchange = e => LS.set("ad_aiKey", e.target.value.trim());
+$("#aiModel").value = LS.get("ad_aiModel","gemini-flash-latest");
+$("#aiModel").onchange = e => LS.set("ad_aiModel", e.target.value);
+$("#cfgSop").value = LS.get("ad_sop","");
+$("#cfgSave").onclick = () => { LS.set("ad_sop", $("#cfgSop").value); toast("Настройки сохранены"); };
+
+$$("#profile button").forEach(b => b.onclick = () => {
+  $$("#profile button").forEach(x => x.classList.remove("on"));
+  b.classList.add("on"); S.profile = b.dataset.p;
+});
+
+window.addEventListener("hashchange", () => {
+  const h = (location.hash || "#check").replace("#","");
+  $$(".view").forEach(v => v.hidden = true);
+  $$(".tabs a").forEach(a => a.classList.remove("on"));
+  const el = $(`#v-${h}`); if(el) el.hidden = false;
+  const tab = $(`.tabs a[href="#${h}"]`); if(tab) tab.classList.add("on");
+});
+location.hash = location.hash || "#check"; window.dispatchEvent(new Event("hashchange"));
+</script>
+</body>
+</html>
