@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Антидефект 3.0 Pro — Автозамена, ФСМС и КиЛИ</title>
+<title>Антидефект 3.1 Pro — проверка истории, рецензии и КиЛИ</title>
 <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -81,13 +81,17 @@ textarea{resize:vertical}
 }
 .flash-green { animation: flashTa 1.5s ease-out !important; }
 #text::selection { background: #82d69c; color: #000; }
+.pill.info{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;color:var(--ink);margin:0 0 10px}
+.chk input{margin-top:3px;flex:none}
+.f .meta{font-size:12.5px;color:var(--muted);margin:6px 0 0}
 </style>
 </head>
 <body>
 <header class="top"><div class="wrap topin">
   <div class="brand">
     <svg width="34" height="34" viewBox="0 0 34 34" fill="none"><circle cx="17" cy="17" r="15" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="17" r="11" stroke="currentColor" stroke-width="1"/><path d="M11.5 17.5l3.8 3.8 7.2-8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <div><div class="name">Антидефект<span class="ver">3.0 Pro</span></div><div class="sub">Автозамена, защита ФСМС и разборы КиЛИ</div></div>
+    <div><div class="name">Антидефект<span class="ver">3.1 Pro</span></div><div class="sub">Проверка документации, рецензии и разборы КиЛИ</div></div>
   </div>
   <nav class="tabs">
     <a href="#check" data-v="check" class="on">Проверка и Автозамена</a>
@@ -112,6 +116,7 @@ textarea{resize:vertical}
     <div class="row">
       <button class="btn primary" id="run">Анализировать историю</button>
       <button class="btn" id="formatDocs">Очистить от лишнего</button>
+      <button class="btn" id="undo" disabled>↶ Отменить изменение</button>
       <button class="btn" id="dlWord">Выгрузить в Word</button>
       <button class="btn" id="clear">Очистить</button>
     </div>
@@ -132,8 +137,10 @@ textarea{resize:vertical}
 
 <section class="card" id="aiCard" hidden>
   <div class="step">Шаг 2</div>
-  <div class="row between"><h2 style="margin:0">ИИ-эксперт и Защита ФСМС</h2></div>
-  <div class="note warnn" id="aiWarn" hidden><div>Внимание: не введён ключ API в настройках. Для поиска смысловых дефектов и генерации защиты ФСМС нужен ИИ.</div></div>
+  <div class="row between"><h2 style="margin:0">ИИ-эксперт</h2></div>
+  <div class="note warnn" id="aiWarn" hidden><div>Внимание: не введён ключ API в настройках. Для поиска смысловых дефектов нужен ИИ.</div></div>
+  <div class="note warnn"><div>Перед отправкой ИИ программа сама скрывает ИИН, телефоны, ФИО (полные и с инициалами) и номер истории. Остальной текст уходит внешнему сервису (Google или Anthropic) как есть. До проверки требований РК к медицинским данным используйте только обезличенные или тестовые истории.</div></div>
+  <label class="chk"><input type="checkbox" id="aiConsent"> <span>Понимаю: текст будет отправлен внешнему ИИ-сервису. Выводы ИИ — подсказки, а не экспертное заключение.</span></label>
   <div class="row" style="margin-bottom:12px"><button class="btn primary" id="aiRun">Запустить глубокую проверку ИИ</button> <span id="aiStat" class="hint"></span></div>
   <div id="findings"></div>
 </section>
@@ -144,7 +151,7 @@ textarea{resize:vertical}
 <section class="card">
   <div class="step">Модуль эксперта и заведующего</div>
   <h2>Экспертная рецензия и разбор КиЛИ</h2>
-  <p class="hint">Берёт текст истории из первой вкладки. При разборе летального исхода можно дополнительно вставить протокол патологоанатомического вскрытия ниже.</p>
+  <p class="hint">Берёт текст истории из первой вкладки. Результат — черновик для эксперта, а не готовое заключение. При разборе летального исхода можно дополнительно вставить протокол патологоанатомического вскрытия ниже.</p>
   <label class="fld" style="margin-top:8px"><span>Протокол вскрытия / патанатомический диагноз (необязательно, только для КиЛИ)</span>
     <textarea id="kiliPath" rows="4" placeholder="Вставьте заключение патологоанатома для автоматического сличения диагнозов..."></textarea>
   </label>
@@ -166,10 +173,13 @@ textarea{resize:vertical}
 <div class="view" id="v-rules" hidden>
 <section class="card">
   <h2>Настройки ИИ (Голосовой и текстовый агент)</h2>
-  <p class="hint">Вставьте бесплатный ключ Google Gemini (начинается с AIza) или Anthropic Claude. Ключ никуда не передаётся и хранится только в вашем браузере.</p>
+  <p class="hint">Вставьте ключ Google Gemini (начинается с AIza) или Anthropic Claude (sk-ant-). Ключ хранится только в этом браузере и отправляется только выбранному провайдеру вместе с запросом. Провайдер определяется по ключу. Учтите: на бесплатном тарифе Gemini Google может использовать присланные данные для улучшения своих моделей.</p>
   <div class="row" style="align-items:flex-end">
     <label class="fld" style="flex:1"><span>Ключ API</span><input type="password" id="aiKey" placeholder="AIza... или sk-ant-..."></label>
-    <label class="fld" style="width:250px"><span>Провайдер</span><select id="aiModel"><option value="gemini-flash-latest">Gemini Flash (быстро)</option><option value="gemini-pro-latest">Gemini Pro (умно)</option><option value="claude-3-haiku-20240307">Claude Haiku</option></select></label>
+    <label class="fld" style="width:250px"><span>Модель</span><select id="aiModel">
+      <optgroup label="Google Gemini"><option value="gemini-flash-latest">Gemini Flash (быстро)</option><option value="gemini-pro-latest">Gemini Pro (точнее)</option></optgroup>
+      <optgroup label="Anthropic Claude"><option value="claude-sonnet-5-5">Claude Sonnet 5.5</option><option value="claude-haiku-5-5">Claude Haiku 5.5 (быстро)</option></optgroup>
+    </select></label>
   </div>
 </section>
 <section class="card">
@@ -186,217 +196,405 @@ textarea{resize:vertical}
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 const LS = { get:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}}, set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}} };
-function esc(s){return String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
-function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),2500);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),3500);}
 
 const SEV = { crit:{label:"Критично",w:10}, warn:{label:"Важно",w:4}, tip:{label:"Совет",w:1} };
-let S = { profile:"neo", findings:[], ran:false };
+// Приводим любую метку тяжести к crit/warn/tip, чтобы неожиданный ответ ИИ не ломал список
+function normSev(s){
+  const v = String(s||"").toLowerCase();
+  if (/crit|крит|high|выс|severe/.test(v)) return "crit";
+  if (/tip|совет|low|низ|info/.test(v)) return "tip";
+  return "warn";
+}
+let S = { profile:"neo", findings:[], ran:false, aiRan:false, aiRunId:0, undo:null, deidMap:{} };
 
+// Предел объёма текста для ИИ (символы). Около 100 тыс. токенов — помещается в Gemini и Claude.
+const AI_MAX_CHARS = 300000;
+const PH_RE = /\[(?:указать|уточнить|__)[^\]]*\]/i; // незаполненные места в шаблонах
+
+/* ================= ИИ ================= */
+const MODELS = { gemini:["gemini-flash-latest","gemini-pro-latest"], claude:["claude-sonnet-5-5","claude-haiku-5-5"] };
 const AI = {
   key: () => LS.get("ad_aiKey",""),
-  model: () => LS.get("ad_aiModel","gemini-flash-latest"),
-  isGemini: () => AI.key().startsWith("AIza"),
-  async ask(prompt, system) {
+  provider: () => AI.key().startsWith("AIza") ? "gemini" : "claude",
+  model: () => {
+    const m = LS.get("ad_aiModel","gemini-flash-latest"), p = AI.provider();
+    return MODELS[p].includes(m) ? m : MODELS[p][0]; // модель всегда соответствует ключу
+  },
+  async ask(prompt, system, opts={}) {
     const k = AI.key();
     if(!k) throw new Error("Ключ API не установлен во вкладке Настройки ИИ.");
-    if(AI.isGemini()) {
-      const body = { systemInstruction:{parts:[{text:system}]}, contents:[{role:"user",parts:[{text:prompt}]}] };
+    if(AI.provider()==="gemini") {
+      const body = { systemInstruction:{parts:[{text:system}]}, contents:[{role:"user",parts:[{text:prompt}]}],
+        generationConfig:{ temperature:0.1, maxOutputTokens:16384, ...(opts.json?{responseMimeType:"application/json"}:{}) } };
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI.model()}:generateContent`, {
         method:"POST", headers:{"content-type":"application/json","x-goog-api-key":k}, body:JSON.stringify(body)
       });
-      const j = await r.json();
-      if(!r.ok) throw new Error(j.error?.message || "Ошибка Gemini");
-      return j.candidates[0].content.parts.map(x=>x.text).join("");
+      const j = await r.json().catch(()=>({}));
+      if(!r.ok) throw new Error(j.error?.message || ("Ошибка Gemini " + r.status));
+      const c = j.candidates && j.candidates[0];
+      const txt = c && c.content && c.content.parts ? c.content.parts.map(x=>x.text||"").join("") : "";
+      if(!txt) throw new Error("Gemini вернул пустой ответ" + (j.promptFeedback?.blockReason ? " (заблокировано: "+j.promptFeedback.blockReason+")" : c?.finishReason ? " ("+c.finishReason+")" : ""));
+      if(c.finishReason==="MAX_TOKENS") toast("Ответ ИИ обрезан по длине — часть замечаний могла потеряться.");
+      return txt;
     } else {
-      const body = { model:AI.model(), max_tokens:4000, system:system, messages:[{role:"user",content:prompt}] };
+      const body = { model:AI.model(), max_tokens:16000, temperature:0.1, system:system, messages:[{role:"user",content:prompt}] };
       const r = await fetch("https://api.anthropic.com/v1/messages", {
         method:"POST", headers:{"content-type":"application/json","x-api-key":k,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}, body:JSON.stringify(body)
       });
-      const j = await r.json();
-      if(!r.ok) throw new Error(j.error?.message || "Ошибка Claude");
-      return j.content[0].text;
+      const j = await r.json().catch(()=>({}));
+      if(!r.ok) throw new Error(j.error?.message || ("Ошибка Claude " + r.status));
+      const txt = (j.content||[]).filter(x=>x.type==="text").map(x=>x.text).join("");
+      if(!txt) throw new Error("Claude вернул пустой ответ");
+      if(j.stop_reason==="max_tokens") toast("Ответ ИИ обрезан по длине — часть замечаний могла потеряться.");
+      return txt;
     }
   }
 };
 
-const RULES = [
-  {id:"r1", name:"Обоснование диагноза", re:/обосновани\w*\s+диагноз|диагноз\s+выставлен/i, sev:"crit", msg:"Нет обоснования клинического диагноза", fix:"Обоснование диагноза: на основании данных анамнеза, клинической картины и лабораторно-инструментальных исследований выставлен клинический диагноз."},
-  {id:"r2", name:"Объективный статус", re:/объективн|status\s+praesens|общее\s+состояние/i, sev:"crit", msg:"Нет объективного статуса", fix:"Объективный статус: состояние тяжёлое за счёт дыхательной недостаточности, ЧСС 145 в мин, SpO2 94%."},
-  {id:"r3", name:"Согласие", re:/информированн\w*\s+согласи|согласи\w*\s+на/i, sev:"crit", msg:"Нет информированного согласия", fix:"Информированное добровольное согласие на оказание медицинской помощи получено и подписано законным представителем."},
-  {id:"r4", name:"Апгар", only:"neo", re:/апгар/i, sev:"warn", msg:"Нет оценки по Апгар", fix:"Оценка по шкале Апгар 7/8 баллов."},
-  {id:"r5", name:"Кровопотеря", only:"ob", re:/кровопотер/i, sev:"warn", msg:"Не указана кровопотеря", fix:"Общая кровопотеря составила 300 мл."}
-];
+// Общие правила для всех запросов к ИИ: не выдумывать данные
+const AI_BASE = `Работай только с фактами, которые есть в присланном тексте. Не придумывай показатели, дозы, даты, результаты обследований, подписи и события. Если данных нет — пиши «не представлено в документации» или ставь метку [уточнить: что именно]. Отсутствие записи не означает, что действие не выполнялось. Не ссылайся на номера протоколов, пунктов и кодов ФСМС, если их нет в тексте или в правилах клиники, — вместо этого пиши «сопоставить с применимым протоколом». Используй осторожные формулировки: «требует уточнения», «не представлено документальное подтверждение». В тексте могут быть метки вида [ФИО-1], [ИИН-1] — это скрытые персональные данные, оставляй их как есть.`;
 
+/* ================= Обезличивание ================= */
+// Возвращает копию текста для ИИ и карту меток, чтобы потом вернуть исходные значения в цитаты
+function deidentify(text){
+  const map = {}, cnt = {};
+  const tag = (kind, val) => {
+    for (const [k,v] of Object.entries(map)) if (v===val && k.startsWith("["+kind)) return k;
+    cnt[kind] = (cnt[kind]||0)+1; const k = `[${kind}-${cnt[kind]}]`; map[k]=val; return k;
+  };
+  const U = "А-ЯЁӘІҢҒҮҰҚӨҺ", L = "а-яёәіңғүұқөһ";
+  let t = text;
+  t = t.replace(/(?<!\d)\d{12}(?!\d)/g, m => tag("ИИН", m));
+  t = t.replace(/(?<!\d)(?:\+7|8)[\s(-]*\d{3}[\s)-]*\d{3}[\s-]*\d{2}[\s-]*\d{2}(?!\d)/g, m => tag("ТЕЛ", m));
+  t = t.replace(/(истори\S*\s+(?:болезни|родов)\s*№\s*)([\w\/-]+)/gi, (m,a,b) => a + tag("НОМЕР", b));
+  // Фамилия Имя Отчество (включая казахские «улы/кызы»)
+  const fio = new RegExp(`[${U}][${L}-]+\\s+[${U}][${L}]+\\s+(?:[${U}][${L}]+(?:ович|евич|ич|овна|евна|ична|инична|улы|ұлы|кызы|қызы)|(?:улы|ұлы|уулу|кызы|қызы))(?![${L}])`, "g");
+  t = t.replace(fio, m => tag("ФИО", m));
+  // Фамилия И.О. / И.О. Фамилия
+  t = t.replace(new RegExp(`[${U}][${L}-]+\\s+[${U}]\\.\\s?[${U}]\\.?(?![${L}])`, "g"), m => tag("ФИО", m));
+  t = t.replace(new RegExp(`(?<![${U}${L}])[${U}]\\.\\s?[${U}]\\.\\s?[${U}][${L}-]+`, "g"), m => tag("ФИО", m));
+  return { text:t, map };
+}
+function reidentify(s, map){
+  if(!s) return s;
+  return String(s).replace(/\[(?:ИИН|ТЕЛ|НОМЕР|ФИО)-\d+\]/g, k => map[k]!=null ? map[k] : k);
+}
+
+/* ================= Формальные правила =================
+   Каждое правило — запись реестра. Источник пока не сверен: правило помечено как «требует сверки».
+   Результат: ok — запись найдена; missing — не найдена в тексте; negated — найдена, но с отрицанием. */
+// \b в JavaScript не работает с кириллицей, поэтому границы слова задаём вручную
+const NEG_RE = /(?<![а-яёА-ЯЁ])(не\s+(?:провед|выполн|получ|оформл|представл|подписа|указ|оцен|собран)\S*|отсутству\S*|нет(?![а-яё])|не\s+было)/i;
+const RULES = [
+  {id:"r1", name:"Обоснование диагноза", section:"Документация", source:null, sourceStatus:"требует сверки", sev:"crit",
+   re:/обосновани\S*\s+(?:клиническ\S*\s+)?диагноз|диагноз\S*\s+(?:выставлен|обоснован|установлен)/i,
+   msg:"Не найдено обоснование клинического диагноза",
+   fix:"Обоснование клинического диагноза: на основании [указать: данные анамнеза], [указать: клинические признаки], [указать: результаты обследований] выставлен диагноз: [указать]."},
+  {id:"r2", name:"Объективный статус", section:"Документация", source:null, sourceStatus:"требует сверки", sev:"crit",
+   re:/объективн\S*\s+(?:статус|осмотр|данн)|status\s+praesens|общее\s+состояние/i,
+   msg:"Не найден объективный статус",
+   fix:"Объективный статус: общее состояние [указать]. ЧСС [указать] в мин, ЧДД [указать] в мин, SpO2 [указать]%, t [указать] °C. [указать: данные осмотра по системам]."},
+  {id:"r3", name:"Информированное согласие", section:"Документация", source:null, sourceStatus:"требует сверки", sev:"crit",
+   re:/информированн\S*\s+(?:добровольн\S*\s+)?согласи|согласи\S*\s+(?:на|законн|родител|матер)/i,
+   msg:"Не найдено упоминание информированного согласия",
+   fix:"Информированное добровольное согласие на [указать: вид вмешательства] [уточнить: получено / не получено], дата [указать], подписано [указать: кем]."},
+  {id:"r4", name:"Оценка по Апгар", section:"Рождение", only:"neo", source:null, sourceStatus:"требует сверки", sev:"warn",
+   re:/апгар/i,
+   msg:"Не найдена оценка по шкале Апгар",
+   fix:"Оценка по шкале Апгар: [указать] баллов на 1-й минуте, [указать] баллов на 5-й минуте. [уточнить: если ребёнок переведён из другой организации — указать источник сведений]."},
+  {id:"r5", name:"Кровопотеря", section:"Роды", only:"ob", source:null, sourceStatus:"требует сверки", sev:"warn",
+   re:/кровопотер/i,
+   msg:"Не указан объём кровопотери",
+   fix:"Общая кровопотеря составила [указать] мл ([указать] % от массы тела), метод оценки [указать]."}
+];
+function checkRule(r, text){
+  const g = new RegExp(r.re.source, r.re.flags.includes("g") ? r.re.flags : r.re.flags + "g");
+  let m, any = false;
+  while ((m = g.exec(text))) {
+    any = true;
+    // Смотрим окрестность в пределах той же фразы: ~50 символов до и после
+    const before = text.slice(Math.max(0, m.index-50), m.index).split(/[.\n]/).pop();
+    const after = text.slice(m.index, m.index + m[0].length + 60).split(/[.\n]/)[0];
+    if (!NEG_RE.test(before + " " + after)) return { status:"ok" };
+    if (m[0].length === 0) g.lastIndex++;
+  }
+  return { status: any ? "negated" : "missing" };
+}
 function analyzeText(text) {
   const f = [];
   RULES.forEach(r => {
     if(r.only && r.only !== S.profile) return;
-    if(!r.re.test(text)) f.push({id:r.id, src:"rule", sev:r.sev, cat:"Формальности", msg:r.msg, fix:r.fix, action:"add_record"});
+    const res = checkRule(r, text);
+    if(res.status === "ok") return;
+    f.push({ id:r.id, src:"rule", rule:r, sev: res.status==="negated" ? "warn" : r.sev, cat:r.section,
+      msg: res.status==="negated" ? `${r.name}: упоминание найдено, но рядом есть отрицание — проверьте вручную` : r.msg,
+      why: res.status==="negated" ? "Например: «оценка по Апгар не проведена». Программа не может сама решить, дефект это или нет." : "Это значит только, что программа не нашла запись в тексте. Само действие при этом могло быть выполнено.",
+      fix:r.fix, action:"add_record" });
   });
   return f;
 }
 
+/* ================= Отрисовка ================= */
 function renderFindings() {
   if(!S.ran) return;
-  const list = S.findings.sort((a,b)=> (SEV[a.sev].w < SEV[b.sev].w ? 1 : -1));
+  const list = S.findings.slice().sort((a,b)=> SEV[b.sev].w - SEV[a.sev].w);
   $("#findings").innerHTML = list.length ? list.map(f => {
     const isDone = f.done ? "closed" : "";
+    const srcLabel = f.src==="ai" ? "ИИ · требует проверки врачом" : "Формальная проверка · источник не сверен";
     return `
-    <article class="f ${f.sev} ${isDone}" id="${f.id}">
-      <div class="topl"><span class="pill ${f.sev}">${SEV[f.sev].label}</span><span class="src">${f.src==="ai"?"ИИ-Эксперт":"Правило МЗ РК"}</span></div>
+    <article class="f ${f.sev} ${isDone}" id="f-${esc(f.id)}">
+      <div class="topl"><span class="pill ${f.sev}">${SEV[f.sev].label}</span>${f.cat?`<span class="pill info">${esc(f.cat)}</span>`:""}<span class="src">${srcLabel}</span></div>
       <p class="msg">${esc(f.msg)}</p>
       ${f.why ? `<p class="why">${esc(f.why)}</p>` : ""}
       ${f.quote ? `<blockquote>${esc(f.quote)}</blockquote>` : ""}
-      <div class="fixbox">
-        <div class="fixlabel"><span>Вариант исправления</span></div>
+      ${f.fix ? `<div class="fixbox">
+        <div class="fixlabel"><span>${f.draft ? "Черновик обоснования — проверьте каждое слово" : "Вариант исправления"}</span></div>
         <p class="fixtext">${esc(f.fix)}</p>
-      </div>
+      </div>` : ""}
+      ${f.fix && PH_RE.test(f.fix) ? `<p class="meta">Места в квадратных скобках заполните сами — программа не подставляет клинические значения.</p>` : ""}
       <div class="acts">
-        <button class="btn primary sm" onclick="applyFix('${f.id}')">✨ Внедрить в историю</button>
-        ${f.src==="ai" ? `<button class="btn gold sm" onclick="generateDefense('${f.id}')">🛡️ Сгенерировать защиту ФСМС</button>` : ""}
-        <button class="btn sm" onclick="markDone('${f.id}')">Отметить решенным</button>
+        ${f.fix ? `<button class="btn primary sm" data-act="apply" data-id="${esc(f.id)}">${f.action==="fix_text" && f.quote ? "Заменить цитату" : "Добавить в историю"}</button>` : ""}
+        ${f.src==="ai" ? `<button class="btn gold sm" data-act="draft" data-id="${esc(f.id)}">Черновик обоснования</button>` : ""}
+        <button class="btn sm" data-act="done" data-id="${esc(f.id)}">${f.done ? "Вернуть" : "Отметить решённым"}</button>
       </div>
     </article>`;
-  }).join("") : `<p class="hint">Дефектов не найдено. Отличная работа!</p>`;
-  
-  const crit = list.filter(x=>x.sev==="crit" && !x.done).length;
-  const score = Math.max(0, 100 - list.filter(x=>!x.done).reduce((a,b)=>a+SEV[b.sev].w, 0));
+  }).join("") : `<p class="hint">Формальных замечаний нет. Это не гарантирует качество истории: проверьте её вручную или запустите проверку ИИ.</p>`;
+
+  const open = list.filter(x=>!x.done);
+  const crit = open.filter(x=>x.sev==="crit").length;
+  const score = Math.max(0, 100 - open.reduce((a,b)=>a+SEV[b.sev].w, 0));
   $("#score").textContent = score;
   $("#stamp").className = "stamp " + (crit ? "r" : score >= 80 ? "g" : "y");
-  $("#verdict").textContent = crit ? `Найдено ${crit} критичных дефектов` : "Можно закрывать историю";
+  $("#verdict").textContent = crit ? `Открыто критичных замечаний: ${crit}` : open.length ? `Открыто замечаний: ${open.length}` : "Открытых замечаний нет";
+  $("#verdictSub").textContent = S.aiRan ? "Формальная проверка и проверка ИИ. Балл условный." : "Пока только формальная проверка по ключевым словам. Глубокая проверка ИИ не проводилась. Балл условный.";
+  const c = {crit:0,warn:0,tip:0}; open.forEach(x=>c[x.sev]++);
+  $("#counts").innerHTML = ["crit","warn","tip"].map(k=>`<span class="pill ${k}">${SEV[k].label}: ${c[k]}</span>`).join("");
   $("#fixBar").style.width = (list.filter(x=>x.done).length / (list.length||1) * 100) + "%";
+  $("#fixTxt").textContent = list.length ? `Закрыто ${list.filter(x=>x.done).length} из ${list.length}` : "";
 }
 
-window.applyFix = function(id) {
-  const f = S.findings.find(x => x.id === id); 
-  if(!f) return;
+/* ================= Изменение текста истории ================= */
+function setText(v, why){
   const ta = $("#text");
-  let text = ta.value;
-  let startIndex = -1;
-
-  if (f.action === "fix_text" && f.quote && text.includes(f.quote)) {
-    startIndex = text.indexOf(f.quote);
-    ta.value = text.replace(f.quote, f.fix);
-    toast("Текст истории автоматически заменён!");
-  } else {
-    const addition = "\n\n" + f.fix;
-    startIndex = text.trimEnd().length + 2;
-    ta.value = text.trimEnd() + addition;
-    toast("Блок добавлен в конец истории.");
-  }
-
+  S.undo = { value: ta.value, why };
+  $("#undo").disabled = false;
+  ta.value = v;
+  $("#len").textContent = v.length + " символов";
+}
+function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+// Ищем цитату: сначала дословно, затем без учёта разницы в пробелах и переносах строк
+function findQuote(text, quote){
+  if(!quote) return null;
+  let i = text.indexOf(quote);
+  if(i >= 0) return { start:i, end:i+quote.length };
+  const parts = quote.trim().split(/\s+/).map(escRe);
+  if(!parts.length || !parts[0]) return null;
+  const m = new RegExp(parts.join("\\s+")).exec(text);
+  return m ? { start:m.index, end:m.index+m[0].length } : null;
+}
+function flash(start, len){
+  const ta = $("#text");
   ta.focus();
-  ta.setSelectionRange(startIndex, startIndex + f.fix.length);
-  ta.classList.remove("flash-green");
-  void ta.offsetWidth;
-  ta.classList.add("flash-green");
+  ta.setSelectionRange(start, start + len);
+  ta.classList.remove("flash-green"); void ta.offsetWidth; ta.classList.add("flash-green");
+}
+async function copyText(t){ try{ await navigator.clipboard.writeText(t); return true; }catch(e){ return false; } }
 
+function applyFix(id) {
+  const f = S.findings.find(x => x.id === id);
+  if(!f || !f.fix) return;
+  const text = $("#text").value;
+  if (f.action === "fix_text" && f.quote) {
+    const pos = findQuote(text, f.quote);
+    if(!pos){
+      copyText(f.fix).then(ok => toast(ok ? "Цитата не найдена в тексте дословно. Исправление скопировано — вставьте вручную." : "Цитата не найдена в тексте дословно. Скопируйте исправление вручную."));
+      return; // не вставляем вслепую и не помечаем как решённое
+    }
+    setText(text.slice(0,pos.start) + f.fix + text.slice(pos.end), "замена цитаты");
+    flash(pos.start, f.fix.length);
+    toast("Цитата заменена. Отменить: «↶ Отменить изменение».");
+  } else {
+    const base = text.trimEnd();
+    const start = base.length + (base ? 2 : 0);
+    setText(base + (base ? "\n\n" : "") + f.fix, "добавление блока");
+    flash(start, f.fix.length);
+    toast(PH_RE.test(f.fix) ? "Блок добавлен в конец. Заполните места в [скобках]." : "Блок добавлен в конец истории.");
+  }
   f.done = true;
   renderFindings();
-};
-
-window.markDone = function(id) {
+}
+function markDone(id) {
   const f = S.findings.find(x=>x.id === id); if(f) f.done = !f.done;
   renderFindings();
-};
-
-window.generateDefense = async function(id) {
+}
+async function draftJustification(id) {
   const f = S.findings.find(x=>x.id === id); if(!f) return;
-  const sys = `Ты юрист и врач-эксперт в РК. Задача: написать короткий (3-4 предложения) бронебойный обосновывающий абзац для вставки в историю болезни, чтобы эксперт ФСМС не смог снять деньги по кодам 6.0/6.4 за отступление от протокола или тяжесть состояния. Напиши только сам текст для вставки, без вступлений.`;
-  const prompt = `Контекст дефекта: ${f.msg}. Почему это дефект: ${f.why}. Цитата из истории: ${f.quote}. Напиши обоснование (консилиум или индивидуальную реакцию), чтобы защитить врача.`;
+  if(!$("#aiConsent").checked) return toast("Отметьте согласие на отправку текста ИИ (Шаг 2).");
+  const txt = $("#text").value.trim();
+  const d = deidentify(txt.slice(0, AI_MAX_CHARS));
+  const sys = AI_BASE + `\nТы врач-эксперт. Помоги врачу сформулировать черновик обоснования клинического решения для истории болезни. Пиши 3–5 предложений только на основе фактов из истории: показания, состояние, данные обследований, решение консилиума, если они описаны. Ничего не придумывай задним числом: если для обоснования не хватает фактов, перечисли их метками [уточнить: ...]. Если по тексту действие не обосновано, так и напиши, без попытки оправдать. Верни только текст черновика.`;
+  const prompt = `Замечание: ${f.msg}\nПояснение: ${f.why||"-"}\nЦитата: ${f.quote||"-"}\n\nИстория болезни:\n${d.text}`;
   try {
-    toast("Генерирую защиту ФСМС...");
-    const defense = await AI.ask(prompt, sys);
-    f.fix = defense.trim();
-    f.action = "add_record";
-    toast("Защита сгенерирована! Нажмите «Внедрить в историю».");
+    toast("Готовлю черновик обоснования…");
+    const res = reidentify((await AI.ask(prompt, sys)).trim(), d.map);
+    f.fix = res; f.action = "add_record"; f.draft = true; f.done = false;
+    toast("Черновик готов. Проверьте его перед добавлением в историю.");
     renderFindings();
   } catch(e) { toast(e.message); }
-};
+}
+$("#findings").addEventListener("click", e => {
+  const b = e.target.closest("button[data-act]"); if(!b) return;
+  const id = b.dataset.id;
+  if(b.dataset.act==="apply") applyFix(id);
+  else if(b.dataset.act==="done") markDone(id);
+  else if(b.dataset.act==="draft") draftJustification(id);
+});
 
 $("#text").oninput = e => $("#len").textContent = e.target.value.length + " символов";
-$("#clear").onclick = () => { $("#text").value = ""; $("#len").textContent = "0 символов"; $("#resCard").hidden = true; $("#aiCard").hidden = true; };
+$("#clear").onclick = () => {
+  if($("#text").value && !confirm("Очистить текст истории и результаты?")) return;
+  setText("", "очистка");
+  S.findings = []; S.ran = false; S.aiRan = false;
+  $("#resCard").hidden = true; $("#aiCard").hidden = true;
+};
+$("#undo").onclick = () => {
+  if(!S.undo) return;
+  const ta = $("#text"); ta.value = S.undo.value; $("#len").textContent = ta.value.length + " символов";
+  toast("Отменено: " + S.undo.why); S.undo = null; $("#undo").disabled = true;
+};
 
-$("#run").onclick = () => {
-  const txt = $("#text").value.trim(); if(!txt) return toast("Вставьте текст истории");
-  S.findings = analyzeText(txt);
+function runRules(){
+  const txt = $("#text").value.trim(); if(!txt) { toast("Вставьте текст истории"); return; }
+  // Результаты ИИ сохраняем, пересчитываем только формальные правила
+  S.findings = analyzeText(txt).concat(S.findings.filter(x=>x.src==="ai"));
   S.ran = true;
   $("#resCard").hidden = false; $("#aiCard").hidden = false;
   $("#aiWarn").hidden = !!AI.key();
   renderFindings();
-};
+}
+$("#run").onclick = runRules;
+
+function parseJsonArray(raw){
+  let s = String(raw).replace(/```(?:json)?/gi, "").trim();
+  try { const v = JSON.parse(s); if(Array.isArray(v)) return v; if(v && Array.isArray(v.findings)) return v.findings; } catch(e){}
+  const a = s.indexOf("["), b = s.lastIndexOf("]");
+  if(a >= 0 && b > a) { try { return JSON.parse(s.slice(a, b+1)); } catch(e){} }
+  throw new Error("Не удалось прочитать ответ ИИ (ожидался JSON). Попробуйте ещё раз или другую модель.");
+}
 
 $("#aiRun").onclick = async () => {
   if(!AI.key()) { toast("Введите ключ API в настройках"); location.hash = "#rules"; return; }
-  const txt = $("#text").value.trim(); if(!txt) return toast("Вставьте текст истории");
-  $("#aiStat").innerHTML = `<span class="spin"></span> ИИ читает историю (около 20 сек)...`;
-  const sop = LS.get("ad_sop","");
-  const sys = `Ты эксперт ФСМС в РК. Ищи клинические противоречия, нестыковки в дозах, отсутствие динамики, нарушение СОП (${sop}). Верни ТОЛЬКО JSON массив: [{ "msg":"суть ошибки", "why":"почему оштрафуют по классификатору", "quote":"точная дословная цитата из истории с ошибкой", "fix":"готовый исправленный текст", "sev":"crit|warn|tip", "action":"fix_text" }]`;
+  if(!$("#aiConsent").checked) return toast("Отметьте согласие на отправку текста внешнему ИИ.");
+  const full = $("#text").value.trim(); if(!full) return toast("Вставьте текст истории");
+  const cut = full.length > AI_MAX_CHARS;
+  const d = deidentify(full.slice(0, AI_MAX_CHARS));
+  const hidden = Object.keys(d.map).length;
+  const btn = $("#aiRun"); btn.disabled = true;
+  $("#aiStat").innerHTML = `<span class="spin"></span> ИИ читает историю (${full.length.toLocaleString("ru")} симв.${hidden?`, скрыто персональных данных: ${hidden}`:""})…`;
+  const sop = LS.get("ad_sop","").trim();
+  const sys = AI_BASE + `\nТы врач-эксперт по качеству медицинской помощи (неонатология и акушерство, Республика Казахстан). Найди в истории: клинические противоречия; несоответствия доз массе ребёнка и кратности; ошибки хронологии (событие раньше поступления, рождения и т. п.); отсутствие динамики в дневниках; недостающие обязательные записи.` +
+    (sop ? `\nПравила клиники (СОП), которые нужно учитывать:\n${sop}` : "") +
+    `\nДля каждого замечания укажи тип: «документация», «клиника», «доза», «хронология» или «нет данных». Если для вывода не хватает данных, тип — «нет данных», sev — «tip». Не выдавай отклонение от стандартного алгоритма за дефект, если в истории описана причина.
+Поле quote — ТОЧНАЯ дословная цитата из истории (до 300 символов) или пустая строка, если замечание об отсутствии записи. Поле fix — исправленный текст без выдуманных значений; недостающее пиши как [уточнить: ...]. action — «fix_text», если fix заменяет quote, иначе «add_record».
+Верни ТОЛЬКО JSON-массив: [{"msg":"суть","why":"почему это важно и что сверить","type":"документация|клиника|доза|хронология|нет данных","quote":"","fix":"","sev":"crit|warn|tip","action":"fix_text|add_record"}]. Если замечаний нет — верни [].`;
   try {
-    const raw = await AI.ask("История:\n" + txt.slice(0,18000), sys);
-    let jsonMatch = raw.match(/\[[\s\S]*\]/);
-    if(jsonMatch) {
-      const arr = JSON.parse(jsonMatch[0]);
-      arr.forEach((a, i) => {
-        S.findings.push({ id:"ai"+i, src:"ai", sev:a.sev||"warn", cat:"Клиническая логика", msg:a.msg, why:a.why, quote:a.quote, fix:a.fix, action:a.action||"fix_text" });
-      });
-      toast("ИИ-проверка завершена");
-    } else throw new Error("Не удалось прочитать ответ ИИ");
+    const raw = await AI.ask("История:\n" + d.text, sys, {json:true});
+    const arr = parseJsonArray(raw);
+    S.aiRunId++;
+    S.findings = S.findings.filter(x=>x.src!=="ai"); // повторный запуск заменяет, а не дублирует
+    arr.filter(a => a && a.msg).forEach((a, i) => {
+      const quote = reidentify(a.quote||"", d.map).trim();
+      S.findings.push({ id:`ai${S.aiRunId}-${i}`, src:"ai", sev:normSev(a.sev), cat:a.type ? String(a.type) : "Клиническая логика",
+        msg:reidentify(a.msg, d.map), why:reidentify(a.why||"", d.map), quote,
+        fix:reidentify(a.fix||"", d.map), action: (a.action==="fix_text" && quote) ? "fix_text" : "add_record" });
+    });
+    S.aiRan = true;
+    toast(`ИИ-проверка завершена: замечаний ${arr.length}` + (cut ? `. Внимание: проанализированы первые ${AI_MAX_CHARS.toLocaleString("ru")} символов.` : ""));
   } catch(e) { toast(e.message); }
-  $("#aiStat").textContent = "";
+  btn.disabled = false;
+  $("#aiStat").textContent = cut ? `Текст длиннее ${AI_MAX_CHARS.toLocaleString("ru")} символов — конец истории ИИ не видел.` : "";
   renderFindings();
 };
 
-// Модуль Аудита и КиЛИ
+/* ================= Аудит и КиЛИ ================= */
 $$("[data-kact]").forEach(btn => btn.onclick = async () => {
   if(!AI.key()) { toast("Введите ключ API во вкладке Настройки ИИ"); location.hash = "#rules"; return; }
-  const txt = $("#text").value.trim();
-  if(!txt) return toast("Сначала вставьте текст истории на первой вкладке!");
+  if(!$("#aiConsent").checked) { toast("Отметьте согласие на отправку текста ИИ на первой вкладке (Шаг 2)."); return; }
+  const full = $("#text").value.trim();
+  if(!full) return toast("Сначала вставьте текст истории на первой вкладке!");
   const path = $("#kiliPath").value.trim();
   const act = btn.dataset.kact;
-  $("#kiliStat").innerHTML = `<span class="spin"></span> Формирую документ...`;
+  if(act==="compare" && !path) return toast("Для сличения диагнозов вставьте протокол вскрытия.");
+  const cut = full.length > AI_MAX_CHARS;
+  const d = deidentify(full.slice(0, AI_MAX_CHARS) + "\n\n=== ПРОТОКОЛ ВСКРЫТИЯ ===\n" + (path || "не представлен"));
+  $("#kiliStat").innerHTML = `<span class="spin"></span> Формирую документ…`;
   const prompts = {
-    review: `Составь официальную экспертную рецензию на историю болезни для службы внутреннего аудита и КиЛИ МЗ РК: 1. Краткий анамнез и статус при поступлении. 2. Оценка своевременности и полноты диагностики по клиническим протоколам МЗ РК. 3. Оценка адекватности лечения и дозировок. 4. Выявленные дефекты ведения и оформления (с кодами риска ФСМС). 5. Заключение и рекомендации.`,
-    timeline: `Построй поминутный и почасовой авто-хронометраж ухудшения состояния и реанимационных мероприятий (СЛР) для разбора на КиЛИ. Проверь соответствие интервалов введения адреналина, интубации, коррекции КЩС и инфузии протоколам реанимации МЗ РК. Отметь все нестыковки по времени.`,
-    compare: `Проведи экспертное сличение заключительного клинического диагноза и патологоанатомического диагноза для протокола КиЛИ. Выдели: 1) Основное заболевание, 2) Осложнения, 3) Сопутствующие заболевания. Укажи, есть ли расхождение, категорию расхождения (I, II или III) и сформулируй юридически и клинически грамотное обоснование для комиссии.`
+    review: `Составь черновик экспертной рецензии на историю болезни для внутреннего аудита: 1. Общие сведения и статус при поступлении. 2. Своевременность и полнота диагностики. 3. Обоснованность лечения и дозировок (дозы сверяй с массой, указанной в истории). 4. Выявленные несоответствия ведения и оформления. 5. Отсутствующие данные (отдельным списком). 6. Замечания, требующие клинического рассмотрения. 7. Заключение. Отделяй установленные по тексту факты от вопросов к лечащему врачу.`,
+    timeline: `Построй хронологию ухудшения состояния и реанимационных мероприятий (СЛР) для разбора на КиЛИ: таблица «дата и время — событие — источник (какая запись истории)». Используй только время, указанное в тексте. Если время не указано, пиши «время не указано», не вычисляй его. Отдельно перечисли нестыковки по времени и интервалы, которые нужно сопоставить с протоколом реанимации.`,
+    compare: `Сопоставь заключительный клинический и патологоанатомический диагнозы для протокола КиЛИ. Выдели: 1) основное заболевание, 2) осложнения, 3) сопутствующие заболевания. Укажи, есть ли расхождение, и предложи категорию расхождения с обоснованием. Окончательное решение принимает комиссия, это нужно указать в тексте.`
   };
   try {
-    const res = await AI.ask(`История болезни:\n${txt.slice(0,18000)}\n\nПротокол вскрытия:\n${path}`, prompts[act]);
-    $("#kiliOut").value = res.trim();
-    toast("Документ готов!");
+    const res = await AI.ask(`История болезни:\n${d.text}`, AI_BASE + "\n" + prompts[act]);
+    $("#kiliOut").value = "ЧЕРНОВИК, подготовлен с помощью ИИ, требует проверки экспертом.\n\n" + reidentify(res.trim(), d.map);
+    toast(cut ? "Документ готов. Внимание: история длинная, конец не вошёл." : "Документ готов!");
   } catch(e) { toast(e.message); }
-  $("#kiliStat").textContent = "";
+  $("#kiliStat").textContent = cut ? `ИИ видел первые ${AI_MAX_CHARS.toLocaleString("ru")} символов истории.` : "";
 });
 
+/* ================= Экспорт ================= */
 function saveWord(txt, name) {
   if(!txt) return toast("Пусто");
-  const html = `<html><head><meta charset='utf-8'></head><body>${txt.replace(/\n/g,"<br>")}</body></html>`;
-  const blob = new Blob(['\ufeff', html], {type: 'application/msword'});
+  if(PH_RE.test(txt) && !confirm("В тексте остались незаполненные места в [скобках]. Всё равно выгрузить?")) return;
+  // Экранируем текст, иначе «<», «>» и «&» (pH <7.2) ломают документ
+  const html = `<html><head><meta charset='utf-8'></head><body style="font-family:'Times New Roman';font-size:12pt">${esc(txt).replace(/\n/g,"<br>")}</body></html>`;
+  const blob = new Blob(['﻿', html], {type: 'application/msword'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
   document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
 }
 $("#dlWord").onclick = () => saveWord($("#text").value.trim(), "История_исправленная.doc");
 $("#kiliWord").onclick = () => saveWord($("#kiliOut").value.trim(), "Рецензия_КиЛИ.doc");
-$("#kiliCopy").onclick = () => { navigator.clipboard.writeText($("#kiliOut").value); toast("Скопировано"); };
+$("#kiliCopy").onclick = () => copyText($("#kiliOut").value).then(ok=>toast(ok?"Скопировано":"Не удалось скопировать — выделите текст вручную"));
 
-$("#formatDocs").onclick = () => {
-  let t = $("#text").value;
-  t = t.replace(/(Трансфузия|Операционная|Внутривенно|Зонд|Дренаж\d|Стул|Диурез):\s*0/gi, "");
+/* Удаляем только служебные строки с нулём (Трансфузия: 0 и т. п.).
+   «Диурез: 0» и «Стул: 0» НЕ трогаем — это клинически значимые данные.
+   Ноль должен быть целым значением: «0,8» и «0.5» не трогаются. */
+const JUNK_LABELS = "Трансфузия|Операционная|Внутривенно|Зонд|Дренаж\\s*\\d*";
+function cleanJunk(t){
+  let n = 0;
+  const one = new RegExp(`(^|[\\s;,])(?:${JUNK_LABELS})\\s*:\\s*0(?:[.,]0+)?(?:\\s*мл)?(?![\\d.,]*\\d)(?=\\s*(?:[;,]|$))`, "gim");
+  t = t.replace(one, (m, pre) => { n++; return pre; });
+  t = t.replace(/[ \t]*[;,][ \t]*(?=\n|$)/g, m => m.trim() ? "" : m); // висячие разделители
+  t = t.replace(/[ \t]+$/gm, "");
   t = t.replace(/(\n\s*){3,}/g, "\n\n");
-  $("#text").value = t.trim();
-  toast("Текст очищен от системного мусора");
+  return { text:t.trim(), n };
+}
+$("#formatDocs").onclick = () => {
+  const r = cleanJunk($("#text").value);
+  if(!r.n && r.text === $("#text").value.trim()) return toast("Служебных строк не найдено");
+  setText(r.text, "очистка от служебных строк");
+  toast(`Удалено служебных полей: ${r.n}. Отменить: «↶ Отменить изменение».`);
 };
 
+/* ================= Настройки ================= */
 $("#aiKey").value = LS.get("ad_aiKey","");
-$("#aiKey").onchange = e => LS.set("ad_aiKey", e.target.value.trim());
-$("#aiModel").value = LS.get("ad_aiModel","gemini-flash-latest");
-$("#aiModel").onchange = e => LS.set("ad_aiModel", e.target.value);
+$("#aiKey").onchange = e => { LS.set("ad_aiKey", e.target.value.trim()); $("#aiModel").value = AI.model(); };
+$("#aiModel").value = AI.model();
+$("#aiModel").onchange = e => {
+  LS.set("ad_aiModel", e.target.value);
+  if(AI.key() && AI.model() !== e.target.value) { toast("Эта модель не подходит к введённому ключу — будет использована " + AI.model()); }
+};
 $("#cfgSop").value = LS.get("ad_sop","");
 $("#cfgSave").onclick = () => { LS.set("ad_sop", $("#cfgSop").value); toast("Настройки сохранены"); };
+$("#aiConsent").checked = LS.get("ad_consent", false);
+$("#aiConsent").onchange = e => LS.set("ad_consent", e.target.checked);
 
 $$("#profile button").forEach(b => b.onclick = () => {
   $$("#profile button").forEach(x => x.classList.remove("on"));
   b.classList.add("on"); S.profile = b.dataset.p;
+  if(S.ran) runRules(); // пересчитать правила для нового профиля
 });
 
 window.addEventListener("hashchange", () => {
@@ -407,6 +605,9 @@ window.addEventListener("hashchange", () => {
   const tab = $(`.tabs a[href="#${h}"]`); if(tab) tab.classList.add("on");
 });
 location.hash = location.hash || "#check"; window.dispatchEvent(new Event("hashchange"));
+
+// Для автотестов
+window.AD = { analyzeText, checkRule, deidentify, reidentify, cleanJunk, findQuote, normSev, parseJsonArray, esc, RULES, S, AI };
 </script>
 </body>
 </html>
