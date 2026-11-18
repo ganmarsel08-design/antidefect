@@ -123,6 +123,12 @@ class NegativeScenarios(unittest.TestCase):
         db['rules'].append(extra)
         self.assertTrue(any('5–10 правил' in e for e in errs(db)))
 
+    def test_class_without_modal_word_needs_expert_question(self):
+        db = copy.deepcopy(DB)
+        r = next(x for x in db['rules'] if x['rule_id'] == 'NEC-004')
+        r['ambiguities'] = [a for a in r['ambiguities'] if 'модальн' not in a['text']]
+        self.assertTrue(any('без модального слова' in e for e in errs(db)))
+
     def test_duplicate_rule_id(self):
         db = copy.deepcopy(DB)
         db['rules'][1]['rule_id'] = db['rules'][0]['rule_id']

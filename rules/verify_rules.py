@@ -122,8 +122,8 @@ def check(db, registry=None, pdf_dir=None):
             errs.append(f'{rid}: недопустимый вид правила')
         if r['normativity'] == 'противопоказано' and 'противопоказ' not in ' '.join(q['text'].lower() for q in r['source']['quotes']):
             errs.append(f'{rid}: «противопоказано» без такого слова в цитате')
-        if r['normativity'] == 'обязательно' and r['normativity_marker'].startswith('без модального') and not r['ambiguities']:
-            warns.append(f'{rid}: «обязательно» без модального слова и без вопроса эксперту')
+        if 'без модального' in r['normativity_marker'] and not any('модальн' in a['text'] for a in r['ambiguities']):
+            errs.append(f'{rid}: класс выставлен без модального слова, но вопрос эксперту о классе не поставлен')
         if r['status'] != CANDIDATE:
             if not r.get('expert_confirmation'):
                 errs.append(f'{rid}: статус «{r["status"]}» без подтверждения эксперта')
