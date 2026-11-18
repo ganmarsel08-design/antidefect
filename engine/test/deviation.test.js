@@ -10,9 +10,11 @@ function deepFreeze(o) {
   if (o && typeof o === 'object' && !Object.isFrozen(o)) { Object.freeze(o); Object.values(o).forEach(deepFreeze); }
   return o;
 }
+// Синтетические записи «из реестра»: официальное подтверждение и проверка актуальности
 const searched = (o) => Object.assign({
   protocol_no: 'T-1', approved_date: '01.01.2020 (синтетический)', edition: 'ред. 1',
-  registry_status: 'действует', valid_on_care_date: 'да', sections: ['раздел 1'], applicability: 'синтетическая группа'
+  registry_status: 'действует', valid_on_care_date: 'да', sections: ['раздел 1'], applicability: 'синтетическая группа',
+  official_evidence: 'подтверждено_официальным_PDF', currency_verified: true, protocol_type: 'диагностика_и_лечение'
 }, o || {});
 
 // Назначение по протоколу: всё на месте
@@ -402,4 +404,61 @@ test('риск 2: изменение показаний (клиническог�
 test('риск 2: оценка другого источника не переносится', () => {
   const d = diffDev(); d.evidence = [goodEvidence(d, { citation: 'Синтетическая публикация Б' })];   // оценка выдана для А
   assert.equal(E.evaluate(d).status, S.EXPERT);
+});
+
+/* ---------- Этап 4: требования проверки PR #6 ---------- */
+
+test('ручная отметка «действует» без официального подтверждения не разблокирует положительный вывод', () => {
+  const d = base(); d.protocol_check.searched[0].official_evidence = undefined;
+  const r = E.evaluate(d);
+  assert.equal(r.status, S.EXPERT); assert.equal(r.positive_blocked, true);
+  assert.ok(r.blocked_by.some(x => x.includes('ручной отметки недостаточно')));
+});
+
+test('официальный документ без проверки актуальности не даёт положительного вывода', () => {
+  const d = base(); d.protocol_check.searched[0].currency_verified = false;
+  const r = E.evaluate(d);
+  assert.equal(r.positive_blocked, true);
+  assert.ok(r.blocked_by.some(x => x.includes('актуальность редакции')));
+});
+
+test('вторичный источник не заменяет официальное подтверждение', () => {
+  const d = base(); d.protocol_check.searched[0].official_evidence = 'только_вторичный_источник';
+  assert.equal(E.evaluate(d).positive_blocked, true);
+});
+
+test('номер заседания ОКК не идентифицирует документ: два документа №185 → невозможно проверить', () => {
+  const d = base();
+  d.protocol_check.searched = [searched({ protocol_no: '185', doc_id: 'КП-ДЛ:sepsis:2023-07-28' }), searched({ protocol_no: '185', doc_id: 'КП-ДЛ:nek:2023-07-28' })];
+  d.protocol_check.match.protocol_no = '185';
+  const r = E.evaluate(d);
+  assert.equal(r.clinical.relation, 'невозможно_проверить');
+  assert.ok(r.reasons.some(x => x.includes('не идентифицирует документ однозначно')));
+  // по doc_id — однозначно
+  const d2 = base();
+  d2.protocol_check.searched = d.protocol_check.searched;
+  d2.protocol_check.match = Object.assign({}, d.protocol_check.match, { doc_id: 'КП-ДЛ:nek:2023-07-28' });
+  const r2 = E.evaluate(d2);
+  assert.equal(r2.status, S.COMPLIANT);
+  assert.ok(r2.clinical.statement.includes('КП-ДЛ:nek:2023-07-28'));
+});
+
+test('полнота подтверждается по doc_id, а не по номеру заседания', () => {
+  const d = deviation(); d.evidence = [goodEvidence(d)];
+  d.protocol_check.searched = [searched({ protocol_no: '185', doc_id: 'КП-ДЛ:a:2023-07-28' }), searched({ protocol_no: '185', doc_id: 'КП-ДЛ:b:2023-07-28' })];
+  d.protocol_check.registry_coverage.completeness_attestation = E.attestRegistryCompleteness({ confirmed_by: 'э', total: 29, registry_version: 'v', basis: 'b', checked_protocols: ['185'] }).attestation;
+  assert.ok(E.evaluate(d).blocked_by.some(x => x.includes('заявлена, но не подтверждена')));
+});
+
+test('недопустимый тип протокола отклоняется', () => {
+  const d = base(); d.protocol_check.searched[0].protocol_type = 'лечение';
+  assert.equal(E.evaluate(d).ok, false);
+});
+
+test('блокировка из-за неполноты реестра сохраняется при полном официальном подтверждении', () => {
+  const d = deviation(); d.evidence = [goodEvidence(d)];
+  d.protocol_check.registry_coverage.missing_applicable = ['Крайняя незрелость'];
+  const r = E.evaluate(d);
+  assert.equal(r.clinical.relation, 'невозможно_проверить');
+  assert.notEqual(r.status, S.JUSTIFIED);
 });

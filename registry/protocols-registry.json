@@ -1,5 +1,5 @@
 {
- "version": "0.1-candidate",
+ "version": "0.2-candidate",
  "created": "2026-11-18",
  "source_text": "neo-pro/data/protocols.json (только чтение)",
  "official_sources": {
@@ -46,7 +46,8 @@
    "approval": {
     "no": "180",
     "date": "17 марта 2023",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2023-03-17"
    },
    "icd": [],
    "internal_check": {
@@ -62,7 +63,8 @@
     "revision_line": "2014 год (пересмотр 2023 год)",
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "e278f8af3fe0584bb911c91f78234309339d23ebf0638d3d4bfd608558f55354"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -71,7 +73,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "890da176ed047f299eb89d53cd3fe1e14fd4e33c8acc01932bc85025f6788602",
-   "note": ""
+   "note": "",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-ДЛ:asfiksia-pri-rojdenii:2023-03-17",
+   "okk_meeting_no": "180",
+   "topic": "asfiksiya-pri-rozhdenii",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "gipotermiya-cepochka",
@@ -80,7 +99,8 @@
    "approval": {
     "no": "10",
     "date": "4 июля 2014",
-    "body": "Экспертная комиссия МЗ РК"
+    "body": "Экспертная комиссия МЗ РК",
+    "date_iso": "2014-07-04"
    },
    "icd": [
     "Р80",
@@ -102,7 +122,8 @@
     "revision_line": "2014",
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "895486c09ad5bdaf065735729c900fc773bc868a95c0fb8b5d68ce0fd34e7670"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -111,7 +132,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "b506020a65061f689d371fec0ef60d7aa382309bc500422bc2ba74f2e25a74a8",
-   "note": "Сопоставлено по номеру, дате и коду Р80; в базе — «Гипотермия цепочка»."
+   "note": "Сопоставлено по номеру, дате и коду Р80; в базе — «Гипотермия цепочка».",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-ДЛ:gipotermia-novorojdennyh-teplovaa-zasita-novorojdennogo:2014-07-04",
+   "okk_meeting_no": "10",
+   "topic": "gipotermiya-cepochka",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "nek-pediatriya",
@@ -120,7 +158,8 @@
    "approval": {
     "no": "154",
     "date": "23 декабря 2021",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2021-12-23"
    },
    "icd": [
     "Р77"
@@ -138,7 +177,8 @@
     "revision_line": "2014 год (пересмотр 2021 год)",
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "dd9b0ea919990db6fdb93ab23e0c82bb077499beab8c089c3c5c24b63699574f"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -147,7 +187,25 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "20b2d5bbbf0081caca424248dafd3cc132911858ae4b12c623c18d4bbcd090de",
-   "note": "Официальное название — «Язвенно-некротический энтероколит»; в официальном документе «Категория пациентов: новорожденные», а в базе НеоДневника протокол подписан как «педиатрия, дети старше периода н/р». Нужна сверка эксперта."
+   "note": "Официальное название — «Язвенно-некротический энтероколит», категория — новорожденные. Отношение к №185 (2023) — по истории редакций, она не проверена; №154 не помечается заменённым.",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-ДЛ:azvenno-nekroticeskij-enterokolit:2021-12-23",
+   "okk_meeting_no": "154",
+   "topic": "nek",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": "новорожденные",
+   "base_metadata_error": "В базе НеоДневника подписан «педиатрия, дети старше периода н/р»; по официальному документу №154 категория пациентов — новорожденные. Исправлено в реестре; neo-pro не изменён."
   },
   {
    "id": "reanimaciya-novorozhdennyh",
@@ -156,7 +214,8 @@
    "approval": {
     "no": "180",
     "date": "17 марта 2023",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2023-03-17"
    },
    "icd": [
     "Р21.0",
@@ -176,7 +235,8 @@
     "revision_line": "2014 год (пересмотр 2018 год/2023 год)",
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "e278f8af3fe0584bb911c91f78234309339d23ebf0638d3d4bfd608558f55354"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -185,7 +245,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "86b8f84a464bcbd549b97c6658e378e8bc64b611a9684666594ac8fcce921702",
-   "note": ""
+   "note": "",
+   "protocol_type": "медицинское_вмешательство",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-МВ:reanimacia-novorojdennyh:2023-03-17",
+   "okk_meeting_no": "180",
+   "topic": "reanimaciya-novorozhdennyh",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "retinopatiya",
@@ -194,7 +271,8 @@
    "approval": {
     "no": "166",
     "date": "05 августа 2022",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2022-08-05"
    },
    "icd": [
     "H35.0",
@@ -213,7 +291,8 @@
     "revision_line": "2017 год (пересмотр 2019 г.)",
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "06ac14420a45d738360c84b088e7fc42649923e66565b88d1268194bc5686741"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -222,7 +301,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "cd826d9bd581ce1ae1fd25ac1106484bab1f8cf34775dc94389856b9412f990b",
-   "note": "Строка «пересмотр 2019 г.» в официальном PDF расходится с датой одобрения 2022 — так в первоисточнике."
+   "note": "Строка «пересмотр 2019 г.» в официальном PDF расходится с датой одобрения 2022 — так в первоисточнике.",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-ДЛ:aktivnaa-retinopatia-nedonosennyh:2022-08-05",
+   "okk_meeting_no": "166",
+   "topic": "retinopatiya",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "uhod-za-rebenkom",
@@ -231,7 +327,8 @@
    "approval": {
     "no": "10",
     "date": "4 июля 2014",
-    "body": "Экспертная комиссия МЗ РК"
+    "body": "Экспертная комиссия МЗ РК",
+    "date_iso": "2014-07-04"
    },
    "icd": [
     "Z76.2"
@@ -249,7 +346,8 @@
     "revision_line": "2014",
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "895486c09ad5bdaf065735729c900fc773bc868a95c0fb8b5d68ce0fd34e7670"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -258,7 +356,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "4d1d30775cbbfe547bd8a02302efbcbeafe761f1e0cde53ea4cd5cb2ba31ac92",
-   "note": "Сопоставлено по номеру, дате и коду Z76.2; официальное название — «Уход за здоровым новорожденным»."
+   "note": "Сопоставлено по номеру, дате и коду Z76.2; официальное название — «Уход за здоровым новорожденным».",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-ДЛ:uhod-za-zdorovym-novorojdennym:2014-07-04",
+   "okk_meeting_no": "10",
+   "topic": "uhod-za-rebenkom",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "vrozhdennaya-pnevmoniya",
@@ -267,7 +382,8 @@
    "approval": {
     "no": "10",
     "date": "4 июля 2014",
-    "body": "Экспертная комиссия МЗ РК"
+    "body": "Экспертная комиссия МЗ РК",
+    "date_iso": "2014-07-04"
    },
    "icd": [
     "Р23",
@@ -292,7 +408,8 @@
     "revision_line": "2014",
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "895486c09ad5bdaf065735729c900fc773bc868a95c0fb8b5d68ce0fd34e7670"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -301,7 +418,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "f391cd92b9f371e852d3fa463997db6f8eeb5747aa6a1d20eb777214e4e2700f",
-   "note": ""
+   "note": "",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-ДЛ:vrojdennaa-pnevmonia:2014-07-04",
+   "okk_meeting_no": "10",
+   "topic": "vrozhdennaya-pnevmoniya",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "cmv",
@@ -310,7 +444,8 @@
    "approval": {
     "no": "185",
     "date": "28 июля 2023",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2023-07-28"
    },
    "icd": [
     "P35.1",
@@ -329,7 +464,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "ad51aa6f10cc2afe1b38eba86863db576dae9ebf8041456ddf9a2fbcda1cf438"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -338,7 +474,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "d768b76a3ac0da93f7a0efda5ad214c61478d898a24f80906546b12f627eec24",
-   "note": ""
+   "note": "",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-ДЛ:vrojdennaa-i-perinatal-naa-citomegalovirusnaa-infekcia:2023-07-28",
+   "okk_meeting_no": "185",
+   "topic": "cmv",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "gbn",
@@ -347,7 +500,8 @@
    "approval": {
     "no": "92",
     "date": "30 апреля 2020",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2020-04-30"
    },
    "icd": [
     "Р55",
@@ -372,7 +526,8 @@
     "revision_line": "2014 год (пересмотр 2019 г.)",
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "372488b7fa1155c55e5d497a430ff0fa5587fb28106ce71afdd5fdaf2e966ada"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -381,7 +536,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "72ec6dfb869980e4f5fbfb5e747ebedc5d4d97eb6cc0b836b4a4cbb4cb2e6131",
-   "note": "В выдержке виден номер, дата одобрения не прочитана."
+   "note": "В выдержке виден номер, дата одобрения не прочитана.",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-ДЛ:gemoliticeskaa-bolezn-ploda-i-novorojdennogo:2020-04-30",
+   "okk_meeting_no": "92",
+   "topic": "gbn",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "ispolzovanie-preparatov-donorskoy-krovi",
@@ -390,7 +562,8 @@
    "approval": {
     "no": "185",
     "date": "28 июля 2023",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2023-07-28"
    },
    "icd": [],
    "internal_check": {
@@ -406,7 +579,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "091f36bb9dd383b701d4a2ebb1b658dd297ed21c6e12a9468542736f96e35420"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -415,7 +589,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "35414698ed3f9113ebad3aac0b9e7cb7b5f09011983c5c9d96dd4381acd0f177",
-   "note": "В выдержке виден номер, дата одобрения не прочитана."
+   "note": "В выдержке виден номер, дата одобрения не прочитана.",
+   "protocol_type": "медицинское_вмешательство",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-МВ:ispol-zovanie-preparatov-donorskoj-krovi-u-novorojdennyh:2023-07-28",
+   "okk_meeting_no": "185",
+   "topic": "ispolzovanie-preparatov-donorskoy-krovi",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "policitemiya",
@@ -424,7 +615,8 @@
    "approval": {
     "no": "27",
     "date": "15 сентября 2017",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2017-09-15"
    },
    "icd": [
     "Р61.1"
@@ -442,7 +634,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "d25b2e778aac6eac5fc158857a03d546a4cea335852bf5a8a8075d99fd6843d0"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -451,7 +644,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "5193a6922e24b427fb9434a23ce226f9b9d81cd0dbe5ef350f9ac358e9e58af6",
-   "note": "В выдержке виден номер, дата одобрения не прочитана."
+   "note": "В выдержке виден номер, дата одобрения не прочитана.",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-ДЛ:policitemia-novorojdennogo:2017-09-15",
+   "okk_meeting_no": "27",
+   "topic": "policitemiya",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "poroki-razvitiya-diafragmy",
@@ -460,7 +670,8 @@
    "approval": {
     "no": "231",
     "date": "28 мая 2025",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2025-05-28"
    },
    "icd": [
     "Q79.0",
@@ -479,7 +690,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "bb8a17788a49950d53ca9e03600f7f50d5d7d8acffc85142d05c7f5844963373"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -488,7 +700,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "0ed896a563cd3508995cf72db3ccb0057819f82911895721ba92e0ce4becffc3",
-   "note": "В выдержке виден номер, дата одобрения не прочитана."
+   "note": "В выдержке виден номер, дата одобрения не прочитана.",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-ДЛ:poroki-razvitia-diafragmy-u-novorojdennyh:2025-05-28",
+   "okk_meeting_no": "231",
+   "topic": "poroki-razvitiya-diafragmy",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "sepsis",
@@ -497,7 +726,8 @@
    "approval": {
     "no": "185",
     "date": "28 июля 2023",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2023-07-28"
    },
    "icd": [
     "Р36",
@@ -522,7 +752,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "1ec593a8c6e6aa44dfd2394207e67a82467a229aa36d51a07a82eb4f657e2b94"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -531,7 +762,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "8af99bde4c85fd7547489da3fc7abdd7885cd4f826e2da6b75916c8f3a17401a",
-   "note": ""
+   "note": "",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-ДЛ:bakterial-nyj-sepsis-novorojdennogo:2023-07-28",
+   "okk_meeting_no": "185",
+   "topic": "sepsis",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "uhod-za-malovesnymi",
@@ -540,7 +788,8 @@
    "approval": {
     "no": "177",
     "date": "13 января 2023",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2023-01-13"
    },
    "icd": [
     "Р05",
@@ -559,7 +808,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "d13d92a7e780148bd9c80ddc6831cc4951c2723138abaa7282d98d094bd8d503"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -568,7 +818,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "3cdd11a942d291e2dc3e6ab1dc9ec157be343f95653181a312a45ce8554ba22a",
-   "note": ""
+   "note": "",
+   "protocol_type": "медицинское_вмешательство",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-МВ:uhod-za-malovesnymi-novorojdennymi:2023-01-13",
+   "okk_meeting_no": "177",
+   "topic": "uhod-za-malovesnymi",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "bld",
@@ -577,7 +844,8 @@
    "approval": {
     "no": "210",
     "date": "28 июня 2024",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2024-06-28"
    },
    "icd": [
     "P27.1",
@@ -601,7 +869,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "ec4323dca00f147755f6769a0f4ba0919cab9c84e44a3c3440756fb39149256a"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -610,7 +879,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "a00876e1b62b1a9fa805d50936d89866890b72537961dc3df0d815d236299849",
-   "note": "Одобрение подтверждено официальным протоколом заседания ОКК №210 от 28.06.2024; PDF самого протокола на сайте не найден в этой сверке."
+   "note": "Одобрение подтверждено официальным протоколом заседания ОКК №210 от 28.06.2024; PDF самого протокола на сайте не найден в этой сверке.",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-ДЛ:bronholegocnaa-displazia-vozniksaa-v-perinatal-nom-periode:2024-06-28",
+   "okk_meeting_no": "210",
+   "topic": "bld",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "giperammoniemiya",
@@ -619,7 +905,8 @@
    "approval": {
     "no": "220",
     "date": "28 ноября 2024",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2024-11-28"
    },
    "icd": [
     "Е72",
@@ -639,7 +926,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": null
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -648,7 +936,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "1a3bde0664059149ad5142cf092d5b49d5bb9f7e0c237ef0de4de64bf9edf676",
-   "note": "Документ есть на официальном сайте; номер и дата одобрения не прочитаны."
+   "note": "Документ есть на официальном сайте; номер и дата одобрения не прочитаны.",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-ДЛ:giperammoniemia-narusenie-cikla-moceviny:2024-11-28",
+   "okk_meeting_no": "220",
+   "topic": "giperammoniemiya",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "nek",
@@ -657,7 +962,8 @@
    "approval": {
     "no": "185",
     "date": "28 июля 2023",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2023-07-28"
    },
    "icd": [
     "Р77"
@@ -675,7 +981,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "1ede35ddcf956a8b3ea78872e8331b4ea20d18abd87aa2ac7b676775f8721a3d"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -684,7 +991,30 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "1e50782ffb4be865b4d8e9eb2682b7f839fadf23e5552c32dee2a4bc3d28fc13",
-   "note": "Только MedElement (вторичный источник). Официальный PDF не найден."
+   "note": "Только MedElement (вторичный источник). Официальный PDF не найден. Более поздний пересмотр по теме НЭК — приоритетный кандидат для проверки лечения новорожденных при помощи после 28.07.2023.",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-ДЛ:nekrotiziruusij-enterokolit-novorojdennyh:2023-07-28",
+   "okk_meeting_no": "185",
+   "topic": "nek",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "reviewer_claim": {
+    "by": "ChatGPT (независимая проверка PR #6)",
+    "claim": "официальный PDF найден на nrchd.kz",
+    "url": null,
+    "status": "не подтверждено: точный URL не предоставлен; повторный поиск Claude по сайту документ не нашёл"
+   },
+   "patient_category": "новорожденные"
   },
   {
    "id": "parenteralnoe-pitanie",
@@ -693,7 +1023,8 @@
    "approval": {
     "no": "185",
     "date": "28 июля 2023",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2023-07-28"
    },
    "icd": [],
    "internal_check": {
@@ -709,7 +1040,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": "f45cbefb612d81ca2f3f8496f37828760c50f17f6aed2590305e4d04f92fe22c"
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -718,7 +1050,30 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "3310a7ec0887a03f1eb73d1c65a4b6b6f0a6ef7aa0ece64c47cfc0b8b8eeec7a",
-   "note": "Только MedElement (вторичный источник). Официальный PDF не найден."
+   "note": "Только MedElement (вторичный источник). Официальный PDF не найден.",
+   "protocol_type": "медицинское_вмешательство",
+   "protocol_type_source": "шапка официального документа",
+   "doc_id": "КП-МВ:parenteral-noe-pitanie-novorojdennyh:2023-07-28",
+   "okk_meeting_no": "185",
+   "topic": "parenteralnoe-pitanie",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "reviewer_claim": {
+    "by": "ChatGPT (независимая проверка PR #6)",
+    "claim": "официальный PDF найден на nrchd.kz",
+    "url": null,
+    "status": "не подтверждено: точный URL не предоставлен; повторный поиск Claude по сайту документ не нашёл"
+   },
+   "patient_category": null
   },
   {
    "id": "diabeticheskaya-fetopatiya",
@@ -727,7 +1082,8 @@
    "approval": {
     "no": "27",
     "date": "15 сентября 2017",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2017-09-15"
    },
    "icd": [
     "Р70.0",
@@ -746,7 +1102,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": null
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -755,7 +1112,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "c6dee15866a3fa2f3638317ed6debc1523b7eb11a181294a2060dc8460da839e",
-   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен).",
+   "protocol_type": "не_установлен",
+   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
+   "doc_id": "КП:diabeticeskaa-fetopatia:2017-09-15",
+   "okk_meeting_no": "27",
+   "topic": "diabeticheskaya-fetopatiya",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "enteralnoe-pitanie",
@@ -764,7 +1138,8 @@
    "approval": {
     "no": "177",
     "date": "13 января 2023",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2023-01-13"
    },
    "icd": [],
    "internal_check": {
@@ -780,7 +1155,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": null
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -789,7 +1165,30 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "aaefeab1a90b0c045cb904b0d18edd3113e337f361b4d1d1b464a62257b96b8a",
-   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен).",
+   "protocol_type": "не_установлен",
+   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
+   "doc_id": "КП:enteral-noe-pitanie:2023-01-13",
+   "okk_meeting_no": "177",
+   "topic": "enteralnoe-pitanie",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "reviewer_claim": {
+    "by": "ChatGPT (независимая проверка PR #6)",
+    "claim": "официальный PDF найден на nrchd.kz",
+    "url": null,
+    "status": "не подтверждено: точный URL не предоставлен; повторный поиск Claude по сайту документ не нашёл"
+   },
+   "patient_category": null
   },
   {
    "id": "gemorragicheskaya-bolezn",
@@ -798,7 +1197,8 @@
    "approval": {
     "no": "1",
     "date": "21 января 2014",
-    "body": "Экспертная комиссия МЗ РК"
+    "body": "Экспертная комиссия МЗ РК",
+    "date_iso": "2014-01-21"
    },
    "icd": [
     "Р53",
@@ -820,7 +1220,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": null
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -829,7 +1230,30 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "cb453024538dc15d48d1a5c84bf0f18c2880bc95e142e45c89a096e1d7065938",
-   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен).",
+   "protocol_type": "не_установлен",
+   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
+   "doc_id": "КП:gemorragiceskaa-bolezn:2014-01-21",
+   "okk_meeting_no": "1",
+   "topic": "gemorragicheskaya-bolezn",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "reviewer_claim": {
+    "by": "ChatGPT (независимая проверка PR #6)",
+    "claim": "официальный PDF найден на nrchd.kz",
+    "url": null,
+    "status": "не подтверждено: точный URL не предоставлен; повторный поиск Claude по сайту документ не нашёл"
+   },
+   "patient_category": null
   },
   {
    "id": "gie",
@@ -838,7 +1262,8 @@
    "approval": {
     "no": "74",
     "date": "03 октября 2019",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2019-10-03"
    },
    "icd": [
     "Р91.0"
@@ -856,7 +1281,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": null
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -865,7 +1291,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "41147e8f91bf82ec4d329391d232b0759bb421aadc51369f2301f5b7b58136cb",
-   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен).",
+   "protocol_type": "не_установлен",
+   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
+   "doc_id": "КП:gie-gipoksiceski-isemiceskaa-encefalopatia:2019-10-03",
+   "okk_meeting_no": "74",
+   "topic": "gie",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "gipotermiya-lechebnaya",
@@ -874,7 +1317,8 @@
    "approval": {
     "no": "10",
     "date": "4 июля 2014",
-    "body": "Экспертная комиссия МЗ РК"
+    "body": "Экспертная комиссия МЗ РК",
+    "date_iso": "2014-07-04"
    },
    "icd": [
     "P81.0",
@@ -894,7 +1338,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": null
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -903,7 +1348,30 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "36d199e30d72aa2b4b75ef63a2cf4bd099417f05f148561e3048e3ea1884ee79",
-   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен).",
+   "protocol_type": "не_установлен",
+   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
+   "doc_id": "КП:gipotermia-lecebnaa:2014-07-04",
+   "okk_meeting_no": "10",
+   "topic": "gipotermiya-lechebnaya",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "reviewer_claim": {
+    "by": "ChatGPT (независимая проверка PR #6)",
+    "claim": "официальный PDF найден на nrchd.kz",
+    "url": null,
+    "status": "не подтверждено: точный URL не предоставлен; повторный поиск Claude по сайту документ не нашёл"
+   },
+   "patient_category": null
   },
   {
    "id": "krestcovookopchikovaya-teratoma",
@@ -912,7 +1380,8 @@
    "approval": {
     "no": "238",
     "date": "28 августа 2025",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2025-08-28"
    },
    "icd": [
     "Q89.8",
@@ -932,7 +1401,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": null
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -941,7 +1411,30 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "60ff50bb894de844294e4e85d704b1f85c7e582ab4a3d86a1cf849607154e5cf",
-   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен).",
+   "protocol_type": "не_установлен",
+   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
+   "doc_id": "КП:krestcovo-kopcikovaa-teratoma:2025-08-28",
+   "okk_meeting_no": "238",
+   "topic": "krestcovookopchikovaya-teratoma",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "reviewer_claim": {
+    "by": "ChatGPT (независимая проверка PR #6)",
+    "claim": "официальный PDF найден на nrchd.kz",
+    "url": null,
+    "status": "не подтверждено: точный URL не предоставлен; повторный поиск Claude по сайту документ не нашёл"
+   },
+   "patient_category": null
   },
   {
    "id": "neonatalnaya-zheltuha",
@@ -950,7 +1443,8 @@
    "approval": {
     "no": "171",
     "date": "06 октября 2022",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2022-10-06"
    },
    "icd": [
     "Р58",
@@ -975,7 +1469,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": null
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -984,7 +1479,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "b3110432dc9b7ecb665bf92f146b6d3011f91fbcf9cf71cf8107ab96b07792e9",
-   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен).",
+   "protocol_type": "не_установлен",
+   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
+   "doc_id": "КП:neonatal-naa-jeltuha:2022-10-06",
+   "okk_meeting_no": "171",
+   "topic": "neonatalnaya-zheltuha",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "rds",
@@ -993,7 +1505,8 @@
    "approval": {
     "no": "4",
     "date": "9 июня 2016",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2016-06-09"
    },
    "icd": [
     "Р22.0"
@@ -1011,7 +1524,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": null
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -1020,7 +1534,30 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "8b8d6d867e569d5ce889f1633a3d5c5325ecf82a50ba8a908687bb90e622e13f",
-   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен).",
+   "protocol_type": "не_установлен",
+   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
+   "doc_id": "КП:rds-respiratornyj-distress-sindrom:2016-06-09",
+   "okk_meeting_no": "4",
+   "topic": "rds",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "reviewer_claim": {
+    "by": "ChatGPT (независимая проверка PR #6)",
+    "claim": "официальный PDF найден на nrchd.kz",
+    "url": null,
+    "status": "не подтверждено: точный URL не предоставлен; повторный поиск Claude по сайту документ не нашёл"
+   },
+   "patient_category": null
   },
   {
    "id": "reanimaciya-nedonoshennyh-detey",
@@ -1029,7 +1566,8 @@
    "approval": {
     "no": "10",
     "date": "30 сентября 2015",
-    "body": "Экспертный совет РЦРЗ"
+    "body": "Экспертный совет РЦРЗ",
+    "date_iso": "2015-09-30"
    },
    "icd": [
     "Р21.0",
@@ -1049,7 +1587,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": null
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -1058,7 +1597,30 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "397ea7dbf64c325783f73ef6d460f35d9c794f6fed9854583fa0b0070537ad61",
-   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен).",
+   "protocol_type": "не_установлен",
+   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
+   "doc_id": "КП:reanimacia-nedonosennyh-detej:2015-09-30",
+   "okk_meeting_no": "10",
+   "topic": "reanimaciya-nedonoshennyh-detey",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "reviewer_claim": {
+    "by": "ChatGPT (независимая проверка PR #6)",
+    "claim": "официальный PDF найден на nrchd.kz",
+    "url": null,
+    "status": "не подтверждено: точный URL не предоставлен; повторный поиск Claude по сайту документ не нашёл"
+   },
+   "patient_category": null
   },
   {
    "id": "rodovaya-travma",
@@ -1067,7 +1629,8 @@
    "approval": {
     "no": "35",
     "date": "14 декабря 2017",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2017-12-14"
    },
    "icd": [
     "Р12.0"
@@ -1085,7 +1648,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": null
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -1094,7 +1658,24 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "942015abcc18ab941b309ca570b3959b674f7d44156f0c6642c34c81aa0d5c95",
-   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен).",
+   "protocol_type": "не_установлен",
+   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
+   "doc_id": "КП:rodovaa-travma:2017-12-14",
+   "okk_meeting_no": "35",
+   "topic": "rodovaya-travma",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "patient_category": null
   },
   {
    "id": "stoykoe-fetalnoe-kroobraschenie",
@@ -1103,7 +1684,8 @@
    "approval": {
     "no": "4",
     "date": "9 июня 2016",
-    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2016-06-09"
    },
    "icd": [
     "Р29.3"
@@ -1121,7 +1703,8 @@
     "revision_line": null,
     "checked_at": "2026-11-18",
     "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
-    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": null
    },
    "registry_status": "не проверен",
    "status_basis": "",
@@ -1130,7 +1713,32 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "9e9a536dcf14c92c092e88e3ad6473d6cc90aae4dd38e7acce3e7cc02710325f",
-   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен).",
+   "protocol_type": "не_установлен",
+   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
+   "doc_id": "КП:stojkoe-fetal-noe-krovoobrasenie-plgn:2016-06-09",
+   "okk_meeting_no": "4",
+   "topic": "stoykoe-fetalnoe-kroobraschenie",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz. Наличие URL текущего файла не доказывает действие редакции."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
+   },
+   "reviewer_claim": {
+    "by": "ChatGPT (независимая проверка PR #6)",
+    "claim": "официальный PDF найден на nrchd.kz",
+    "url": null,
+    "status": "не подтверждено: точный URL не предоставлен; повторный поиск Claude по сайту документ не нашёл"
+   },
+   "patient_category": null
   }
- ]
+ ],
+ "id_policy": "Документ идентифицируется doc_id (тип:название:дата одобрения). Номер заседания ОКК (okk_meeting_no) общий для многих протоколов и идентификатором не является.",
+ "active_status_policy": "«действует» требует: официального подтверждения документа, проверки актуальности (currency_check) и подтверждения эксперта. Ни ссылка, ни экспертное подтверждение по отдельности недостаточны."
 }

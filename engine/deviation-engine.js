@@ -12,7 +12,9 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.6.0-stage3';
+  const VERSION = '0.7.0-stage4';
+  const OFFICIAL_EVIDENCE = Object.freeze(['подтверждено_официальным_PDF', 'подтверждено_выдержкой_официального_сайта', 'подтверждено_протоколом_ОКК']);
+  const PROTOCOL_TYPES = Object.freeze(['диагностика_и_лечение', 'медицинское_вмешательство', 'реабилитация', 'не_установлен']);
   const TEST_ASSURANCE = 'тестовое подтверждение в браузере (без авторизации и защищённого журнала)';
   const ANALYSIS_BASIS = 'анализируются только сведения, введённые в карточку вручную; текст истории болезни программа не разбирает';
 
@@ -157,7 +159,8 @@
     if (!pc || !Object.values(RELATION).includes(pc.relation)) e.push('protocol_check.relation: недопустимое значение');
     else if (!Array.isArray(pc.searched)) e.push('protocol_check.searched должен быть массивом');
     else pc.searched.forEach((s, i) => {
-      if (!isStr(s.protocol_no)) e.push('searched[' + i + ']: нет номера протокола');
+      if (!isStr(s.protocol_no) && !isStr(s.doc_id)) e.push('searched[' + i + ']: нет идентификатора документа (doc_id или номер)');
+      if (s.protocol_type != null && !PROTOCOL_TYPES.includes(s.protocol_type)) e.push('searched[' + i + ']: недопустимый тип протокола');
       if (s.registry_status != null && !REGISTRY_STATUS.includes(s.registry_status)) e.push('searched[' + i + ']: статус в реестре: действует / заменён / не проверен');
     });
 
@@ -207,10 +210,26 @@
 
   /* ---------- Отношение к протоколу ---------- */
 
+  function docName(s) { return s.doc_id ? '«' + s.doc_id + '»' : '№' + s.protocol_no; }
+  function docKey(s) { return s.doc_id || s.protocol_no; }
+  /* Положительный вывод возможен, только если реестр несёт официальное подтверждение документа
+     и проверку актуальности редакции. Ручная отметка статуса или подтверждение эксперта
+     без этих данных реестра положительный вывод не разблокирует. */
   function editionProblem(s) {
-    if (s.valid_on_care_date !== 'да') return 'редакция протокола №' + s.protocol_no + ' на дату оказания помощи не подтверждена';
-    if (s.registry_status !== 'действует' && s.registry_status !== 'заменён') return 'актуальность протокола №' + s.protocol_no + ' в реестре не проверена';
+    if (s.valid_on_care_date !== 'да') return 'редакция протокола ' + docName(s) + ' на дату оказания помощи не подтверждена';
+    if (s.registry_status !== 'действует' && s.registry_status !== 'заменён') return 'актуальность протокола ' + docName(s) + ' в реестре не проверена';
+    if (!OFFICIAL_EVIDENCE.includes(s.official_evidence)) return 'протокол ' + docName(s) + ' не подтверждён официальным документом в реестре (ручной отметки недостаточно)';
+    if (s.currency_verified !== true) return 'актуальность редакции протокола ' + docName(s) + ' не проверена по официальным данным (ручной отметки недостаточно)';
     return '';
+  }
+  function findSearched(pc, match) {
+    if (match.doc_id) {
+      const f = pc.searched.filter(s => s.doc_id === match.doc_id);
+      return f.length === 1 ? { sp: f[0] } : { err: f.length ? 'документ «' + match.doc_id + '» встречается в перечне несколько раз' : 'документ «' + match.doc_id + '» отсутствует в перечне просмотренных' };
+    }
+    const f = pc.searched.filter(s => s.protocol_no === match.protocol_no);
+    if (f.length > 1) return { err: 'номер заседания №' + match.protocol_no + ' не идентифицирует документ однозначно (в перечне ' + f.length + ' документа) — укажите doc_id' };
+    return f.length ? { sp: f[0] } : { err: 'протокол №' + match.protocol_no + ' отсутствует в перечне просмотренных' };
   }
 
   function deriveRelation(d) {
@@ -238,15 +257,16 @@
 
     let statement = '';
     if (relation === RELATION.OK || relation === RELATION.DIFF) {
-      const hasRef = match && isStr(match.protocol_no) && isStr(match.section) && isStr(match.quote);
-      const sp = hasRef ? pc.searched.find(s => s.protocol_no === match.protocol_no) : null;
-      if (!hasRef) { relation = RELATION.UNKNOWN; notes.push('нет ссылки на протокол (номер, раздел, дословная цитата)'); }
-      else if (!sp) { relation = RELATION.UNKNOWN; notes.push('протокол №' + match.protocol_no + ' отсутствует в перечне просмотренных'); }
+      const hasRef = match && (isStr(match.doc_id) || isStr(match.protocol_no)) && isStr(match.section) && isStr(match.quote);
+      const found = hasRef ? findSearched(pc, match) : null;
+      const sp = found && found.sp;
+      if (!hasRef) { relation = RELATION.UNKNOWN; notes.push('нет ссылки на протокол (документ, раздел, дословная цитата)'); }
+      else if (!sp) { relation = RELATION.UNKNOWN; notes.push(found.err); }
       else if (sp.valid_on_care_date !== 'да') {
         relation = RELATION.UNKNOWN;
-        notes.push('редакция протокола №' + sp.protocol_no + ' на дату оказания помощи не подтверждена (' + (sp.valid_on_care_date || 'не указано') + ')');
+        notes.push('редакция протокола ' + docName(sp) + ' на дату оказания помощи не подтверждена (' + (sp.valid_on_care_date || 'не указано') + ')');
       } else {
-        statement = 'протокол №' + match.protocol_no + ', раздел «' + match.section + '»: «' + match.quote + '»';
+        statement = 'протокол ' + docName(sp) + ', раздел «' + match.section + '»: «' + match.quote + '»';
         const pr = editionProblem(sp);
         if (pr) unconfirmed.push(pr);
       }
@@ -260,10 +280,10 @@
         relation = RELATION.UNKNOWN;
         notes.push('реестр неполный: не внесены применимые протоколы (' + cov.missing_applicable.join(', ') + ') — «не урегулировано» установить нельзя');
       } else {
-        statement = NOT_REG_STATEMENT + ' (просмотрены: ' + pc.searched.map(s => '№' + s.protocol_no).join(', ') + ')';
+        statement = NOT_REG_STATEMENT + ' (просмотрены: ' + pc.searched.map(docName).join(', ') + ')';
         const ca = cov.completeness_attestation;
         const covers = isAttested(ca, 'registry_completeness') && ca.total === cov.total &&
-          pc.searched.every(sp => ca.checked_protocols.includes(sp.protocol_no));
+          pc.searched.every(sp => ca.checked_protocols.includes(docKey(sp)));
         if (!covers) {
           statement += '; полнота реестра заявлена, но не подтверждена';
           unconfirmed.push('полнота реестра применимых протоколов заявлена, но не подтверждена экспертом (с перечнем проверенных протоколов)');
@@ -526,7 +546,7 @@
 
   return {
     VERSION, STATUS, AUTO_STATUSES, ALL_STATUSES, RELATION, INDICATIONS, DOC, DOC_LABEL, REGISTRY_STATUS,
-    SIGNAL_KINDS, SEVERITY, CONFIDENCE, APPLICABILITY, REGIMEN, BIB_METHODS, SIGNAL_LEVEL,
+    SIGNAL_KINDS, SEVERITY, CONFIDENCE, OFFICIAL_EVIDENCE, PROTOCOL_TYPES, APPLICABILITY, REGIMEN, BIB_METHODS, SIGNAL_LEVEL,
     DEFAULT_CONFIG, NOT_REG_STATEMENT, IIN_LIKE,
     validate, evaluate, applyExpertOverride, signalLevel,
     attestBibliographic, attestExpertAssessment, attestRegistryCompleteness, isAttested,
