@@ -31,6 +31,7 @@ function base() {
     signals: [], conflicts: [], evidence: []
   };
 }
+const regAtt = E.attestRegistryCompleteness({ confirmed_by: 'эксперт-1', total: 29, registry_version: 'синтетический' }).attestation;
 // Отклонение «не урегулировано»: лечебный курс противогрибкового препарата
 function deviation() {
   const d = base();
@@ -38,7 +39,8 @@ function deviation() {
   d.protocol_check = {
     relation: 'не_урегулировано',
     searched: [searched({ protocol_no: '4' }), searched({ protocol_no: '185' }), searched({ protocol_no: '231' })],
-    match: null, search_date: '2026-11-18', registry_coverage: { total: 29, missing_applicable: [] }
+    match: null, search_date: '2026-11-18',
+    registry_coverage: { total: 29, missing_applicable: [], completeness_attestation: regAtt }
   };
   return d;
 }
@@ -250,4 +252,98 @@ test('пороги сигналов', () => {
   assert.equal(L('высокая', 'низкая', false), 'эксперт');
   assert.equal(L('средняя', 'высокая', true), 'эксперт');
   assert.equal(L('низкая', 'высокая', true), 'предупреждение');
+});
+
+/* ---------- Замечания проверки PR #5 ---------- */
+
+test('замечание 3: полнота реестра только заявлена — положительный вывод заблокирован', () => {
+  const d = deviation(); d.evidence = [goodEvidence()];
+  d.protocol_check.registry_coverage = { total: 29, missing_applicable: [] };   // выбор пользователя без подтверждения
+  const r = E.evaluate(d);
+  assert.equal(r.clinical.relation, 'не_урегулировано');
+  assert.equal(r.status, S.EXPERT);
+  assert.equal(r.positive_blocked, true);
+  assert.ok(r.clinical.statement.includes('заявлена, но не подтверждена'));
+  // подтверждение на другое число протоколов не принимается
+  d.protocol_check.registry_coverage.completeness_attestation = E.attestRegistryCompleteness({ confirmed_by: 'э', total: 30 }).attestation;
+  assert.equal(E.evaluate(d).positive_blocked, true);
+  assert.equal(E.attestRegistryCompleteness({ total: 29 }).ok, false);
+});
+
+test('замечание 1: черновик по результату движка, а не по выбору пользователя', () => {
+  // пользователь выбрал «не урегулировано», но перечня протоколов нет — движок: невозможно проверить
+  const d = deviation(); d.evidence = [goodEvidence()]; d.protocol_check.searched = [];
+  const r = E.evaluate(d);
+  assert.equal(r.clinical.relation, 'невозможно_проверить');
+  const t = E.buildJustificationDraft(d, r);
+  assert.equal(t.ok, true); assert.equal(t.cautious, true); assert.equal(t.relation, 'невозможно_проверить');
+  assert.ok(t.text.includes('установить не удалось'));
+  assert.ok(!t.text.includes(E.NOT_REG_STATEMENT));
+  assert.ok(t.text.includes('не может считаться достаточным'));
+});
+
+test('замечание 1: диапазон дозы переопределяет выбор — черновик говорит «в пределах протокола»', () => {
+  const d = base(); d.protocol_check.relation = 'отличается';
+  const t = E.buildJustificationDraft(d, E.evaluate(d));
+  assert.ok(t.text.includes('в пределах протокола'));
+  assert.ok(!t.text.includes('отличается от требования'));
+});
+
+test('замечание 1: осторожные формулировки при неполной проверке, полная — без слова «доказанно правильное» как утверждения', () => {
+  const ok = deviation(); ok.evidence = [goodEvidence()];
+  const tj = E.buildJustificationDraft(ok, E.evaluate(ok));
+  assert.equal(tj.cautious, false);
+  assert.ok(tj.text.includes('не означает, что назначение доказанно правильное'));
+  const bad = deviation(); bad.documentation.physician_note = 'не_найдено_в_полной_истории';
+  const tb = E.buildJustificationDraft(bad, E.evaluate(bad));
+  assert.equal(tb.cautious, true);
+  assert.ok(tb.text.includes('Не хватает:'));
+  const blk = deviation(); blk.evidence = [goodEvidence()]; blk.protocol_check.searched[0].registry_status = 'не проверен';
+  assert.ok(E.buildJustificationDraft(blk, E.evaluate(blk)).text.includes('Вывод предварительный'));
+});
+
+test('замечание 2: результат и черновик указывают, что анализируются введённые вручную сведения', () => {
+  const d = deviation(); d.evidence = [goodEvidence()];
+  const r = E.evaluate(d);
+  assert.equal(r.analysis_basis, E.ANALYSIS_BASIS);
+  assert.ok(E.ANALYSIS_BASIS.includes('вручную'));
+  assert.ok(E.buildJustificationDraft(d, r).text.startsWith('ТЕСТОВЫЙ ЧЕРНОВИК. Основа: ' + E.ANALYSIS_BASIS));
+});
+
+test('замечание 4: все подтверждения и решения в браузере помечены как тестовые', () => {
+  for (const a of [bib(), ea(), regAtt]) { assert.equal(a.test_only, true); assert.equal(a.assurance, E.TEST_ASSURANCE); }
+  const d = deviation(); d.evidence = [goodEvidence()];
+  const r = E.evaluate(d);
+  assert.equal(r.test_confirmations_used, true);
+  assert.equal(E.evaluate(base()).test_confirmations_used, false);
+  const o = E.applyExpertOverride(r, { who: 'э', status: S.EXPERT, reason: 'x', source: 'y' });
+  assert.equal(o.history[0].test_only, true);
+  assert.ok(o.headline.includes('тестовое'));
+});
+
+test('замечание 5: изменение данных делает результат устаревшим; решение по устаревшему отклоняется', () => {
+  const d = deviation(); d.evidence = [goodEvidence()];
+  const r = E.evaluate(d);
+  assert.equal(E.isStale(r, d), false);
+  const d2 = deviation(); d2.evidence = [goodEvidence()]; d2.order.text += ' (изменено)';
+  assert.equal(E.isStale(r, d2), true);
+  assert.equal(E.applyExpertOverride(r, { who: 'э', status: S.EXPERT, reason: 'x', source: 'y', current_input: d2 }).ok, false);
+  assert.equal(E.applyExpertOverride(r, { who: 'э', status: S.EXPERT, reason: 'x', source: 'y', current_input: d }).ok, true);
+  assert.equal(E.buildJustificationDraft(d2, r).ok, false);
+});
+
+test('замечание 5: повторная проверка сохраняет историю решений и прежние результаты', () => {
+  const d = deviation(); d.evidence = [goodEvidence()];
+  const r0 = E.evaluate(d);
+  const r1 = E.applyExpertOverride(r0, { who: 'эксперт-1', status: S.POTENTIAL_DEFECT, reason: 'x', source: 'протокол №1' });
+  const d2 = deviation(); d2.documentation.physician_note = 'не_найдено_в_полной_истории';
+  const r2 = E.reevaluate(r1, d2);
+  assert.equal(r2.status, S.INCOMPLETE);
+  assert.equal(r2.status_set_by, 'auto');
+  assert.equal(r2.history.length, 2);
+  assert.equal(r2.history[0].to, S.POTENTIAL_DEFECT);
+  assert.equal(r2.history[1].event, 'повторная проверка');
+  assert.equal(r2.prior_results.length, 1);
+  assert.equal(r2.prior_results[0].status, S.POTENTIAL_DEFECT);
+  assert.equal(E.isStale(r2, d2), false);
 });

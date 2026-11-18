@@ -34,6 +34,8 @@ textarea{min-height:70px;resize:vertical}
 .chk input{margin-top:3px}
 .pill{display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-size:13px;font-weight:600}
 .s-urgent{background:var(--red)}.s-expert{background:var(--amber)}.s-insuf{background:var(--gray)}
+.stale{background:#fdecea;border:1px solid #f1a9a0;border-radius:8px;padding:8px 12px;font-size:13.5px;margin:6px 0}
+.tag{display:inline-block;font-size:11px;font-weight:700;color:#7a4b00;background:#ffe9b8;border-radius:4px;padding:0 5px;margin-left:4px}
 .s-ok{background:var(--green)}.s-just{background:var(--teal)}.s-inc{background:var(--orange)}.s-def{background:var(--dark)}.s-none{background:#999}
 .item-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
 .item-h .t{font-weight:600}
@@ -94,6 +96,7 @@ footer{max-width:920px;margin:0 auto;padding:0 14px 30px;color:var(--muted);font
 <section class="card">
   <div class="item-h"><h2 style="margin:0">2. Назначения для проверки</h2>
     <button class="btn primary" id="addItem">+ Добавить назначение</button></div>
+  <div class="warn" style="margin-top:8px"><b>Анализируются только сведения, введённые в карточку вручную.</b> Текст истории программа не разбирает: он нужен, чтобы сверить введённые факты и выделять фрагменты.</div>
   <div class="summary" id="summary" style="margin-top:8px"></div>
 </section>
 <div id="items"></div>
@@ -127,7 +130,7 @@ const POSITIVE = [E.STATUS.COMPLIANT, E.STATUS.JUSTIFIED];
 let seq = 0;
 const items = [];
 function newForm(){
-  return {order:'',dt:'',offlabel:false,highrisk:false,rel:'не_урегулировано',
+  return {regAtt:null,order:'',dt:'',offlabel:false,highrisk:false,rel:'не_урегулировано',
     pno:'',psec:'',pquote:'',pvalid:'не_определено',preg:'не проверен',
     plist:'',complete:'unknown',missingList:'',
     ind:'недостаточно_данных',facts:'',
@@ -138,7 +141,7 @@ function scope(){ return ($('input[name=scope]:checked')||{}).value||'fragment';
 function expertName(){ return $('#expert').value.trim(); }
 function cfg(){ return {consilium_mandatory:$('#cfgCons').checked, consilium_basis:$('#cfgBasis').value.trim()}; }
 function norm(s){ return String(s).toLowerCase().replace(/\s+/g,' ').trim(); }
-function log(it, who, what){ it.journal.push({at:now(), who:who||'программа', what}); }
+function log(it, who, what){ it.journal.push({at:now(), who:who||'программа', what, test: !!who && who!=='программа'}); }
 
 /* ---------- Текст ---------- */
 function checkText(){
@@ -166,7 +169,7 @@ function toInput(it){
         match:{protocol_no:f.pno.replace(/^№\s*/,''), section:f.psec, quote:f.pquote}, search_date:today, registry_coverage:null};
   } else if (f.rel==='не_урегулировано'){
     const nos=f.plist.split(/[,;\s]+/).map(x=>x.replace(/^№/,'')).filter(Boolean);
-    const cov = f.complete==='yes'?{total:29,missing_applicable:[]}
+    const cov = f.complete==='yes'?Object.assign({total:29,missing_applicable:[]}, f.regAtt?{completeness_attestation:f.regAtt}:{})
       : f.complete==='no'?{total:29,missing_applicable:(f.missingList.split(/[,;]+/).map(x=>x.trim()).filter(Boolean).length?f.missingList.split(/[,;]+/).map(x=>x.trim()).filter(Boolean):['не указано какие'])}
       : null;
     pc={relation:f.rel, searched:nos.map(no=>({protocol_no:no, registry_status:f.preg, valid_on_care_date:f.pvalid})), match:null, search_date:today, registry_coverage:cov};
@@ -189,11 +192,14 @@ function run(it, why){
   if (!$('#consent').checked) { it.errors=['Подтвердите вверху страницы, что текст синтетический или обезличен.']; return; }
   if (!checkText()) { it.errors=['В тексте истории есть 12 цифр подряд. Замените их перед проверкой.']; return; }
   if (!it.f.order.trim()) { it.errors=['Укажите, что назначено.']; return; }
-  const r=E.evaluate(toInput(it), cfg());
+  const r=it.result?E.reevaluate(it.result, toInput(it), cfg()):E.evaluate(toInput(it), cfg());
   if (!r.ok) { it.errors=r.errors; return; }
-  it.result=r;
+  it.result=r; it.dirty=false; it.cfgKey=JSON.stringify(cfg());
   log(it,'программа',(why||'Проверка')+': '+r.headline);
 }
+
+function isStale(it){ return !!it.result && (it.dirty || it.cfgKey!==JSON.stringify(cfg()) || E.isStale(it.result, toInput(it))); }
+const STALE_MSG='Данные изменены после проверки — результат устарел. Нажмите «Проверить» во вкладке «Данные». История решений сохранится.';
 
 /* ---------- Отрисовка ---------- */
 function pill(st){ return '<span class="pill '+(ST_CLASS[st]||'s-none')+'">'+esc(st||'Не проверено')+'</span>'; }
@@ -226,7 +232,7 @@ function renderForm(it){
   }
   if (isNR) {
     h+='<label class="f">Какие протоколы просмотрены (номера через запятую)</label><input type="text" data-f="plist" value="'+esc(f.plist)+'" placeholder="4, 185, 231">';
-    h+='<label class="f">Все применимые протоколы есть в реестре?</label><select data-f="complete">'+opt('yes',f.complete,'Да')+opt('no',f.complete,'Нет')+opt('unknown',f.complete,'Не знаю')+'</select>';
+    h+='<label class="f">Все применимые протоколы есть в реестре? (заявляет пользователь; подтверждает эксперт во вкладке «Эксперт и журнал»)</label><select data-f="complete">'+opt('yes',f.complete,'Да')+opt('no',f.complete,'Нет')+opt('unknown',f.complete,'Не знаю')+'</select>';
     if (f.complete==='no') h+='<label class="f">Каких не хватает</label><input type="text" data-f="missingList" value="'+esc(f.missingList)+'">';
   }
   if (isProt||isNR) {
@@ -284,31 +290,31 @@ function renderJust(it){
   h+='</div>';
   h+='<div class="blk"><b>4. Записи в истории</b><ul class="prob">'+DOC_KEYS.map(k=>'<li>'+esc(E.DOC_LABEL[k])+': '+(f.docs[k]==='yes'?'найдено':(scope()==='full'?'не найдено в истории':'не найдено во фрагменте'))+'</li>').join('')+'</ul></div>';
   h+='<div class="blk"><b>5. Вывод программы</b>'+esc(r.headline)+'</div>';
-  if(isDev){
-    const g=(k)=>f.docs[k]==='yes';
-    const txt='Пациенту '+($('#patient').value.trim()||'[псевдоним]')+' назначено: '+f.order+(f.dt?' ('+f.dt.replace('T',' ')+')':'')+'.\n'+
-      (r.clinical.relation==='не_урегулировано'?'В проверенных применимых протоколах ('+(f.plist||'[указать]')+') прямая рекомендация для данной клинической ситуации не обнаружена.':'Назначение отличается от протокола № '+(f.pno||'[указать]')+' ('+(f.psec||'[раздел]')+').')+'\n'+
-      'Клинические показания: '+(facts.length?facts.join('; '):'[указать по истории]')+'.\n'+
-      'Научное обоснование: '+(f.sources.length?f.sources.map(s=>s.citation+(s.ref?' ('+s.ref+')':'')).join('; '):'[указать источник]')+'.\n'+
-      'Решение врача с обоснованием отражено в истории: '+(g('physician_note')?'да':'[нет — указать]')+'. Оценка пользы и рисков: '+(g('risk_benefit')?'да':'[указать]')+'. Мониторинг эффективности и безопасности: '+(g('monitoring')?'да':'[указать]')+'.\n'+
-      'Отсутствие прямой рекомендации в протоколе само по себе не является основанием для квалификации назначения как дефекта. Окончательная оценка — за врачебной комиссией.';
-    h+='<h3>Черновик обоснования для комиссии</h3><div class="draft" data-draft>'+esc(txt)+'</div>';
-    h+='<p class="hint">Строится только из введённых данных. Пропуски в [скобках] заполняет врач по фактам. Не вносить в историю задним числом.</p>';
-    h+='<button class="btn small" data-act="copyDraft">Копировать</button>';
+  if(isStale(it)) h+='<div class="stale">'+esc(STALE_MSG)+' Черновик недоступен.</div>';
+  else if(r.clinical.relation!=='соответствует'){
+    const dr=E.buildJustificationDraft(toInput(it), r);
+    if(dr.ok){
+      h+='<h3>Черновик обоснования для комиссии <span class="tag">ТЕСТ</span></h3><div class="draft" data-draft>'+esc(dr.text)+'</div>';
+      h+='<p class="hint">Строится по результату проверки и введённым данным. '+(dr.cautious?'Проверка неполная — формулировки осторожные. ':'')+'Пропуски в [скобках] заполняет врач по фактам. Не вносить в историю задним числом.</p>';
+      h+='<button class="btn small" data-act="copyDraft">Копировать</button>';
+    }
   }
   return h+'</div>';
 }
 
 function srcState(s){
   const b=s.bib, a=s.ea;
-  const bs = !b?'библиография не проверена':(b.found?(b.metadata_match?'найден, данные совпадают':'найден, данные не совпадают'):'не найден')+' ('+esc(b.checked_by)+', '+fmt(b.checked_at)+')';
-  const as = !a?'применимость не оценена':'применимость: '+a.applicability.replace(/_/g,' ')+', схема: '+a.regimen_match.replace(/_/g,' ')+' ('+esc(a.assessed_by)+')';
+  const T=' <span class="tag">ТЕСТ</span>';
+  const bs = !b?'библиография не проверена':(b.found?(b.metadata_match?'найден, данные совпадают':'найден, данные не совпадают'):'не найден')+' ('+esc(b.checked_by)+', '+fmt(b.checked_at)+')'+T;
+  const as = !a?'применимость не оценена':'применимость: '+a.applicability.replace(/_/g,' ')+', схема: '+a.regimen_match.replace(/_/g,' ')+' ('+esc(a.assessed_by)+')'+T;
   return bs+'; '+as;
 }
 
 function renderExpert(it){
   const r=it.result;
   let h='<div class="panel">';
+  h+='<div class="warn">Все подтверждения и решения здесь <b>тестовые</b>: без авторизации и защищённого журнала. Для реальной экспертизы не используются.</div>';
+  if(isStale(it)) h+='<div class="stale">'+esc(STALE_MSG)+' Решение по статусу недоступно.</div>';
   if(!expertName()) h+='<div class="warn">Укажите эксперта вверху страницы — без этого подтверждения и решения не принимаются.</div>';
   if(it.f.sources.length){
     h+='<h3>Подтверждение источников</h3>';
@@ -323,14 +329,18 @@ function renderExpert(it){
       h+='<button class="btn small" data-act="attEA" data-i="'+i+'"'+(s.bib?'':' disabled title="Сначала подтвердите библиографию"')+'>Сохранить экспертную оценку</button></div>';
     });
   }
-  if(r){
+  if(r && r.clinical && it.f.rel==='не_урегулировано' && it.f.complete==='yes'){
+    h+='<h3>Полнота реестра</h3><div class="hint">'+(it.f.regAtt?'Подтверждена: '+esc(it.f.regAtt.confirmed_by)+', '+fmt(it.f.regAtt.at)+' <span class="tag">ТЕСТ</span>':'Заявлена пользователем, не подтверждена')+'</div>';
+    if(!it.f.regAtt) h+='<button class="btn small" data-act="attReg">Подтвердить: все применимые протоколы есть в реестре (29)</button>';
+  }
+  if(r && !isStale(it)){
     h+='<h3>Решение по статусу</h3><div class="row"><div><label class="f">Новый статус</label><select data-k="xstatus">'+E.ALL_STATUSES.map(x=>opt(x,r.status)).join('')+'</select></div></div>';
     h+='<label class="f">Причина</label><input type="text" data-k="xreason">';
     h+='<label class="f">Основание (документ, протокол заседания)</label><input type="text" data-k="xsource">';
     h+='<button class="btn small" data-act="override">Сохранить решение</button>';
     if(r.original) h+='<p class="hint">Исходный результат программы: '+esc(r.original.headline)+'</p>';
   }
-  h+='<h3>Журнал</h3><ol class="journal">'+it.journal.map(j=>'<li>'+fmt(j.at)+' · '+esc(j.who)+': '+esc(j.what)+'</li>').join('')+'</ol>';
+  h+='<h3>Журнал</h3><ol class="journal">'+it.journal.map(j=>'<li>'+fmt(j.at)+' · '+esc(j.who)+': '+esc(j.what)+(j.test?' <span class="tag">ТЕСТ</span>':'')+'</li>').join('')+'</ol>';
   return h+'</div>';
 }
 
@@ -346,7 +356,10 @@ function renderMore(it){
 
 function renderItem(it){
   const r=it.result, pr=problems(it), tw=textWarnings(it);
-  let h='<section class="card" data-item="'+it.id+'"><div class="item-h"><div class="t">'+esc(it.f.order||'Новое назначение')+'</div><div>'+pill(r&&r.status)+'</div></div>';
+  const st=isStale(it);
+  let h='<section class="card" data-item="'+it.id+'"><div class="item-h"><div class="t">'+esc(it.f.order||'Новое назначение')+'</div><div>'+(st?'<span class="pill s-none">Устарел</span> ':'')+pill(r&&r.status)+'</div></div>';
+  if(st) h+='<div class="stale" data-stale>'+esc(STALE_MSG)+'</div>';
+  if(r) h+='<div class="hint">Основа проверки: введённые вручную сведения.'+(r.test_confirmations_used?' Использованы тестовые подтверждения.':'')+'</div>';
   if(it.errors&&it.errors.length) h+='<div class="err"><b>Исправьте данные:</b><ul class="prob">'+it.errors.map(e=>'<li>'+esc(e)+'</li>').join('')+'</ul></div>';
   if(r){
     h+='<div class="headline">'+esc(r.headline)+'</div>';
@@ -380,7 +393,9 @@ function rerenderAll(){ $('#items').innerHTML=items.map(renderItem).join(''); re
 function collect(it, el){
   const form=$('[data-form]',el); if(!form) return;
   const f=it.f;
+  const oldList=f.plist, oldComplete=f.complete;
   $$('[data-f]',form).forEach(x=>{ f[x.dataset.f]= x.type==='checkbox'?x.checked:x.value; });
+  if(f.regAtt && (f.complete!=='yes' || f.plist!==oldList || oldComplete!=='yes')){ f.regAtt=null; log(it,'программа','подтверждение полноты реестра снято: изменены сведения о реестре'); }
   $$('[data-doc]',form).forEach(x=>{ f.docs[x.dataset.doc]=x.value; });
   const old=f.sources;
   f.sources=$$('[data-src]',form).map((row,i)=>{
@@ -405,10 +420,19 @@ $('#addItem').addEventListener('click', ()=>{
   items.push(it); log(it,'программа','назначение добавлено'); rerender(it);
 });
 $('input[name=scope][value=full]').addEventListener('change', ()=>rerenderAll());
+['#patient','#cfgBasis'].forEach(id=>$(id).addEventListener('change', ()=>rerenderAll()));
+$('#cfgCons').addEventListener('change', ()=>rerenderAll());
 $('input[name=scope][value=fragment]').addEventListener('change', ()=>{
   items.forEach(it=>{ if(it.f.ind==='не_подтверждены') it.f.ind='недостаточно_данных'; }); rerenderAll(); });
 
+$('#items').addEventListener('input', e=>{
+  if(!e.target.closest('[data-form]')) return;
+  const el=e.target.closest('[data-item]'), it=items.find(x=>x.id===el.dataset.item);
+  if(it && it.result && !it.dirty){ it.dirty=true; const pil=$('.item-h > div:last-child',el);
+    if(!$('[data-stale]',el)){ $('.item-h',el).insertAdjacentHTML('afterend','<div class="stale" data-stale>'+esc(STALE_MSG)+'</div>'); pil.insertAdjacentHTML('afterbegin','<span class="pill s-none">Устарел</span> '); } }
+});
 $('#items').addEventListener('change', e=>{
+  if(e.target.closest('[data-form]')){ const el0=e.target.closest('[data-item]'), it0=items.find(x=>x.id===el0.dataset.item); if(it0&&it0.result) it0.dirty=true; }
   // смена вопроса «есть ли в протоколе» и «полный ли реестр» меняет набор полей
   const sel=e.target; if(!sel.matches('[data-f=rel],[data-f=complete]')) return;
   const el=sel.closest('[data-item]'), it=items.find(x=>x.id===el.dataset.item);
@@ -447,9 +471,14 @@ $('#items').addEventListener('click', e=>{
       s.ea=res.attestation;
       log(it,who,'оценка «'+(s.citation||s.ref)+'»: применимость '+s.ea.applicability.replace(/_/g,' ')+', схема '+s.ea.regimen_match.replace(/_/g,' ')+(s.ea.comment?' — '+s.ea.comment:''));
       if(it.result) run(it,'Повторная проверка'); rerender(it); break; }
+    case 'attReg': { if(!needExpert()) break;
+      const res=E.attestRegistryCompleteness({confirmed_by:who, total:29, registry_version:'neo-pro data/protocols.json (29)'});
+      if(!res.ok){ it.errors=res.errors; rerender(it); break; }
+      it.f.regAtt=res.attestation; log(it,who,'подтверждена полнота реестра применимых протоколов (29)');
+      run(it,'Повторная проверка'); rerender(it); break; }
     case 'override': { if(!needExpert()) break;
       const st=$('[data-k=xstatus]',el).value, reason=$('[data-k=xreason]',el).value.trim(), src=$('[data-k=xsource]',el).value.trim();
-      const res=E.applyExpertOverride(it.result,{who, status:st, reason, source:src});
+      const res=E.applyExpertOverride(it.result,{who, status:st, reason, source:src, current_input: toInput(it)});
       if(!res.ok){ it.errors=res.errors.map(x=>x.replace('не указано: reason','не указана причина').replace('не указано: source','не указано основание')); rerender(it); break; }
       log(it,who,'решение: «'+it.result.status+'» → «'+st+'». Причина: '+reason+'. Основание: '+src);
       it.result=res; rerender(it); break; }
@@ -458,7 +487,7 @@ $('#items').addEventListener('click', e=>{
 
 $('#export').addEventListener('click', ()=>{
   const data={exported_at:now(), engine_version:E.VERSION, patient_ref:$('#patient').value.trim(), history_scope:scope(),
-    note:'Подтверждения эксперта при повторной загрузке не восстанавливаются.',
+    note:'Анализировались вручную введённые сведения. Все подтверждения и решения — тестовые, при повторной загрузке не восстанавливаются.',
     items:items.map(it=>({id:it.id, input:toInput(it), result:it.result, journal:it.journal}))};
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:'application/json'}));

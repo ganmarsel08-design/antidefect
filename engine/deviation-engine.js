@@ -12,7 +12,9 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.4.0-stage3';
+  const VERSION = '0.5.0-stage3';
+  const TEST_ASSURANCE = 'тестовое подтверждение в браузере (без авторизации и защищённого журнала)';
+  const ANALYSIS_BASIS = 'анализируются только сведения, введённые в карточку вручную; текст истории болезни программа не разбирает';
 
   const STATUS = Object.freeze({
     URGENT: 'Требуется срочная оценка эксперта',
@@ -74,7 +76,7 @@
    * но не от умышленной подделки в браузере. Для реальной работы нужна
    * серверная подпись и учётные записи (вне этапа 3). */
   const ATTESTED = new WeakSet();
-  function seal(kind, o) { const a = Object.freeze(Object.assign({ kind }, o)); ATTESTED.add(a); return a; }
+  function seal(kind, o) { const a = Object.freeze(Object.assign({ kind, test_only: true, assurance: TEST_ASSURANCE }, o)); ATTESTED.add(a); return a; }
   function isAttested(x, kind) { return !!x && typeof x === 'object' && ATTESTED.has(x) && x.kind === kind; }
 
   function attestBibliographic(o) {
@@ -102,6 +104,18 @@
       applicability: o.applicability, regimen_match: o.regimen_match,
       assessed_by: o.assessed_by.trim(), role: isStr(o.role) ? o.role.trim() : '',
       at: o.at || new Date().toISOString(), comment: isStr(o.comment) ? o.comment.trim() : '' }) };
+  }
+
+  function attestRegistryCompleteness(o) {
+    const e = [];
+    o = o || {};
+    if (!isStr(o.confirmed_by)) e.push('не указано, кто подтвердил полноту реестра');
+    if (typeof o.total !== 'number') e.push('не указано число протоколов в реестре');
+    if (e.length) return { ok: false, errors: e };
+    return { ok: true, attestation: seal('registry_completeness', {
+      confirmed_by: o.confirmed_by.trim(), total: o.total,
+      registry_version: isStr(o.registry_version) ? o.registry_version.trim() : '',
+      at: o.at || new Date().toISOString() }) };
   }
 
   /* ---------- Проверка структуры ---------- */
@@ -226,6 +240,11 @@
         notes.push('реестр неполный: не внесены применимые протоколы (' + cov.missing_applicable.join(', ') + ') — «не урегулировано» установить нельзя');
       } else {
         statement = NOT_REG_STATEMENT + ' (просмотрены: ' + pc.searched.map(s => '№' + s.protocol_no).join(', ') + ')';
+        const ca = cov.completeness_attestation;
+        if (!(isAttested(ca, 'registry_completeness') && ca.total === cov.total)) {
+          statement += '; полнота реестра заявлена, но не подтверждена';
+          unconfirmed.push('полнота реестра применимых протоколов заявлена, но не подтверждена экспертом');
+        }
         pc.searched.forEach(s => { const pr = editionProblem(s); if (pr) unconfirmed.push(pr); });
       }
     }
@@ -294,6 +313,20 @@
     if (documentation.state === 'неполная') h += '; документация неполная: ' + documentation.missing_items.join(', ');
     else if (documentation.state === 'не_определена') h += '; полнота документации не определена (предоставлен фрагмент)';
     return h;
+  }
+
+  /* ---------- Отпечаток входных данных (для устаревания результата) ---------- */
+  function stable(x) {
+    if (Array.isArray(x)) return '[' + x.map(stable).join(',') + ']';
+    if (x && typeof x === 'object') return '{' + Object.keys(x).sort().map(k => JSON.stringify(k) + ':' + stable(x[k])).join(',') + '}';
+    return JSON.stringify(x === undefined ? null : x);
+  }
+  function fingerprint(d) { return stable(d); }
+  function isStale(result, currentInput) { return !result || !result.ok || result.input_fingerprint !== fingerprint(currentInput); }
+  function usesAttestation(d) {
+    const ev = (d.evidence || []).some(v => isAttested(v.bibliographic, 'bibliographic') || isAttested(v.expert_assessment, 'expert_assessment'));
+    const rc = d.protocol_check && d.protocol_check.registry_coverage;
+    return ev || !!(rc && isAttested(rc.completeness_attestation, 'registry_completeness'));
   }
 
   /* ---------- Механизм статусов ---------- */
@@ -383,6 +416,8 @@
 
     return {
       ok: true, engine_version: VERSION, id: d.id,
+      analysis_basis: ANALYSIS_BASIS, evaluated_at: new Date().toISOString(), input_fingerprint: fingerprint(d),
+      test_confirmations_used: usesAttestation(d),
       status, status_set_by: 'auto', positive_blocked, blocked_by: positive_blocked ? rel.unconfirmed.slice() : [],
       headline: composeHeadline(status, documentation, positive_blocked),
       clinical: { relation, relation_source: rel.source, indications: ind, statement: rel.statement },
@@ -390,7 +425,7 @@
       conflict_detected, conflicts,
       safety: { signals, urgent: urgentS.length > 0 },
       evidence,
-      reasons, missing, recommendations, warnings,
+      reasons: uniq(reasons), missing: uniq(missing), recommendations, warnings: uniq(warnings),
       original: null, history: []
     };
   }
@@ -402,14 +437,60 @@
     if (!result || !result.ok) errs.push('нет результата проверки');
     ['who', 'status', 'reason', 'source'].forEach(k => { if (!o || !isStr(o[k])) errs.push('не указано: ' + k); });
     if (o && isStr(o.status) && !ALL_STATUSES.includes(o.status)) errs.push('неизвестный статус: ' + o.status);
+    if (result && result.ok && o && o.current_input !== undefined && isStale(result, o.current_input))
+      errs.push('исходные данные изменены после проверки — результат устарел, сначала выполните повторную проверку');
     if (errs.length) return { ok: false, errors: errs };
     const original = result.original || { status: result.status, status_set_by: result.status_set_by, headline: result.headline, reasons: result.reasons.slice() };
-    const entry = { at: o.at || new Date().toISOString(), who: o.who, from: result.status, to: o.status, reason: o.reason, source: o.source };
+    const entry = { at: o.at || new Date().toISOString(), who: o.who, event: 'решение эксперта', from: result.status, to: o.status,
+      reason: o.reason, source: o.source, test_only: true, assurance: TEST_ASSURANCE };
     return Object.assign({}, result, {
       status: o.status, status_set_by: 'expert',
-      headline: composeHeadline(o.status, result.documentation, false) + ' (решение эксперта)',
+      headline: composeHeadline(o.status, result.documentation, false) + ' (решение эксперта, тестовое)',
       original, history: (result.history || []).concat([entry])
     });
+  }
+
+  /* Повторная проверка после изменения данных: новый результат, история сохраняется */
+  function reevaluate(prev, d, config) {
+    const r = evaluate(d, config);
+    if (!r.ok || !prev || !prev.ok) return r;
+    const at = new Date().toISOString();
+    r.prior_results = (prev.prior_results || []).concat([{ evaluated_at: prev.evaluated_at, status: prev.status,
+      status_set_by: prev.status_set_by, headline: prev.headline, input_fingerprint: prev.input_fingerprint, superseded_at: at }]);
+    r.history = (prev.history || []).concat([{ at, who: 'программа', event: 'повторная проверка', from: prev.status, to: r.status,
+      reason: 'исходные данные изменены', source: 'автоматически' }]);
+    return r;
+  }
+
+  /* Черновик обоснования: только по результату движка и введённым фактам */
+  function buildJustificationDraft(d, r) {
+    if (!r || !r.ok) return { ok: false, errors: ['нет результата проверки'] };
+    if (isStale(r, d)) return { ok: false, errors: ['результат устарел — выполните повторную проверку'] };
+    const rel = r.clinical.relation;
+    const L = [];
+    L.push('ТЕСТОВЫЙ ЧЕРНОВИК. Основа: ' + ANALYSIS_BASIS + '.');
+    L.push('Пациенту ' + d.patient_ref + ' назначено: ' + d.order.text + (isStr(d.order.date_time) ? ' (' + d.order.date_time.replace('T', ' ') + ')' : '') + '.');
+    if (rel === RELATION.NOT_REG) L.push('Результат проверки по протоколам: ' + r.clinical.statement + '.');
+    else if (rel === RELATION.DIFF) L.push('Результат проверки по протоколам: назначение отличается от требования (' + r.clinical.statement + ').');
+    else if (rel === RELATION.OK) L.push('Результат проверки по протоколам: назначение в пределах протокола (' + r.clinical.statement + '); обоснование отклонения не требуется.');
+    else L.push('Отношение назначения к протоколу установить не удалось (' + uniq(r.reasons.filter(x => x.indexOf('отношение') >= 0 || x.indexOf('протокол') >= 0 || x.indexOf('реестр') >= 0)).join('; ') +
+      '). Утверждать, что протокол данный вопрос не регулирует, на этом основании нельзя.');
+    const facts = (d.indications.facts || []).map(f => f.text).filter(isStr);
+    L.push('Клинические показания по данным истории: ' + (facts.length ? facts.join('; ') : '[указать по истории]') + '.');
+    const ev = (d.evidence || []).filter(v => v.presented);
+    L.push('Научное обоснование: ' + (ev.length ? ev.map(v => (v.citation || '') + (v.pmid ? ' (PMID ' + v.pmid + ')' : v.doi ? ' (DOI ' + v.doi + ')' : '') +
+      (r.evidence ? ' — ' + ((r.evidence.items.find(x => x.source === (v.citation || v.pmid || v.doi)) || {}).verdict || 'не оценён') : '')).join('; ') : '[источник не указан]') + '.');
+    const doc = k => d.documentation[k] === DOC.FOUND ? 'отражено' : (d.documentation[k] === DOC.FRAGMENT ? 'не найдено в предоставленном фрагменте' : 'не найдено в истории');
+    L.push('Решение врача с обоснованием: ' + doc('physician_note') + '. Оценка пользы и рисков: ' + doc('risk_benefit') + '. Мониторинг: ' + doc('monitoring') + '.');
+    if (r.status === STATUS.JUSTIFIED) L.push('По введённым данным условия обоснованного отклонения выполнены. Это не означает, что назначение доказанно правильное.');
+    else {
+      L.push('Предварительная оценка программы: «' + r.status + '». Обоснование пока не может считаться достаточным.');
+      if (r.positive_blocked) L.push('Вывод предварительный: ' + r.blocked_by.join('; ') + '.');
+      if (r.missing.length) L.push('Не хватает: ' + r.missing.join('; ') + '.');
+    }
+    if (rel !== RELATION.OK) L.push('Отсутствие прямой рекомендации в протоколе само по себе не является основанием для квалификации назначения как дефекта.');
+    L.push('Окончательная оценка — за врачебной комиссией.');
+    return { ok: true, text: L.join('\n'), cautious: r.status !== STATUS.JUSTIFIED, relation: rel };
   }
 
   return {
@@ -417,6 +498,7 @@
     SIGNAL_KINDS, SEVERITY, CONFIDENCE, APPLICABILITY, REGIMEN, BIB_METHODS, SIGNAL_LEVEL,
     DEFAULT_CONFIG, NOT_REG_STATEMENT, IIN_LIKE,
     validate, evaluate, applyExpertOverride, signalLevel,
-    attestBibliographic, attestExpertAssessment, isAttested
+    attestBibliographic, attestExpertAssessment, attestRegistryCompleteness, isAttested,
+    fingerprint, isStale, reevaluate, buildJustificationDraft, TEST_ASSURANCE, ANALYSIS_BASIS
   };
 });
