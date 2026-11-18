@@ -324,11 +324,172 @@
    "description": "Введён иммуноглобулин",
    "unit": "да/нет"
   },
+  "meningitis": {
+   "description": "Менингит подозревается или подтверждён",
+   "unit": "да/нет"
+  },
   "immunoglobulin_indication_documented": {
    "description": "Задокументировано отдельное показание к иммуноглобулину",
    "unit": "да/нет"
   }
  },
+ "protocol_conflicts": [
+  {
+   "id": "CF-001",
+   "rules": [
+    "NEC-009",
+    "NEC-010"
+   ],
+   "description": "П. 5.1 протокола НЭК для стадии 2а одновременно называет консервативное лечение, консультацию хирурга (для 1–2а во 2-м уровне) и перевод в хирургическое отделение (для 2а, б и 3).",
+   "active_when": {
+    "field": "nec_stage",
+    "op": "eq",
+    "value": "2а"
+   },
+   "quotes": [
+    {
+     "protocol": "nek",
+     "page": 12,
+     "text": "При I а, б и II а стадиях некротизирующего энтероколита показано консервативное лечение.",
+     "sha256": "bb9029b37fb00c36222a2edac5c4a991fecf392fb629f11670ea9ece5b17fdaf"
+    },
+    {
+     "protocol": "nek",
+     "page": 12,
+     "text": "В случае выявления больного ребенка с НЭК 1-2а степени в родовспомогательном учреждении 2 уровня – обеспечить консультацию хирурга;",
+     "sha256": "2c5f760540322ba593bb54395375627684da4bc738f1822af2ba89696bbb0edd"
+    },
+    {
+     "protocol": "nek",
+     "page": 12,
+     "text": "При 2а, б и 3 степени - перевод в экстренное хирургическое отделение (неонатальные хирургические койки) детских медицинских организаций.",
+     "sha256": "a7c8590f2fb853ed6cddb0490bb5d223b7f090f43129dec6eff1ce2240a1e4bf"
+    }
+   ]
+  },
+  {
+   "id": "CF-002",
+   "rules": [
+    "SEP-009",
+    "SEP-010"
+   ],
+   "description": "Протокол сепсиса даёт при положительном посеве крови два срока: 10 дней (п. 14, стр. 14) и 7 дней (стр. 15).",
+   "active_when": {
+    "field": "blood_culture_result",
+    "op": "eq",
+    "value": "положительный"
+   },
+   "quotes": [
+    {
+     "protocol": "sepsis",
+     "page": 14,
+     "text": "Если состояние ребенка улучшается при положительном бактериологическом посеве крови, то лечение ампициллином и гентамицином продолжается10 дней.",
+     "sha256": "e16f9e224c643a0837ea7bfe1f436689ce7b7300283cca8983cf0e314d01e3c2"
+    },
+    {
+     "protocol": "sepsis",
+     "page": 15,
+     "text": "Детям с положительным посевом крови и детям с отрицательным результатом посева крови, но с наличием факторов риска, свидетельствующих о высоком риске реализации неонатального сепсиса, лечение антибиотиками проводится в течение 7 дней.",
+     "sha256": "b3f31e74bb6f170774448daeaec9ae864e684d1c585123905b7388143e8e6d14"
+    }
+   ]
+  },
+  {
+   "id": "CF-003",
+   "rules": [
+    "NEC-003"
+   ],
+   "description": "Для НЭК I стадии протокол даёт два критерия возобновления энтеральной нагрузки: восстановление пассажа (стр. 10) и 5-й день при улучшении (стр. 12).",
+   "active_when": {
+    "field": "nec_stage",
+    "op": "in",
+    "value": [
+     "1а",
+     "1б"
+    ]
+   },
+   "quotes": [
+    {
+     "protocol": "nek",
+     "page": 10,
+     "text": "исключение любой энтеральной нагрузки до восстановления функции пассажа по желудочно-кишечному тракту кишечника;",
+     "sha256": "569d58a1574938673cbcfdeee956b7461fdd3bc722c816e6e04c4307251825c8"
+    },
+    {
+     "protocol": "nek",
+     "page": 12,
+     "text": "энтеральную нагрузку начинают НЭК I на 5 день, НЭК II - на 7 день, при достижении клинико-лабораторного улучшения;",
+     "sha256": "866853a087f80b9d202beeae27934e43da4e8f6942360bcbb5f9693c515a2934"
+    }
+   ]
+  },
+  {
+   "id": "CF-004",
+   "rules": [
+    "RDS-007"
+   ],
+   "description": "Протокол РДС (2016) — антибиотики всем детям с РДС до исключения ТБИ; протокол сепсиса (2023) — не проводить рутинное лечение антибиотиками без факторов риска или признаков инфекции. Приоритет протоколов решает эксперт.",
+   "active_when": {
+    "field": "rds_diagnosed",
+    "op": "is_true"
+   },
+   "quotes": [
+    {
+     "protocol": "rds",
+     "page": 9,
+     "text": "всем новорожденным с РДС следует начинать лечение антибиотиками до полного исключения возможной реализации тяжелой бактериальной инфекции (сепсис, пневмония).",
+     "sha256": "a32298185cfd625a3ccbe991c849c62158c8be2cfbebf6c8a854ea901bb78116"
+    },
+    {
+     "protocol": "sepsis",
+     "page": 12,
+     "text": "Не следует проводить рутинное лечение антибиотиками детям без факторов риска инфекции, или клинических и лабораторных признаков возможной инфекции.",
+     "sha256": "0925274571a297cdc736b0ca8301dda3410261b3275020c077de7a65ec996462"
+    }
+   ]
+  },
+  {
+   "id": "CF-005",
+   "rules": [
+    "SEP-006"
+   ],
+   "description": "Дозы гентамицина различаются: протокол сепсиса — начальная доза 5 мг/кг (каждые 36 часов), протокол НЭК (таблица препаратов) — 2,5–4 мг/кг/сут 1 раз в 36 часов.",
+   "active_when": {
+    "all": [
+     {
+      "field": "gentamicin_given",
+      "op": "is_true"
+     },
+     {
+      "any": [
+       {
+        "field": "nec_suspected",
+        "op": "is_true"
+       },
+       {
+        "field": "nec_stage",
+        "op": "present"
+       }
+      ]
+     }
+    ]
+   },
+   "quotes": [
+    {
+     "protocol": "sepsis",
+     "page": 13,
+     "text": "Гентамицин вводится в начальной дозе 5 мг/кг, при этом следует помнить, что:",
+     "sha256": "8dc6f807558c94f0bc97272c3a41327ac82b550ea676ddeac706a730640d6e0e"
+    },
+    {
+     "protocol": "nek",
+     "page": 15,
+     "text": "2,5 – 4 мг/кг/сут , 1 раз в 36 часов",
+     "sha256": "239992b9b200c74f5228ad054b58558f9d17ae412f6c045926300a04b233f3cd"
+    }
+   ]
+  }
+ ],
  "rules": [
   {
    "rule_id": "RDS-001",
@@ -413,18 +574,37 @@
     {
      "id": "RDS-001-A1",
      "text": "«до 30 недель» — включается ли 30 0/7 (в правиле машинно принято <30).",
+     "blocking": "when",
+     "scope": "applicability",
      "decision_by": "врач-эксперт",
-     "decision": null
+     "decision": null,
+     "blocks_when": {
+      "all": [
+       {
+        "field": "gestational_age_weeks",
+        "op": "eq",
+        "value": 30
+       },
+       {
+        "field": "rds_risk",
+        "op": "is_false"
+       }
+      ]
+     }
     },
     {
      "id": "RDS-001-A2",
      "text": "Понятие «риск развития РДС» в протоколе не определено отдельно; перечень анамнестических критериев — стр. 3. Отнесение к группе риска оставлено врачу.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     },
     {
      "id": "RDS-001-A3",
      "text": "Формулировка без модального слова: обязательность или рекомендация — решает эксперт.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -432,7 +612,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "RDS-002",
@@ -502,6 +682,8 @@
     {
      "id": "RDS-002-A1",
      "text": "«Всем интубированным» — только при РДС/риске РДС или при любой интубации в периоде стабилизации; в правиле принято ограничение диагнозом РДС.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -509,7 +691,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "RDS-003",
@@ -615,26 +797,73 @@
     {
      "id": "RDS-003-A1",
      "text": "ГВ ровно 26 недель не попадает ни в одну ветку («менее 26» / «более 26»).",
+     "blocking": "when",
+     "scope": "applicability",
      "decision_by": "врач-эксперт",
-     "decision": null
+     "decision": null,
+     "blocks_when": {
+      "all": [
+       {
+        "field": "gestational_age_weeks",
+        "op": "eq",
+        "value": 26
+       },
+       {
+        "field": "antenatal_steroids_given",
+        "op": "is_true"
+       },
+       {
+        "field": "intubation_needed_for_stabilization",
+        "op": "is_false"
+       }
+      ]
+     }
     },
     {
      "id": "RDS-003-A2",
      "text": "Относится ли условие «мать не получала антенатальные стероиды» ко всем новорождённым или только к недоношенным с РДС/риском РДС.",
+     "blocking": "when",
+     "scope": "applicability",
      "decision_by": "врач-эксперт",
-     "decision": null
+     "decision": null,
+     "blocks_when": {
+      "all": [
+       {
+        "field": "antenatal_steroids_given",
+        "op": "is_false"
+       },
+       {
+        "field": "intubation_needed_for_stabilization",
+        "op": "is_false"
+       }
+      ]
+     }
     },
     {
      "id": "RDS-003-A3",
      "text": "Как сочетается «в родильном зале» с порогами FiO2, которые обычно оцениваются на СРАР после стабилизации.",
+     "blocking": "when",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
-     "decision": null
+     "decision": null,
+     "blocks_when": {
+      "all": [
+       {
+        "field": "antenatal_steroids_given",
+        "op": "is_true"
+       },
+       {
+        "field": "intubation_needed_for_stabilization",
+        "op": "is_false"
+       }
+      ]
+     }
     }
    ],
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "RDS-004",
@@ -691,7 +920,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "RDS-005",
@@ -775,6 +1004,8 @@
     {
      "id": "RDS-005-A1",
      "text": "Проверяется задокументированный целевой диапазон, а не фактические значения SpO2; допустимая доля времени вне диапазона в протоколе не указана.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -782,7 +1013,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "RDS-006",
@@ -854,6 +1085,8 @@
     {
      "id": "RDS-006-A1",
      "text": "Кто и как документирует, что состояние «позволяет» (неонатолог/акушер); при отсутствии записи правило неприменимо.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -861,7 +1094,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "RDS-007",
@@ -936,6 +1169,8 @@
     {
      "id": "RDS-007-A1",
      "text": "Протокол по сепсису №185/2023 (п. 5.3.4) говорит не проводить рутинную антибиотикотерапию без факторов риска/признаков инфекции; приоритет между протоколами 2016 и 2023 годов решает эксперт.",
+     "blocking": "always",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -943,7 +1178,9 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": [
+    "CF-004"
+   ]
   },
   {
    "rule_id": "RDS-008",
@@ -998,6 +1235,8 @@
     {
      "id": "RDS-008-A1",
      "text": "Перечень исследований без модального слова; в разделе «основные диагностические мероприятия» (стр. 5–6) бакпосев перечислен — степень обязательности решает эксперт.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -1005,7 +1244,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "RDS-009",
@@ -1026,7 +1265,7 @@
      }
     ]
    },
-   "kind": "требование",
+   "kind": "сравнительное_положение",
    "applicability": {
     "description": "введён порактант альфа при РДС",
     "condition": {
@@ -1084,12 +1323,16 @@
     {
      "id": "RDS-009-A1",
      "text": "Сравнительное утверждение, не прямое предписание: является ли доза 100 мг/кг отклонением — решает эксперт.",
+     "blocking": "always",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     },
     {
      "id": "RDS-009-A2",
      "text": "Допустимое округление дозы в протоколе не указано (машинно — точное совпадение).",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -1097,7 +1340,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "RDS-010",
@@ -1152,6 +1395,8 @@
     {
      "id": "RDS-010-A1",
      "text": "Числовой порог гипокапнии в протоколе не указан; правило не может оценить газы крови без решения эксперта о пороге.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -1159,7 +1404,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "NEC-001",
@@ -1227,6 +1472,8 @@
     {
      "id": "NEC-001-A1",
      "text": "«Немедленно» не задано во времени; допустимую задержку определяет эксперт.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -1234,7 +1481,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "NEC-002",
@@ -1304,6 +1551,8 @@
     {
      "id": "NEC-002-A1",
      "text": "Цитата — пункт списка, начинающегося словами «При подозрении на НЭК немедленно:»; сроки замены доступа не указаны.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -1311,7 +1560,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "NEC-003",
@@ -1388,12 +1637,16 @@
     {
      "id": "NEC-003-A1",
      "text": "Стр. 12 того же протокола: «энтеральную нагрузку начинают НЭК I на 5 день … при достижении клинико-лабораторного улучшения» — критерий (пассаж или 5-й день) и их соотношение решает эксперт.",
+     "blocking": "always",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     },
     {
      "id": "NEC-003-A2",
      "text": "В цитате нет модального слова; класс «обязательно» выставлен предварительно по контексту раздела — обязательность определяет эксперт.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -1401,7 +1654,9 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": [
+    "CF-003"
+   ]
   },
   {
    "rule_id": "NEC-004",
@@ -1468,12 +1723,16 @@
     {
      "id": "NEC-004-A1",
      "text": "Отсчёт 7 суток — от подозрения или от подтверждения диагноза; в протоколе не указано (машинно — день заболевания, как ввёл пользователь).",
+     "blocking": "always",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     },
     {
      "id": "NEC-004-A2",
      "text": "В цитате нет модального слова; класс «обязательно» выставлен предварительно по контексту раздела — обязательность определяет эксперт.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -1481,7 +1740,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "NEC-005",
@@ -1552,7 +1811,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "NEC-006",
@@ -1639,6 +1898,8 @@
     {
      "id": "NEC-006-A1",
      "text": "В цитате нет модального слова; класс «обязательно» выставлен предварительно по контексту раздела — обязательность определяет эксперт.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -1646,7 +1907,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "NEC-007",
@@ -1723,14 +1984,24 @@
     {
      "id": "NEC-007-A1",
      "text": "Обязательность метронидазола при любой стадии (включая 1а) не уточнена.",
+     "blocking": "when",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
-     "decision": null
+     "decision": null,
+     "blocks_when": {
+      "field": "nec_stage",
+      "op": "in",
+      "value": [
+       "1а",
+       "1б"
+      ]
+     }
     }
    ],
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "NEC-008",
@@ -1806,12 +2077,16 @@
     {
      "id": "NEC-008-A1",
      "text": "Два критерия окончания (стабилизация/восстановление ЖКТ и число дней) — какой главный при расхождении, решает эксперт.",
+     "blocking": "always",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     },
     {
      "id": "NEC-008-A2",
      "text": "В цитате нет модального слова; класс «обязательно» выставлен предварительно по контексту раздела — обязательность определяет эксперт.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -1819,7 +2094,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": "В тексте PDF «в течение5» без пробела — цитата сохранена как есть.",
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "NEC-009",
@@ -1893,8 +2168,8 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": [
-    "NEC-010"
+   "protocol_conflicts": [
+    "CF-001"
    ]
   },
   {
@@ -1961,18 +2236,29 @@
     {
      "id": "NEC-010-A1",
      "text": "Противоречие внутри п. 5.1: при 2а показано консервативное лечение и для 1–2а — перевод в 3-й уровень/консультация хирурга, но здесь 2а включена в перевод в хирургию.",
+     "blocking": "when",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
-     "decision": null
+     "decision": null,
+     "blocks_when": {
+      "field": "nec_stage",
+      "op": "eq",
+      "value": "2а"
+     }
     },
     {
      "id": "NEC-010-A2",
      "text": "«Степень» и «стадия» используются как синонимы — уточнить.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     },
     {
      "id": "NEC-010-A3",
      "text": "В цитате нет модального слова; класс «обязательно» выставлен предварительно по контексту раздела — обязательность определяет эксперт.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -1980,8 +2266,8 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": [
-    "NEC-009"
+   "protocol_conflicts": [
+    "CF-001"
    ]
   },
   {
@@ -2068,22 +2354,38 @@
     {
      "id": "SEP-001-A1",
      "text": "Точка отсчёта «1 часа» не указана (выявление признака, рождение, решение врача).",
+     "blocking": "always",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     },
     {
      "id": "SEP-001-A2",
      "text": "Грамматика неоднозначна: «одного любого фактора риска или клинического признака из группы «Красный флаг»» — относится ли «Красный флаг» к обоим; в правиле принято: ≥1 из группы «Красный флаг».",
+     "blocking": "when",
+     "scope": "applicability",
      "decision_by": "врач-эксперт",
-     "decision": null
+     "decision": null,
+     "blocks_when": {
+      "all": [
+       {
+        "field": "red_flag_count",
+        "op": "eq",
+        "value": 0
+       },
+       {
+        "field": "risk_factor_or_sign_count",
+        "op": "eq",
+        "value": 1
+       }
+      ]
+     }
     }
    ],
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": [
-    "SEP-002"
-   ]
+   "protocol_conflicts": []
   },
   {
    "rule_id": "SEP-002",
@@ -2151,12 +2453,16 @@
     {
      "id": "SEP-002-A1",
      "text": "Соотношение с SEP-001 (начать в течение 1 часа, «не ожидая результатов»): допустима ли задержка антибиотика ради взятия посева — протокол не говорит.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     },
     {
      "id": "SEP-002-A2",
      "text": "В цитате нет модального слова; класс «обязательно» выставлен предварительно по контексту раздела — обязательность определяет эксперт.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -2164,9 +2470,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": [
-    "SEP-001"
-   ]
+   "protocol_conflicts": []
   },
   {
    "rule_id": "SEP-003",
@@ -2236,6 +2540,8 @@
     {
      "id": "SEP-003-A1",
      "text": "Что считать «рутинным» и какие показания допустимы — протокол не определяет.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -2243,7 +2549,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "SEP-004",
@@ -2322,7 +2628,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "SEP-005",
@@ -2435,12 +2741,16 @@
     {
      "id": "SEP-005-A1",
      "text": "Единица дозы (мг/кг) для бензилпенициллина — подтвердить по оригиналу; в таблице препаратов (стр. 17–18) бензилпенициллин пилотом не сверялся.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     },
     {
      "id": "SEP-005-A2",
      "text": "В цитате нет модального слова; класс «рекомендуется» выставлен предварительно по контексту раздела — обязательность определяет эксперт.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -2448,7 +2758,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "SEP-006",
@@ -2530,12 +2840,28 @@
     {
      "id": "SEP-006-A1",
      "text": "П. 7a упоминает 4–7 мг/кг/день, п. 7b — 5 мг/кг каждые 36 часов; протокол НЭК №185 (таблица, стр. 15) даёт 2,5–4 мг/кг/сут 1 раз в 36 часов. Какую дозу считать протокольной при сочетании НЭК и сепсиса — решает эксперт.",
+     "blocking": "when",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
-     "decision": null
+     "decision": null,
+     "blocks_when": {
+      "any": [
+       {
+        "field": "nec_suspected",
+        "op": "is_true"
+       },
+       {
+        "field": "nec_stage",
+        "op": "present"
+       }
+      ]
+     }
     },
     {
      "id": "SEP-006-A2",
      "text": "В цитате нет модального слова; класс «рекомендуется» выставлен предварительно по контексту раздела — обязательность определяет эксперт.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -2543,7 +2869,9 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": [
+    "CF-005"
+   ]
   },
   {
    "rule_id": "SEP-007",
@@ -2616,7 +2944,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": []
+   "protocol_conflicts": []
   },
   {
    "rule_id": "SEP-008",
@@ -2639,12 +2967,17 @@
    },
    "kind": "требование",
    "applicability": {
-    "description": "улучшение, посев отрицательный, нет факторов высокого риска",
+    "description": "схема ампициллин + гентамицин; улучшение, посев отрицательный, нет факторов высокого риска",
     "condition": {
      "all": [
       {
        "field": "antibiotics_started",
        "op": "is_true"
+      },
+      {
+       "field": "empirical_regimen",
+       "op": "eq",
+       "value": "ampicillin+gentamicin"
       },
       {
        "field": "improving",
@@ -2673,12 +3006,19 @@
    "normativity": "рекомендуется",
    "normativity_marker": "«следует»",
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
-   "exceptions_and_caveats": [],
+   "exceptions_and_caveats": [
+    "Цитата называет только комбинацию ампициллин + гентамицин; к другим схемам правило машинно не применяется."
+   ],
    "required_data": [
     {
      "field": "antibiotics_started",
      "description": "Начата антибактериальная терапия",
      "unit": "да/нет"
+    },
+    {
+     "field": "empirical_regimen",
+     "description": "Эмпирическая схема",
+     "unit": "benzylpenicillin+gentamicin / ampicillin+gentamicin / другое"
     },
     {
      "field": "improving",
@@ -2709,6 +3049,16 @@
     {
      "id": "SEP-008-A1",
      "text": "Противоречие длительности внутри протокола: здесь 3–5 дней; на стр. 14–15 — решение о прекращении через 36/48 часов; на стр. 15 — 7 дней при отрицательном посеве и факторах высокого риска. В правиле условие ограничено отсутствием факторов высокого риска; правильность разграничения решает эксперт.",
+     "blocking": "no",
+     "scope": "requirement",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    },
+    {
+     "id": "SEP-008-A2",
+     "text": "Распространяется ли положение на схему бензилпенициллин + гентамицин (п. 5 называет обе); машинно — только ампициллин + гентамицин.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -2716,9 +3066,7 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": [
-    "SEP-010"
-   ]
+   "protocol_conflicts": []
   },
   {
    "rule_id": "SEP-009",
@@ -2736,12 +3084,17 @@
    },
    "kind": "требование",
    "applicability": {
-    "description": "улучшение при положительном посеве",
+    "description": "схема ампициллин + гентамицин; улучшение при положительном посеве",
     "condition": {
      "all": [
       {
        "field": "antibiotics_started",
        "op": "is_true"
+      },
+      {
+       "field": "empirical_regimen",
+       "op": "eq",
+       "value": "ampicillin+gentamicin"
       },
       {
        "field": "improving",
@@ -2766,12 +3119,19 @@
    "normativity": "рекомендуется",
    "normativity_marker": "без модального слова («продолжается»)",
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
-   "exceptions_and_caveats": [],
+   "exceptions_and_caveats": [
+    "Цитата называет только комбинацию ампициллин + гентамицин; к другим схемам правило машинно не применяется."
+   ],
    "required_data": [
     {
      "field": "antibiotics_started",
      "description": "Начата антибактериальная терапия",
      "unit": "да/нет"
+    },
+    {
+     "field": "empirical_regimen",
+     "description": "Эмпирическая схема",
+     "unit": "benzylpenicillin+gentamicin / ampicillin+gentamicin / другое"
     },
     {
      "field": "improving",
@@ -2796,13 +3156,25 @@
    "ambiguities": [
     {
      "id": "SEP-009-A1",
-     "text": "Противоречит стр. 15: «Детям с положительным посевом крови … лечение антибиотиками проводится в течение 7 дней» (SEP-010). Какой срок протокольный — решает эксперт; до решения правило может показать «расхождение» при любом сроке 7–9 дней.",
+     "text": "Противоречит стр. 15: «Детям с положительным посевом крови … лечение антибиотиками проводится в течение 7 дней» (SEP-010). Какой срок протокольный — решает эксперт; до решения эксперта правило не формирует наблюдения о длительности.",
+     "blocking": "always",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     },
     {
      "id": "SEP-009-A2",
+     "text": "Распространяется ли положение на схему бензилпенициллин + гентамицин; машинно — только ампициллин + гентамицин.",
+     "blocking": "no",
+     "scope": "requirement",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    },
+    {
+     "id": "SEP-009-A3",
      "text": "В цитате нет модального слова; класс «рекомендуется» выставлен предварительно по контексту раздела — обязательность определяет эксперт.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -2810,8 +3182,8 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": "В тексте PDF «продолжается10» без пробела — цитата сохранена как есть.",
-   "conflicts_with": [
-    "SEP-010"
+   "protocol_conflicts": [
+    "CF-002"
    ]
   },
   {
@@ -2828,6 +3200,11 @@
      },
      {
       "page": 15,
+      "text": "Продолжительность лечения неонатального сепсиса без менингита",
+      "sha256": "1a78a5e1c50ba881b3c6853a7ca19c2d227695b3e1842e7c76b4656d446742fe"
+     },
+     {
+      "page": 15,
       "text": "Продолжение лечения антибиотиками более 7 дней может быть рассмотрено, если:",
       "sha256": "31e6353457915c03ace6930831dd2bcff2c623172123040d1491c24bbbe61f6e"
      }
@@ -2841,6 +3218,10 @@
       {
        "field": "antibiotics_started",
        "op": "is_true"
+      },
+      {
+       "field": "meningitis",
+       "op": "is_false"
       },
       {
        "any": [
@@ -2879,12 +3260,18 @@
    "normativity_marker": "без модального слова («проводится»)",
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
    "exceptions_and_caveats": [
+    "Положение относится к разделу «без менингита»; при неизвестном статусе менингита правило не оценивается.",
     "Продолжение более 7 дней «может быть рассмотрено» (ребёнок не выздоровел; возбудитель; сопутствующие НЭК, остеомиелит, катетер-ассоциированная инфекция) — стр. 15."
    ],
    "required_data": [
     {
      "field": "antibiotics_started",
      "description": "Начата антибактериальная терапия",
+     "unit": "да/нет"
+    },
+    {
+     "field": "meningitis",
+     "description": "Менингит подозревается или подтверждён",
      "unit": "да/нет"
     },
     {
@@ -2911,18 +3298,24 @@
     {
      "id": "SEP-010-A1",
      "text": "См. SEP-009 (10 дней при положительном посеве).",
+     "blocking": "always",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     },
     {
      "id": "SEP-010-A2",
      "text": "«В течение 7 дней» — ровно 7 или не более 7; машинно — ровно 7.",
+     "blocking": "always",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     },
     {
      "id": "SEP-010-A3",
      "text": "В цитате нет модального слова; класс «рекомендуется» выставлен предварительно по контексту раздела — обязательность определяет эксперт.",
+     "blocking": "no",
+     "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
     }
@@ -2930,9 +3323,8 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
-   "conflicts_with": [
-    "SEP-008",
-    "SEP-009"
+   "protocol_conflicts": [
+    "CF-002"
    ]
   }
  ]

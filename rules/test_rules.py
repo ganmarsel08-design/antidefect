@@ -129,6 +129,60 @@ class NegativeScenarios(unittest.TestCase):
         r['ambiguities'] = [a for a in r['ambiguities'] if 'модальн' not in a['text']]
         self.assertTrue(any('без модального слова' in e for e in errs(db)))
 
+    def test_rds009_comparative_not_mandatory(self):
+        r = R['RDS-009']
+        self.assertEqual(r['kind'], 'сравнительное_положение')
+        self.assertNotEqual(r['normativity'], 'обязательно')
+        db = copy.deepcopy(DB)
+        x = next(y for y in db['rules'] if y['rule_id'] == 'RDS-009')
+        x['normativity'] = 'обязательно'
+        self.assertTrue(any('сравнительное положение не может' in e for e in errs(db)))
+        db = copy.deepcopy(DB)
+        x = next(y for y in db['rules'] if y['rule_id'] == 'RDS-009')
+        for a in x['ambiguities']:
+            a['blocking'] = 'no'
+        self.assertTrue(any('блокирующая неоднозначность' in e for e in errs(db)))
+
+    def test_sep009_010_duration_blocked_until_expert(self):
+        for rid in ('SEP-009', 'SEP-010'):
+            self.assertTrue(any(a['blocking'] == 'always' for a in R[rid]['ambiguities']), rid)
+
+    def test_sep010_requires_no_meningitis(self):
+        r = R['SEP-010']
+        self.assertIn({'field': 'meningitis', 'op': 'is_false'}, r['applicability']['condition']['all'])
+        self.assertTrue(any('без менингита' in q['text'] for q in r['source']['quotes']))
+
+    def test_sep008_009_limited_to_ampicillin_gentamicin(self):
+        for rid in ('SEP-008', 'SEP-009'):
+            cond = R[rid]['applicability']['condition']['all']
+            self.assertIn({'field': 'empirical_regimen', 'op': 'eq', 'value': 'ampicillin+gentamicin'}, cond, rid)
+            self.assertTrue(any('ампициллин' in q['text'] and 'гентамицин' in q['text'] for q in R[rid]['source']['quotes']), rid)
+
+    def test_conflicts_declared_from_text(self):
+        ids = {c['id'] for c in DB['protocol_conflicts']}
+        self.assertEqual(ids, {'CF-001', 'CF-002', 'CF-003', 'CF-004', 'CF-005'})
+        self.assertNotIn('conflicts_with', R['NEC-009'])
+        cf1 = next(c for c in DB['protocol_conflicts'] if c['id'] == 'CF-001')
+        self.assertEqual(cf1['rules'], ['NEC-009', 'NEC-010'])
+        self.assertEqual(cf1['active_when'], {'field': 'nec_stage', 'op': 'eq', 'value': '2а'})
+
+    def test_conflict_with_one_quote_or_changed_quote_rejected(self):
+        db = copy.deepcopy(DB)
+        db['protocol_conflicts'][0]['quotes'] = db['protocol_conflicts'][0]['quotes'][:1]
+        self.assertTrue(any('минимум на две цитаты' in e for e in errs(db)))
+        db = copy.deepcopy(DB)
+        db['protocol_conflicts'][1]['quotes'][0]['text'] += ' ' 'x'
+        self.assertTrue(any('CF-002 цитата 1: хэш' in e for e in errs(db)))
+
+    def test_ambiguity_must_declare_blocking(self):
+        db = copy.deepcopy(DB)
+        del db['rules'][0]['ambiguities'][0]['blocking']
+        self.assertTrue(any('блокирует ли' in e for e in errs(db)))
+        db = copy.deepcopy(DB)
+        a = next(y for y in db['rules'] if y['rule_id'] == 'NEC-010')['ambiguities'][0]
+        del a['blocks_when']
+        self.assertTrue(any('без условия blocks_when' in e for e in errs(db)))
+
     def test_duplicate_rule_id(self):
         db = copy.deepcopy(DB)
         db['rules'][1]['rule_id'] = db['rules'][0]['rule_id']
@@ -153,6 +207,11 @@ class QuotesAgainstPdf(unittest.TestCase):
         q['text'] = 'Бензилпенициллин назначается в дозе 100 мг/кг через каждые 6 часов.'
         q['sha256'] = V.sha(q['text'])        # даже с пересчитанным хэшем выдумка не проходит
         self.assertTrue(any('нет в документе' in x for x in errs(db, pdf_dir=PDF_DIR)))
+
+    def test_conflict_quote_wrong_page_detected(self):
+        db = copy.deepcopy(DB)
+        db['protocol_conflicts'][4]['quotes'][1]['page'] = 14
+        self.assertTrue(any('CF-005 цитата 2: текст не найден' in x for x in errs(db, pdf_dir=PDF_DIR)))
 
     def test_evidence_table_pages(self):
         pages = {p: V.pdf_pages(os.path.join(PDF_DIR, DB['protocols'][p]['pdf']['file_name'])) for p in ('rds', 'nek')}

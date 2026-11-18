@@ -11,7 +11,9 @@ import hashlib, json, os, re, subprocess, sys
 
 CANDIDATE = 'кандидат, ожидает экспертного подтверждения'
 NORMATIVITY = {'обязательно', 'рекомендуется', 'может_применяться', 'не_рекомендуется', 'противопоказано'}
-KINDS = {'требование', 'ограничение'}
+KINDS = {'требование', 'ограничение', 'сравнительное_положение'}
+BLOCKING = {'no', 'always', 'when'}
+SCOPES = {'applicability', 'requirement'}
 OPS = {'eq', 'gt', 'gte', 'lt', 'lte', 'in', 'is_true', 'is_false', 'present'}
 RULE_ID = re.compile(r'^(RDS|NEC|SEP)-\d{3}$')
 PREFIX = {'rds': 'RDS', 'nek': 'NEC', 'sepsis': 'SEP'}
@@ -160,9 +162,57 @@ def check(db, registry=None, pdf_dir=None):
         ev = r.get('evidence_level') or {}
         if ev.get('value') and not ev.get('source_page'):
             errs.append(f'{rid}: уровень доказательности без страницы-источника')
+        if r.get('kind') == 'сравнительное_положение' and r['normativity'] == 'обязательно':
+            errs.append(f'{rid}: сравнительное положение не может быть обязательным требованием без решения эксперта')
+        if r.get('kind') == 'сравнительное_положение' and not any(a.get('blocking') == 'always' for a in r.get('ambiguities', [])):
+            errs.append(f'{rid}: сравнительное положение должно ожидать решения эксперта (блокирующая неоднозначность)')
         for a in r.get('ambiguities', []):
             if a.get('decision') and not r.get('expert_confirmation'):
                 errs.append(f'{a["id"]}: решение по неоднозначности без подтверждения эксперта')
+            if a.get('blocking') not in BLOCKING:
+                errs.append(f'{a["id"]}: не указано, блокирует ли неоднозначность оценку')
+            if a.get('scope') not in SCOPES:
+                errs.append(f'{a["id"]}: неверная область неоднозначности')
+            if a.get('blocking') == 'when':
+                if not a.get('blocks_when'):
+                    errs.append(f'{a["id"]}: blocking=when без условия blocks_when')
+                else:
+                    check_node(a['blocks_when'], a['id'], errs)
+                    for fld in fields_of(a['blocks_when']) - set(dd):
+                        errs.append(f'{a["id"]}: поле {fld} нет в словаре данных')
+    rule_ids = {r['rule_id'] for r in db['rules']}
+    cf_ids = set()
+    for cf in db.get('protocol_conflicts', []):
+        cid = cf.get('id', '?')
+        if cid in cf_ids:
+            errs.append(f'{cid}: повтор id противоречия')
+        cf_ids.add(cid)
+        for rr in cf.get('rules', []):
+            if rr not in rule_ids:
+                errs.append(f'{cid}: неизвестное правило {rr}')
+        if not cf.get('active_when'):
+            errs.append(f'{cid}: нет условия active_when')
+        else:
+            check_node(cf['active_when'], cid, errs)
+            for fld in fields_of(cf['active_when']) - set(dd):
+                errs.append(f'{cid}: поле {fld} нет в словаре данных')
+        if len(cf.get('quotes', [])) < 2:
+            errs.append(f'{cid}: противоречие должно опираться минимум на две цитаты')
+        for i, q in enumerate(cf.get('quotes', [])):
+            w = f'{cid} цитата {i + 1}'
+            pr = db['protocols'].get(q.get('protocol'))
+            if not pr:
+                errs.append(f'{w}: неизвестный протокол')
+                continue
+            if q.get('sha256') != sha(q['text']):
+                errs.append(f'{w}: хэш цитаты не совпадает с текстом')
+            if q['protocol'] in pages_cache:
+                if not (1 <= q['page'] <= len(pages_cache[q['protocol']])) or norm_text(q['text']) not in pages_cache[q['protocol']][q['page'] - 1]:
+                    errs.append(f'{w}: текст не найден на стр. {q["page"]}')
+    for r in db['rules']:
+        declared = {c['id'] for c in db.get('protocol_conflicts', []) if r['rule_id'] in c['rules']}
+        if set(r.get('protocol_conflicts', [])) != declared:
+            errs.append(f'{r["rule_id"]}: ссылки protocol_conflicts не совпадают с объявленными противоречиями')
     per = {}
     for r in db['rules']:
         per[r['protocol']] = per.get(r['protocol'], 0) + 1

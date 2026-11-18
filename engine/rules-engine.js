@@ -15,7 +15,7 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.1.0-stage5-pilot';
+  const VERSION = '0.2.0-stage5-pilot';
   const CANDIDATE = 'кандидат, ожидает экспертного подтверждения';
   const STATUS = Object.freeze({ EXPERT: 'Требуется оценка эксперта', INSUFFICIENT: 'Недостаточно данных' });
   const ALLOWED_STATUSES = Object.freeze([STATUS.EXPERT, STATUS.INSUFFICIENT]);
@@ -23,7 +23,8 @@
     RULES_UNAUTHENTICATED: 'база правил не подписана и не аутентифицирована — окончательный вывод заблокирован',
     RULE_UNCONFIRMED: 'правило — кандидат, не подтверждено экспертом',
     RULE_STATUS_INVALID: 'статус правила изменён без записи подтверждения эксперта — правило не используется',
-    AMBIGUOUS: 'в правиле есть неоднозначность, требующая решения врача'
+    AMBIGUOUS: 'в правиле есть неоднозначность, требующая решения врача',
+    AMBIGUITY_ACTIVE: 'неоднозначность правила затрагивает этот случай — наблюдение не формируется до решения эксперта'
   });
   const OBS = Object.freeze({
     CONSISTENT: 'совпадает_с_буквальным_прочтением',
@@ -31,7 +32,17 @@
     NOT_APPLIED_ALLOWED: 'не_применено_допускается_протоколом',
     NOT_ASSESSED: 'не_оценено_нет_данных',
     NOT_APPLICABLE: 'правило_неприменимо',
-    RULE_REJECTED: 'правило_не_используется'
+    RULE_REJECTED: 'правило_не_используется',
+    AMBIGUOUS_PENDING: 'неоднозначность_ожидает_экспертного_решения'
+  });
+  const OBS_LABEL = Object.freeze({
+    [OBS.CONSISTENT]: 'Совпадает с буквальным прочтением (предварительно)',
+    [OBS.DIFFERS]: 'Отличается от буквального прочтения (предварительно)',
+    [OBS.NOT_APPLIED_ALLOWED]: 'Не применено — протокол это допускает',
+    [OBS.NOT_ASSESSED]: 'Недостаточно данных',
+    [OBS.NOT_APPLICABLE]: 'Правило неприменимо',
+    [OBS.RULE_REJECTED]: 'Правило не используется',
+    [OBS.AMBIGUOUS_PENDING]: 'Неоднозначность — ожидает экспертного решения'
   });
   const WEIGHT = Object.freeze({
     'обязательно': 'отличие от требования протокола (кандидат) — нужна оценка эксперта и обоснование',
@@ -58,21 +69,20 @@
   }
 
   // Трёхзначная логика: true / false / null (нет данных). missing собирает отсутствующие поля.
+  // Отсутствующие поля сообщаются, только если от них зависит ответ узла.
   function evalNode(node, data, missing) {
-    if (node.all) {
-      let res = true;
-      for (const n of node.all) {
-        const v = evalNode(n, data, missing);
-        if (v === false) res = false; else if (v === null && res !== false) res = null;
+    if (node.all || node.any) {
+      const isAll = !!node.all;
+      const local = new Set();
+      let res = isAll;
+      for (const n of (isAll ? node.all : node.any)) {
+        const sub = new Set();
+        const v = evalNode(n, data, sub);
+        if (v === null) sub.forEach(x => local.add(x));
+        if (isAll) { if (v === false) res = false; else if (v === null && res !== false) res = null; }
+        else { if (v === true) res = true; else if (v === null && res !== true) res = null; }
       }
-      return res;
-    }
-    if (node.any) {
-      let res = false;
-      for (const n of node.any) {
-        const v = evalNode(n, data, missing);
-        if (v === true) res = true; else if (v === null && res !== true) res = null;
-      }
+      if (res === null) local.forEach(x => missing.add(x));
       return res;
     }
     const has = Object.prototype.hasOwnProperty.call(data, node.field) && data[node.field] !== null && data[node.field] !== undefined;
@@ -112,7 +122,8 @@
       section: r.source.section, rule_status: r.status,
       applicability: null, observation: null, observation_weight: null,
       provisional: true, final: false, expert_review_required: true,
-      missing_data: [], ambiguities: (r.ambiguities || []).map(a => ({ id: a.id, text: a.text })),
+      missing_data: [], ambiguities: (r.ambiguities || []).map(a => ({ id: a.id, text: a.text, blocking: a.blocking || 'no', scope: a.scope || 'requirement' })),
+      active_ambiguities: [], protocol_conflicts: (r.protocol_conflicts || []).slice(),
       exceptions_and_caveats: (r.exceptions_and_caveats || []).slice(),
       blocked_by: [BLOCK.RULES_UNAUTHENTICATED], justification: null, justification_complete: false
     };
@@ -122,19 +133,30 @@
       out.blocked_by.push(BLOCK.RULE_STATUS_INVALID);
       out.applicability = 'не_определено';
       out.observation = OBS.RULE_REJECTED;
+      out.observation_label = OBS_LABEL[out.observation];
       return out;
     }
     const miss = new Set();
     const app = evalNode(r.applicability.condition, data, miss);
-    if (app === false) {
-      out.applicability = 'неприменимо';
-      out.observation = OBS.NOT_APPLICABLE;
-      return out;
-    }
     if (app === null) {
       out.applicability = 'не_определено';
       out.observation = OBS.NOT_ASSESSED;
       out.missing_data = [...miss].sort();
+      return withJustification(out, r, c);
+    }
+    const active = activeAmbiguities(r, data, app);
+    if (active.length) {
+      // До решения эксперта по неоднозначности не формируется ни «совпадает», ни «отличается».
+      out.applicability = app ? 'применимо' : 'зависит_от_неоднозначности';
+      out.observation = OBS.AMBIGUOUS_PENDING;
+      out.active_ambiguities = active;
+      out.blocked_by.push(BLOCK.AMBIGUITY_ACTIVE);
+      return withJustification(out, r, c);
+    }
+    if (app === false) {
+      out.applicability = 'неприменимо';
+      out.observation = OBS.NOT_APPLICABLE;
+      out.observation_label = OBS_LABEL[out.observation];
       return out;
     }
     out.applicability = 'применимо';
@@ -152,10 +174,30 @@
       out.observation = OBS.DIFFERS;
       out.observation_weight = WEIGHT[r.normativity] || WEIGHT['обязательно'];
     }
+    return withJustification(out, r, c);
+  }
+
+  function withJustification(out, r, c) {
     const j = justificationOf(c, r.rule_id);
     out.justification = j.value;
     out.justification_complete = j.complete;
+    out.observation_label = OBS_LABEL[out.observation];
     return out;
+  }
+
+  // Неоднозначность снимается только решением эксперта в подтверждённом правиле.
+  function activeAmbiguities(r, data, app) {
+    const ids = [];
+    for (const a of r.ambiguities || []) {
+      if (!a.blocking || a.blocking === 'no') continue;
+      if (a.decision && r.expert_confirmation) continue;
+      const scope = a.scope || 'requirement';
+      if (scope === 'requirement' && app !== true) continue;
+      if (a.blocking === 'always') { ids.push(a.id); continue; }
+      if (a.blocking === 'when' && a.blocks_when && evalNode(a.blocks_when, data, new Set()) === true) ids.push(a.id);
+      else if (a.blocking !== 'when') ids.push(a.id); // неизвестный вид блокировки — считать блокирующей
+    }
+    return ids;
   }
 
   /**
@@ -171,20 +213,17 @@
     const only = opt && Array.isArray(opt.protocols) ? new Set(opt.protocols) : null;
     const results = db.rules.filter(r => !only || only.has(r.protocol)).map(r => evaluateRule(r, data, c));
 
-    const byId = new Map(results.map(x => [x.rule_id, x]));
-    const conflicts = [];
-    for (const r of db.rules) {
-      for (const other of r.conflicts_with || []) {
-        if (r.rule_id > other) continue;
-        const a = byId.get(r.rule_id), b = byId.get(other);
-        if (a && b && a.applicability === 'применимо' && b.applicability === 'применимо' &&
-            a.observation !== b.observation) {
-          conflicts.push({ rules: [r.rule_id, other],
-            note: 'правила одного протокола дают разные предварительные наблюдения — возможное внутреннее противоречие протокола; решает эксперт' });
-        }
-      }
-    }
-    const assessed = results.filter(x => x.applicability === 'применимо' && x.observation !== OBS.NOT_ASSESSED);
+    // Противоречия — свойство текста протокола, объявленное в базе (protocol_conflicts).
+    // Они показываются, когда случай попадает в описанную ситуацию, и НЕ выводятся из того,
+    // что два правила дали разные наблюдения.
+    const used = new Set(results.map(x => x.rule_id));
+    const conflicts = (db.protocol_conflicts || [])
+      .filter(cf => cf.rules.some(id => used.has(id)) && evalNode(cf.active_when, data, new Set()) === true)
+      .map(cf => ({ id: cf.id, rules: cf.rules.slice(), description: cf.description,
+        quotes: cf.quotes.map(q => ({ protocol: q.protocol, page: q.page, text: q.text })),
+        note: 'положения протокола расходятся в этой клинической ситуации — решает эксперт' }));
+    const assessed = results.filter(x => x.observation === OBS.AMBIGUOUS_PENDING ||
+      (x.applicability === 'применимо' && x.observation !== OBS.NOT_ASSESSED));
     const status = assessed.length ? STATUS.EXPERT : STATUS.INSUFFICIENT;
     const count = o => results.filter(x => x.observation === o).length;
     return {
@@ -202,6 +241,7 @@
         not_assessed: count(OBS.NOT_ASSESSED),
         not_applicable: count(OBS.NOT_APPLICABLE),
         rejected_rules: count(OBS.RULE_REJECTED),
+        ambiguous_pending_expert: count(OBS.AMBIGUOUS_PENDING),
         justifications_recorded: results.filter(x => x.justification).length
       },
       conflicts,
@@ -210,5 +250,5 @@
     };
   }
 
-  return Object.freeze({ VERSION, CANDIDATE, STATUS, ALLOWED_STATUSES, BLOCK, OBS, evaluate, evalNode });
+  return Object.freeze({ VERSION, CANDIDATE, STATUS, ALLOWED_STATUSES, BLOCK, OBS, OBS_LABEL, evaluate, evalNode });
 });

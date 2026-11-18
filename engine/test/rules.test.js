@@ -83,17 +83,23 @@ test('РДС: обоснование без автора считается не
   assert.equal(r.justification_complete, false);
 });
 
-test('РДС-003: ГВ ровно 26 нед. не попадает ни в одну ветку — неоднозначность показана врачу', () => {
+test('РДС-003: ГВ ровно 26 нед. не попадает ни в одну ветку — «Неоднозначность», а не «неприменимо»', () => {
   const r = res(run({ antenatal_steroids_given: true, intubation_needed_for_stabilization: false, gestational_age_weeks: 26, fio2: 0.45 }), 'RDS-003');
-  assert.equal(r.applicability, 'неприменимо');
-  assert.ok(r.ambiguities.some(a => /ровно 26/.test(a.text)));
-  assert.ok(r.blocked_by.includes(E.BLOCK.AMBIGUOUS));
+  assert.equal(r.observation, E.OBS.AMBIGUOUS_PENDING);
+  assert.equal(r.observation_label, 'Неоднозначность — ожидает экспертного решения');
+  assert.deepEqual(r.active_ambiguities, ['RDS-003-A1']);
+  assert.equal(r.observation_weight, null);
 });
 
-test('РДС-009: доза порактанта 100 мг/кг — отличие от рекомендации, уровень А взят из таблицы препаратов', () => {
-  const r = res(run({ rds_diagnosed: true, surfactant_drug: 'порактант альфа', surfactant_initial_dose_mg_kg: 100 }), 'RDS-009');
-  assert.equal(r.observation, E.OBS.DIFFERS);
+test('РДС-009: сравнительное положение о порактанте не превращается в обязательную дозу (п. 5 замечаний)', () => {
+  for (const dose of [100, 200]) {
+    const r = res(run({ rds_diagnosed: true, surfactant_drug: 'порактант альфа', surfactant_initial_dose_mg_kg: dose }), 'RDS-009');
+    assert.equal(r.observation, E.OBS.AMBIGUOUS_PENDING, String(dose));
+    assert.equal(r.kind, 'сравнительное_положение');
+    assert.equal(r.observation_weight, null);
+  }
   const rule = DB.rules.find(x => x.rule_id === 'RDS-009');
+  assert.notEqual(rule.normativity, 'обязательно');
   assert.equal(rule.evidence_level.value, 'А');
   assert.equal(rule.evidence_level.source_page, 11);
 });
@@ -112,17 +118,43 @@ test('НЭК: подозрение — кормление прекращено, 
   assertNotFinal(out);
 });
 
-test('НЭК II: кормление на 5-е сутки, антибиотики 8 суток без метронидазола — три отличия, итог не «дефект»', () => {
+test('НЭК II: без метронидазола — отличие; сроки кормления и антибиотиков — неоднозначность, без утверждения о нарушении', () => {
   const out = run({ nec_stage: '2б', enteral_feeding_resumed_day: 5, antibiotics_started: true, antibiotic_days: 8, metronidazole_given: false });
-  for (const id of ['NEC-004', 'NEC-007', 'NEC-008']) assert.equal(res(out, id).observation, E.OBS.DIFFERS, id);
+  assert.equal(res(out, 'NEC-007').observation, E.OBS.DIFFERS);
+  assert.equal(res(out, 'NEC-004').observation, E.OBS.AMBIGUOUS_PENDING);
+  assert.equal(res(out, 'NEC-008').observation, E.OBS.AMBIGUOUS_PENDING);
   assertNotFinal(out);
 });
 
-test('НЭК 2а в организации 2-го уровня: консультация есть, перевода нет — противоречие п. 5.1 показано', () => {
+test('НЭК 1а: метронидазол не введён — неоднозначность «при любой стадии», а не отличие', () => {
+  const r = res(run({ nec_stage: '1а', antibiotics_started: true, metronidazole_given: false }), 'NEC-007');
+  assert.equal(r.observation, E.OBS.AMBIGUOUS_PENDING);
+});
+
+test('НЭК 2а: противоречие п. 5.1 показано как свойство протокола, NEC-010 — неоднозначность', () => {
   const out = run({ nec_stage: '2а', facility_level: 2, surgeon_consulted: true, transferred_to_surgery: false });
   assert.equal(res(out, 'NEC-009').observation, E.OBS.CONSISTENT);
-  assert.equal(res(out, 'NEC-010').observation, E.OBS.DIFFERS);
-  assert.ok(out.conflicts.some(c => c.rules.includes('NEC-009') && c.rules.includes('NEC-010')));
+  assert.equal(res(out, 'NEC-010').observation, E.OBS.AMBIGUOUS_PENDING);
+  const cf = out.conflicts.find(c => c.id === 'CF-001');
+  assert.ok(cf);
+  assert.equal(cf.quotes.length, 3);
+});
+
+test('противоречие не выводится из разных результатов двух правил (п. 4 замечаний)', () => {
+  // NEC-001 совпадает, NEC-002 отличается — это не противоречие протокола
+  const out = run({ nec_suspected: true, enteral_feeding_stopped: true, ng_tube_decompression: true, umbilical_catheter_present: true, umbilical_catheter_removed: false }, {}, { protocols: ['nek'] });
+  assert.equal(res(out, 'NEC-001').observation, E.OBS.CONSISTENT);
+  assert.equal(res(out, 'NEC-002').observation, E.OBS.DIFFERS);
+  assert.deepEqual(out.conflicts, []);
+  // НЭК 2б: NEC-010 отличается, NEC-009 неприменимо — объявленное противоречие для 2а не показывается
+  const b = run({ nec_stage: '2б', facility_level: 2, surgeon_consulted: true, transferred_to_surgery: false });
+  assert.equal(res(b, 'NEC-010').observation, E.OBS.DIFFERS);
+  assert.ok(!b.conflicts.some(c => c.id === 'CF-001'));
+});
+
+test('противоречие 2а показывается и тогда, когда оба правила выполнены', () => {
+  const out = run({ nec_stage: '2а', facility_level: 2, surgeon_consulted: true, transferred_to_surgery: true });
+  assert.ok(out.conflicts.some(c => c.id === 'CF-001'));
 });
 
 test('НЭК: при ухудшении снимок не вертикально — отличие; без ухудшения горизонтальный допустим', () => {
@@ -133,30 +165,65 @@ test('НЭК: при ухудшении снимок не вертикально
 });
 
 // --- Сепсис ---
-test('Сепсис: признак «Красный флаг», антибиотик через 45 мин — совпадает; через 90 мин — отличие от рекомендации', () => {
-  const a = res(run({ red_flag_count: 1, antibiotics_started: true, antibiotics_start_minutes: 45 }), 'SEP-001');
-  const b = res(run({ red_flag_count: 1, antibiotics_started: true, antibiotics_start_minutes: 90 }), 'SEP-001');
-  assert.equal(a.observation, E.OBS.CONSISTENT);
-  assert.equal(b.observation, E.OBS.DIFFERS);
-  assert.equal(b.normativity, 'рекомендуется');
+test('Сепсис-001: начало «в течение 1 часа» без точки отсчёта — неоднозначность при любом времени', () => {
+  for (const m of [45, 90]) {
+    const r = res(run({ red_flag_count: 1, antibiotics_started: true, antibiotics_start_minutes: m }), 'SEP-001');
+    assert.equal(r.observation, E.OBS.AMBIGUOUS_PENDING, String(m));
+    assert.equal(r.observation_weight, null);
+  }
 });
 
-test('Сепсис: один фактор риска без «Красного флага» — SEP-001 неприменимо', () => {
-  assert.equal(res(run({ red_flag_count: 0, risk_factor_or_sign_count: 1 }), 'SEP-001').applicability, 'неприменимо');
+test('Сепсис-001: один фактор риска без «Красного флага» — неоднозначность прочтения, не «неприменимо»', () => {
+  const r = res(run({ red_flag_count: 0, risk_factor_or_sign_count: 1 }), 'SEP-001');
+  assert.equal(r.observation, E.OBS.AMBIGUOUS_PENDING);
+  assert.deepEqual(r.active_ambiguities, ['SEP-001-A2']);
+  assert.equal(res(run({ red_flag_count: 0, risk_factor_or_sign_count: 0 }), 'SEP-001').applicability, 'неприменимо');
 });
 
-test('Сепсис: положительный посев, 7 суток — SEP-010 совпадает, SEP-009 (10 суток) отличается; противоречие показано', () => {
-  const out = run({ antibiotics_started: true, improving: true, blood_culture_result: 'положительный', antibiotic_days: 7 });
-  assert.equal(res(out, 'SEP-010').observation, E.OBS.CONSISTENT);
-  assert.equal(res(out, 'SEP-009').observation, E.OBS.DIFFERS);
-  assert.ok(out.conflicts.some(c => c.rules.join() === 'SEP-009,SEP-010'));
-  assertNotFinal(out);
+test('Сепсис-009/010: 7 или 10 суток — ни одного отрицательного наблюдения о длительности (п. 1 замечаний)', () => {
+  for (const days of [5, 7, 8, 10, 14]) {
+    const out = run({ antibiotics_started: true, empirical_regimen: 'ampicillin+gentamicin', improving: true, blood_culture_result: 'положительный', meningitis: false, antibiotic_days: days });
+    for (const id of ['SEP-009', 'SEP-010']) {
+      const r = res(out, id);
+      assert.equal(r.observation, E.OBS.AMBIGUOUS_PENDING, id + ' ' + days);
+      assert.notEqual(r.observation, E.OBS.DIFFERS);
+    }
+    const cf = out.conflicts.find(c => c.id === 'CF-002');
+    assert.ok(cf);
+    assert.ok(cf.quotes.some(q => /продолжается10 дней/.test(q.text)) && cf.quotes.some(q => /в течение 7 дней/.test(q.text)));
+    assertNotFinal(out);
+  }
 });
 
-test('Сепсис: улучшение, посев отрицательный, без факторов высокого риска, 4 суток — SEP-008 совпадает', () => {
-  const out = run({ antibiotics_started: true, improving: true, blood_culture_result: 'отрицательный', high_risk_factors: false, antibiotic_days: 4 });
+test('Сепсис-010: статус менингита неизвестен — «Недостаточно данных» (п. 2 замечаний)', () => {
+  const r = res(run({ antibiotics_started: true, blood_culture_result: 'положительный', antibiotic_days: 7 }), 'SEP-010');
+  assert.equal(r.observation, E.OBS.NOT_ASSESSED);
+  assert.equal(r.observation_label, 'Недостаточно данных');
+  assert.deepEqual(r.missing_data, ['meningitis']);
+  assert.deepEqual(r.active_ambiguities, []);
+});
+
+test('Сепсис-010: при менингите правило неприменимо', () => {
+  const r = res(run({ antibiotics_started: true, blood_culture_result: 'положительный', meningitis: true, antibiotic_days: 7 }), 'SEP-010');
+  assert.equal(r.applicability, 'неприменимо');
+});
+
+test('Сепсис-008: ампициллин + гентамицин, улучшение, посев отрицательный, 4 суток — совпадает', () => {
+  const out = run({ antibiotics_started: true, empirical_regimen: 'ampicillin+gentamicin', improving: true, blood_culture_result: 'отрицательный', high_risk_factors: false, antibiotic_days: 4 });
   assert.equal(res(out, 'SEP-008').observation, E.OBS.CONSISTENT);
   assert.equal(res(out, 'SEP-010').applicability, 'неприменимо');
+});
+
+test('Сепсис-008/009: другая схема — правило не переносится (п. 3 замечаний)', () => {
+  for (const reg of ['benzylpenicillin+gentamicin', 'другое']) {
+    const a = res(run({ antibiotics_started: true, empirical_regimen: reg, improving: true, blood_culture_result: 'отрицательный', high_risk_factors: false, antibiotic_days: 9 }), 'SEP-008');
+    const b = res(run({ antibiotics_started: true, empirical_regimen: reg, improving: true, blood_culture_result: 'положительный', antibiotic_days: 3 }), 'SEP-009');
+    assert.equal(a.applicability, 'неприменимо', reg);
+    assert.equal(b.applicability, 'неприменимо', reg);
+  }
+  const unknown = res(run({ antibiotics_started: true, improving: true, blood_culture_result: 'отрицательный', high_risk_factors: false, antibiotic_days: 9 }), 'SEP-008');
+  assert.equal(unknown.observation, E.OBS.NOT_ASSESSED);
+  assert.deepEqual(unknown.missing_data, ['empirical_regimen']);
 });
 
 test('Сепсис: иммуноглобулин без отдельного показания — «не рекомендуется», отличие', () => {
@@ -171,10 +238,64 @@ test('Сепсис: бензилпенициллин 25 мг/кг каждые 8
   assert.equal(r.observation, E.OBS.CONSISTENT);
 });
 
-test('Сепсис: доза гентамицина 4 мг/кг — отличие; неоднозначность доз (сепсис/НЭК) показана', () => {
+test('Сепсис: доза гентамицина 4 мг/кг без НЭК — отличие; при НЭК — неоднозначность доз и противоречие протоколов', () => {
   const r = res(run({ early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_initial_dose_mg_kg: 4 }), 'SEP-006');
   assert.equal(r.observation, E.OBS.DIFFERS);
-  assert.ok(r.ambiguities.some(a => /НЭК/.test(a.text)));
+  const out = run({ early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_initial_dose_mg_kg: 4, nec_stage: '2а' });
+  assert.equal(res(out, 'SEP-006').observation, E.OBS.AMBIGUOUS_PENDING);
+  assert.ok(out.conflicts.some(c => c.id === 'CF-005'));
+});
+
+test('РДС-001: 30 нед. без риска РДС — неоднозначность «до 30 недель»', () => {
+  const r = res(run({ rds_risk: false, gestational_age_weeks: 30, cpap_from_birth: false }), 'RDS-001');
+  assert.equal(r.observation, E.OBS.AMBIGUOUS_PENDING);
+});
+
+test('РДС-007: антибиотики при РДС — неоднозначность и противоречие с протоколом сепсиса 2023', () => {
+  const out = run({ rds_diagnosed: true, serious_bacterial_infection_excluded: false, antibiotics_started: false });
+  assert.equal(res(out, 'RDS-007').observation, E.OBS.AMBIGUOUS_PENDING);
+  const cf = out.conflicts.find(c => c.id === 'CF-004');
+  assert.deepEqual(cf.quotes.map(q => q.protocol), ['rds', 'sepsis']);
+});
+
+test('неоднозначность: ни при каком исходе не даёт отличия, веса или скрытого результата (п. 6 замечаний)', () => {
+  const cases = [
+    { nec_stage: '2б', enteral_feeding_resumed_day: 2, antibiotics_started: true, antibiotic_days: 1 },
+    { nec_stage: '1а', gi_passage_restored: false, enteral_feeding_stopped: false },
+    { rds_diagnosed: true, surfactant_drug: 'порактант альфа', surfactant_initial_dose_mg_kg: 50 },
+    { antibiotics_started: true, empirical_regimen: 'ampicillin+gentamicin', improving: true, blood_culture_result: 'положительный', meningitis: false, antibiotic_days: 2 }
+  ];
+  let seen = 0;
+  for (const d of cases) {
+    for (const r of run(d).results) {
+      if (!r.active_ambiguities.length) continue;
+      seen++;
+      assert.equal(r.observation, E.OBS.AMBIGUOUS_PENDING, r.rule_id);
+      assert.equal(r.observation_weight, null, r.rule_id);
+      assert.ok(r.blocked_by.includes(E.BLOCK.AMBIGUITY_ACTIVE), r.rule_id);
+      assert.ok(!JSON.stringify(r).includes(E.OBS.DIFFERS), r.rule_id);
+    }
+  }
+  assert.ok(seen >= 4);
+});
+
+test('неоднозначность: «решение», вписанное в неподтверждённое правило, неоднозначность не снимает', () => {
+  const db = clone(DB);
+  const rule = db.rules.find(x => x.rule_id === 'SEP-009');
+  rule.ambiguities[0].decision = 'принять 10 дней';
+  const out = E.evaluate(db, { synthetic: true, data: { antibiotics_started: true, empirical_regimen: 'ampicillin+gentamicin', improving: true, blood_culture_result: 'положительный', antibiotic_days: 7 } });
+  assert.equal(res(out, 'SEP-009').observation, E.OBS.AMBIGUOUS_PENDING);
+});
+
+test('неоднозначность снимается только решением эксперта в подтверждённом правиле — и итог всё равно не окончательный', () => {
+  const db = clone(DB);
+  const rule = db.rules.find(x => x.rule_id === 'RDS-009');
+  rule.status = 'подтверждено экспертом';
+  rule.expert_confirmation = { by: 'эксперт-синтетик', at: '2026-11-19' };
+  rule.ambiguities.forEach(a => { a.decision = 'синтетическое решение'; });
+  const out = E.evaluate(db, { synthetic: true, data: { rds_diagnosed: true, surfactant_drug: 'порактант альфа', surfactant_initial_dose_mg_kg: 100 } });
+  assert.equal(res(out, 'RDS-009').observation, E.OBS.DIFFERS);
+  assertNotFinal(out);
 });
 
 // --- защита итогового вывода ---
@@ -245,7 +366,8 @@ test('комплексный синтетический случай по трё
     nec_suspected: true, nec_stage: '2а', enteral_feeding_stopped: true, ng_tube_decompression: true, parenteral_nutrition_started_day: 1,
     metronidazole_given: true, facility_level: 3
   });
-  assert.ok(out.summary.consistent_literal >= 15, String(out.summary.consistent_literal));
+  assert.ok(out.summary.consistent_literal >= 10, String(out.summary.consistent_literal));
+  assert.ok(out.summary.ambiguous_pending_expert >= 1);
   assertNotFinal(out);
 });
 
@@ -255,4 +377,7 @@ test('evalNode: трёхзначная логика (нет данных ≠ «�
   assert.equal(E.evalNode({ any: [{ field: 'a', op: 'is_true' }, { field: 'b', op: 'is_true' }] }, { b: true }, new Set()), true);
   assert.equal(E.evalNode({ all: [{ field: 'a', op: 'is_true' }, { field: 'b', op: 'is_true' }] }, { a: false }, new Set()), false);
   assert.deepEqual([...m], ['b']);
+  const m2 = new Set();
+  assert.equal(E.evalNode({ any: [{ field: 'a', op: 'is_true' }, { all: [{ field: 'b', op: 'is_true' }, { field: 'c', op: 'is_true' }] }] }, { a: true, b: false }, m2), true);
+  assert.deepEqual([...m2], []);
 });
