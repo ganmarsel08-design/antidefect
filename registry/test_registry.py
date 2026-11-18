@@ -24,19 +24,19 @@ class RegistryRules(unittest.TestCase):
 
     def test_active_requires_expert_confirmation(self):
         r = copy.deepcopy(REG)
-        first(r, 'подтверждено_официальным_PDF')['registry_status'] = 'действует'
+        first(r, 'подтверждено_выдержкой_официального_сайта')['registry_status'] = 'действует'
         self.assertTrue(any('без подтверждения эксперта' in e for e in V.check(r)[0]))
 
     def test_active_with_expert_but_without_currency_check_rejected(self):
         r = copy.deepcopy(REG)
-        p = first(r, 'подтверждено_официальным_PDF')
+        p = first(r, 'подтверждено_выдержкой_официального_сайта')
         p['registry_status'] = 'действует'
         p['expert_confirmation'] = {'by': 'эксперт-1 (синтетический)', 'at': '2026-11-18', 'basis': 'сверено с PDF nrchd.kz'}
         self.assertTrue(any('проверки актуальности' in e for e in V.check(r)[0]))
 
     def test_active_with_url_expert_and_currency_ok(self):
         r = copy.deepcopy(REG)
-        p = first(r, 'подтверждено_официальным_PDF')
+        p = first(r, 'подтверждено_выдержкой_официального_сайта')
         p['registry_status'] = 'действует'
         p['expert_confirmation'] = {'by': 'эксперт-1 (синтетический)', 'at': '2026-11-18', 'basis': 'сверено с PDF nrchd.kz'}
         p['currency_check'] = {'result': 'новее_редакции_не_найдено', 'basis': 'синтетическая проверка перечня пересмотров'}
@@ -58,7 +58,7 @@ class RegistryRules(unittest.TestCase):
 
     def test_replaced_requires_successor_and_end_date(self):
         r = copy.deepcopy(REG)
-        p = first(r, 'подтверждено_официальным_PDF')
+        p = first(r, 'подтверждено_выдержкой_официального_сайта')
         p['registry_status'] = 'заменён'
         p['expert_confirmation'] = {'by': 'э', 'at': '2026-11-18', 'basis': 'x'}
         self.assertTrue(any('replaced_by' in e for e in V.check(r)[0]))
@@ -68,7 +68,7 @@ class RegistryRules(unittest.TestCase):
 
     def test_official_number_mismatch_detected(self):
         r = copy.deepcopy(REG)
-        first(r, 'подтверждено_официальным_PDF')['official_check']['official_no'] = '999'
+        first(r, 'подтверждено_выдержкой_официального_сайта')['official_check']['official_no'] = '999'
         self.assertTrue(any('≠' in e for e in V.check(r)[0]))
 
     def test_cannot_mark_complete_with_gaps(self):
@@ -188,7 +188,7 @@ class Stage4Requirements(unittest.TestCase):
         self.assertTrue(any('хэш файла' in e for e in V.check(r)[0]))
 
     def test_engine_entry_carries_evidence(self):
-        p = next(x for x in REG['protocols'] if x['official_check']['result'] == 'подтверждено_официальным_PDF')
+        p = next(x for x in REG['protocols'] if x['official_check']['result'] == 'подтверждено_выдержкой_официального_сайта')
         e = V.engine_entry(p)
         self.assertEqual(e['currency_verified'], False)
         self.assertIn('doc_id', e)
