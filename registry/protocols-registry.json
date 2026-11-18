@@ -1,0 +1,1136 @@
+{
+ "version": "0.1-candidate",
+ "created": "2026-11-18",
+ "source_text": "neo-pro/data/protocols.json (только чтение)",
+ "official_sources": {
+  "catalog": "https://nrchd.kz/clinical-protocols/catalog",
+  "okk_minutes": "https://nrchd.kz/quality-commission"
+ },
+ "verification_level": "заявлено_экспертом не присвоено; сверка не завершена",
+ "note": "Кандидат версии реестра. Статус «действует» ставит только эксперт после проверки официального документа. Автоматический сбор доказательств — не подтверждение.",
+ "completeness": {
+  "state": "неполный",
+  "applicable_not_in_registry": [
+   {
+    "title": "Крайняя незрелость",
+    "icd": [
+     "P07"
+    ],
+    "approval": "Экспертная комиссия МЗ РК, протокол №10 от 04.07.2014",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9A%D1%80%D0%B0%D0%B9%D0%BD%D1%8F%D1%8F%20%D0%BD%D0%B5%D0%B7%D1%80%D0%B5%D0%BB%D0%BE%D1%81%D1%82%D1%8C.pdf",
+    "evidence": "официальный PDF (шапка прочитана)"
+   },
+   {
+    "title": "Пороки развития пищевода у новорожденных",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%80%D0%BE%D0%BA%D0%B8%20%D1%80%D0%B0%D0%B7%D0%B2%D0%B8%D1%82%D0%B8%D1%8F%20%D0%BF%D0%B8%D1%89%D0%B5%D0%B2%D0%BE%D0%B4%D0%B0%20%D1%83%20%D0%BD%D0%BE%D0%B2%D0%BE%D1%80%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%BD%D1%8B%D1%85.pdf",
+    "evidence": "найден на официальном сайте, шапка не прочитана"
+   },
+   {
+    "title": "Применение монооксида азота для лечения легочной гипертензии",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%BC%D0%BE%D0%BD%D0%BE%D0%BE%D0%BA%D1%81%D0%B8%D0%B4%D0%B0%20%D0%B0%D0%B7%D0%BE%D1%82%D0%B0%20%D0%B4%D0%BB%D1%8F%20%D0%BB%D0%B5%D1%87%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BB%D0%B5%D0%B3%D0%BE%D1%87%D0%BD%D0%BE%D0%B9%20%D0%B3%D0%B8%D0%BF%D0%B5%D1%80%D1%82%D0%B5%D0%BD%D0%B7%D0%B8%D0%B8.pdf",
+    "evidence": "найден на официальном сайте, шапка не прочитана; применимость к ОРИТН — решение эксперта"
+   },
+   {
+    "title": "Экстракорпоральный метод лечения грамм-негативного сепсиса (Р36)",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%AD%D0%9A%D0%A1%D0%A2%D0%A0%D0%9E%D0%9A%D0%9E%D0%A0%D0%9F%D0%9E%D0%A0%D0%90%D0%9B%D0%AC%D0%9D%D0%AB%D0%99%20%D0%9C%D0%95%D0%A2%D0%9E%D0%94%20%D0%9B%D0%95%D0%A7%D0%95%D0%9D%D0%98%D0%95%20%D0%93%D0%A0%D0%90%D0%9C%D0%9C%20-%20%D0%9D%D0%95%D0%93%D0%90%D0%A2%D0%98%D0%92%D0%9D%D0%9E%D0%93%D0%9E.pdf",
+    "evidence": "найден на официальном сайте, шапка не прочитана"
+   }
+  ],
+  "not_assessed": "Полный перечень протоколов раздела P00–P96 из официального каталога (1195 документов) не получен: каталог отдаётся порциями через JavaScript. Отсутствие других протоколов не установлено."
+ },
+ "protocols": [
+  {
+   "id": "asfiksiya-pri-rozhdenii",
+   "name_in_base": "Асфиксия при рождении",
+   "official_title": "Асфиксия при рождении",
+   "approval": {
+    "no": "180",
+    "date": "17 марта 2023",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [],
+   "internal_check": {
+    "header_no_in_text": "180",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "подтверждено_официальным_PDF",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%90%D0%A1%D0%A4%D0%98%D0%9A%D0%A1%D0%98%D0%AF%20%D0%9F%D0%A0%D0%98%20%D0%A0%D0%9E%D0%96%D0%94%D0%95%D0%9D%D0%98%D0%98.pdf",
+    "quote": "Одобрен Объединенной комиссией по качеству медицинских услуг Министерства здравоохранения Республики Казахстан от «17» марта 2023 года Протокол №180",
+    "official_no": "180",
+    "no_matches": true,
+    "revision_line": "2014 год (пересмотр 2023 год)",
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "890da176ed047f299eb89d53cd3fe1e14fd4e33c8acc01932bc85025f6788602",
+   "note": ""
+  },
+  {
+   "id": "gipotermiya-cepochka",
+   "name_in_base": "Гипотермия цепочка",
+   "official_title": "Гипотермия новорожденных (тепловая защита новорожденного)",
+   "approval": {
+    "no": "10",
+    "date": "4 июля 2014",
+    "body": "Экспертная комиссия МЗ РК"
+   },
+   "icd": [
+    "Р80",
+    "Р80.0",
+    "Р80.8",
+    "Р80.9",
+    "Р81.0"
+   ],
+   "internal_check": {
+    "header_no_in_text": "10",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "подтверждено_официальным_PDF",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%93%D0%98%D0%9F%D0%9E%D0%A2%D0%95%D0%A0%D0%9C%D0%98%D0%AF%20%D0%9D%D0%9E%D0%92%D0%9E%D0%A0%D0%9E%D0%96%D0%94%D0%95%D0%9D%D0%9D%D0%AB%D0%A5.pdf",
+    "quote": "Утверждено на Экспертной комиссии по вопросам развития здравоохранения Министерства здравоохранения Республики Казахстан протокол № 10 от «4» июля 2014 года",
+    "official_no": "10",
+    "no_matches": true,
+    "revision_line": "2014",
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "b506020a65061f689d371fec0ef60d7aa382309bc500422bc2ba74f2e25a74a8",
+   "note": "Сопоставлено по номеру, дате и коду Р80; в базе — «Гипотермия цепочка»."
+  },
+  {
+   "id": "nek-pediatriya",
+   "name_in_base": "НЭК (педиатрия, дети старше периода н/р)",
+   "official_title": "Язвенно-некротический энтероколит",
+   "approval": {
+    "no": "154",
+    "date": "23 декабря 2021",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Р77"
+   ],
+   "internal_check": {
+    "header_no_in_text": "154",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "подтверждено_официальным_PDF",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%AF%D0%97%D0%92%D0%95%D0%9D%D0%9D%D0%9E-%D0%9D%D0%95%D0%9A%D0%A0%D0%9E%D0%A2%D0%98%D0%A7%D0%95%D0%A1%D0%9A%D0%98%D0%99%20%D0%AD%D0%9D%D0%A2%D0%95%D0%A0%D0%9E%D0%9A%D0%9E%D0%9B%D0%98%D0%A2.pdf",
+    "quote": "Одобрено Объединенной комиссией по качеству медицинских услуг Министерства здравоохранения Республики Казахстан от «23» декабря 2021 года Протокол №154",
+    "official_no": "154",
+    "no_matches": true,
+    "revision_line": "2014 год (пересмотр 2021 год)",
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "20b2d5bbbf0081caca424248dafd3cc132911858ae4b12c623c18d4bbcd090de",
+   "note": "Официальное название — «Язвенно-некротический энтероколит»; в официальном документе «Категория пациентов: новорожденные», а в базе НеоДневника протокол подписан как «педиатрия, дети старше периода н/р». Нужна сверка эксперта."
+  },
+  {
+   "id": "reanimaciya-novorozhdennyh",
+   "name_in_base": "Реанимация новорожденных",
+   "official_title": "Реанимация новорожденных",
+   "approval": {
+    "no": "180",
+    "date": "17 марта 2023",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Р21.0",
+    "Р21.1",
+    "Р21.9"
+   ],
+   "internal_check": {
+    "header_no_in_text": "180",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "подтверждено_официальным_PDF",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%A0%D0%B5%D0%B0%D0%BD%D0%B8%D0%BC%D0%B0%D1%86%D0%B8%D1%8F%20%D0%BD%D0%BE%D0%B2%D0%BE%D1%80%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%BD%D1%8B%D1%85.pdf",
+    "quote": "Одобрен Объединенной комиссией по качеству медицинских услуг Министерства здравоохранения Республики Казахстан от «17» марта 2023 года Протокол №180",
+    "official_no": "180",
+    "no_matches": true,
+    "revision_line": "2014 год (пересмотр 2018 год/2023 год)",
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "86b8f84a464bcbd549b97c6658e378e8bc64b611a9684666594ac8fcce921702",
+   "note": ""
+  },
+  {
+   "id": "retinopatiya",
+   "name_in_base": "Ретинопатия",
+   "official_title": "Активная ретинопатия недоношенных",
+   "approval": {
+    "no": "166",
+    "date": "05 августа 2022",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "H35.0",
+    "H35.2"
+   ],
+   "internal_check": {
+    "header_no_in_text": "166",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "подтверждено_официальным_PDF",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%90%D0%9A%D0%A2%D0%98%D0%92%D0%9D%D0%90%D0%AF%20%D0%A0%D0%95%D0%A2%D0%98%D0%9D%D0%9E%D0%9F%D0%90%D0%A2%D0%98%D0%AF%20%D0%9D%D0%95%D0%94%D0%9E%D0%9D%D0%9E%D0%A8%D0%95%D0%9D%D0%9D%D0%AB%D0%A5.pdf",
+    "quote": "Одобрен Объединенной комиссией по качеству медицинских услуг Министерства здравоохранения Республики Казахстан от 05 августа 2022 года Протокол №166",
+    "official_no": "166",
+    "no_matches": true,
+    "revision_line": "2017 год (пересмотр 2019 г.)",
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "cd826d9bd581ce1ae1fd25ac1106484bab1f8cf34775dc94389856b9412f990b",
+   "note": "Строка «пересмотр 2019 г.» в официальном PDF расходится с датой одобрения 2022 — так в первоисточнике."
+  },
+  {
+   "id": "uhod-za-rebenkom",
+   "name_in_base": "Уход за ребенком",
+   "official_title": "Уход за здоровым новорожденным",
+   "approval": {
+    "no": "10",
+    "date": "4 июля 2014",
+    "body": "Экспертная комиссия МЗ РК"
+   },
+   "icd": [
+    "Z76.2"
+   ],
+   "internal_check": {
+    "header_no_in_text": "10",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "подтверждено_официальным_PDF",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%A3%D0%A5%D0%9E%D0%94%20%D0%97%D0%90%20%D0%97%D0%94%D0%9E%D0%A0%D0%9E%D0%92%D0%AB%D0%9C%20%D0%9D%D0%9E%D0%92%D0%9E%D0%A0%D0%9E%D0%96%D0%94%D0%95%D0%9D%D0%9D%D0%AB%D0%9C.pdf",
+    "quote": "Утверждено на Экспертной комиссии по вопросам развития здравоохранения Министерства здравоохранения Республики Казахстан протокол № 10 от «4» июля 2014 года",
+    "official_no": "10",
+    "no_matches": true,
+    "revision_line": "2014",
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "4d1d30775cbbfe547bd8a02302efbcbeafe761f1e0cde53ea4cd5cb2ba31ac92",
+   "note": "Сопоставлено по номеру, дате и коду Z76.2; официальное название — «Уход за здоровым новорожденным»."
+  },
+  {
+   "id": "vrozhdennaya-pnevmoniya",
+   "name_in_base": "Врожденная пневмония",
+   "official_title": "Врожденная пневмония",
+   "approval": {
+    "no": "10",
+    "date": "4 июля 2014",
+    "body": "Экспертная комиссия МЗ РК"
+   },
+   "icd": [
+    "Р23",
+    "Р23.0",
+    "Р23.1",
+    "Р23.2",
+    "Р23.3",
+    "Р23.4",
+    "Р23.5",
+    "Р23.6"
+   ],
+   "internal_check": {
+    "header_no_in_text": "10",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "подтверждено_официальным_PDF",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%92%D0%A0%D0%9E%D0%96%D0%94%D0%95%D0%9D%D0%9D%D0%90%D0%AF%20%D0%9F%D0%9D%D0%95%D0%92%D0%9C%D0%9E%D0%9D%D0%98%D0%AF.pdf",
+    "quote": "Утверждено на Экспертной комиссии по вопросам развития здравоохранения Министерства здравоохранения Республики Казахстан протокол № 10 от «4» июля 2014 года",
+    "official_no": "10",
+    "no_matches": true,
+    "revision_line": "2014",
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "f391cd92b9f371e852d3fa463997db6f8eeb5747aa6a1d20eb777214e4e2700f",
+   "note": ""
+  },
+  {
+   "id": "cmv",
+   "name_in_base": "ЦМВ-инфекция",
+   "official_title": "Врожденная и перинатальная цитомегаловирусная инфекция",
+   "approval": {
+    "no": "185",
+    "date": "28 июля 2023",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "P35.1",
+    "P39.9"
+   ],
+   "internal_check": {
+    "header_no_in_text": "185",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "подтверждено_выдержкой_официального_сайта",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%92%D0%A0%D0%9E%D0%96%D0%94%D0%95%D0%9D%D0%9D%D0%90%D0%AF%20%D0%98%20%D0%9F%D0%95%D0%A0%D0%98%D0%9D%D0%90%D0%A2%D0%90%D0%9B%D0%AC%D0%9D%D0%90%D0%AF%20%D0%A6%D0%98%D0%A2%D0%9E%D0%9C%D0%95%D0%93%D0%90%D0%9B%D0%9E%D0%92%D0%98%D0%A0%D0%A3%D0%A1%D0%9D%D0%90%D0%AF.pdf",
+    "quote": "Одобрен Объединенной комиссией по качеству медицинских услуг Министерства здравоохранения Республики Казахстан от «28» июля 2023 года Протокол №185",
+    "official_no": "185",
+    "no_matches": true,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "d768b76a3ac0da93f7a0efda5ad214c61478d898a24f80906546b12f627eec24",
+   "note": ""
+  },
+  {
+   "id": "gbn",
+   "name_in_base": "ГБН (гемолитическая болезнь)",
+   "official_title": "Гемолитическая болезнь плода и новорожденного",
+   "approval": {
+    "no": "92",
+    "date": "30 апреля 2020",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Р55",
+    "Р55.0",
+    "Р55.1",
+    "Р55.8",
+    "Р55.9",
+    "Р56",
+    "Р56.0",
+    "Р56.9"
+   ],
+   "internal_check": {
+    "header_no_in_text": "92",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "подтверждено_выдержкой_официального_сайта",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%93%D0%95%D0%9C%D0%9E%D0%9B%D0%98%D0%A2%D0%98%D0%A7%D0%95%D0%A1%D0%9A%D0%90%D0%AF%20%D0%91%D0%9E%D0%9B%D0%95%D0%97%D0%9D%D0%AC%20%D0%9F%D0%9B%D0%9E%D0%94%D0%90%20%D0%98%20%D0%9D%D0%9E%D0%92%D0%9E%D0%A0%D0%9E%D0%96%D0%94%D0%95%D0%9D%D0%9D%D0%9E%D0%93%D0%9E.pdf",
+    "quote": "Протокол №92. КЛИНИЧЕСКИЙ ПРОТОКОЛ ДИАГНОСТИКИ И ЛЕЧЕНИЯ. ГЕМОЛИТИЧЕСКАЯ БОЛЕЗНЬ ПЛОДА И НОВОРОЖДЕННОГО.",
+    "official_no": "92",
+    "no_matches": true,
+    "revision_line": "2014 год (пересмотр 2019 г.)",
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "72ec6dfb869980e4f5fbfb5e747ebedc5d4d97eb6cc0b836b4a4cbb4cb2e6131",
+   "note": "В выдержке виден номер, дата одобрения не прочитана."
+  },
+  {
+   "id": "ispolzovanie-preparatov-donorskoy-krovi",
+   "name_in_base": "Препараты донорской крови",
+   "official_title": "Использование препаратов донорской крови у новорожденных",
+   "approval": {
+    "no": "185",
+    "date": "28 июля 2023",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [],
+   "internal_check": {
+    "header_no_in_text": "185",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "подтверждено_выдержкой_официального_сайта",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%98%D0%A1%D0%9F%D0%9E%D0%9B%D0%AC%D0%97%D0%9E%D0%92%D0%90%D0%9D%D0%98%D0%95%20%D0%9F%D0%A0%D0%95%D0%9F%D0%90%D0%A0%D0%90%D0%A2%D0%9E%D0%92%20%D0%94%D0%9E%D0%9D%D0%9E%D0%A0%D0%A1%D0%9A%D0%9E%D0%99%20%D0%9A%D0%A0%D0%9E%D0%92%D0%98.pdf",
+    "quote": "Протокол №185. КЛИНИЧЕСКИЙ ПРОТОКОЛ МЕДИЦИНСКОГО ВМЕШАТЕЛЬСТВА. ИСПОЛЬЗОВАНИЕ ПРЕПАРАТОВ ДОНОРСКОЙ КРОВИ. У НОВОРОЖДЕННЫХ.",
+    "official_no": "185",
+    "no_matches": true,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "35414698ed3f9113ebad3aac0b9e7cb7b5f09011983c5c9d96dd4381acd0f177",
+   "note": "В выдержке виден номер, дата одобрения не прочитана."
+  },
+  {
+   "id": "policitemiya",
+   "name_in_base": "Полицитемия",
+   "official_title": "Полицитемия новорожденного",
+   "approval": {
+    "no": "27",
+    "date": "15 сентября 2017",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Р61.1"
+   ],
+   "internal_check": {
+    "header_no_in_text": "27",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "подтверждено_выдержкой_официального_сайта",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D0%BB%D0%B8%D1%86%D0%B8%D1%82%D0%B5%D0%BC%D0%B8%D1%8F.pdf",
+    "quote": "Протокол №27. КЛИНИЧЕСКИЙ ПРОТОКОЛ ДИАГНОСТИКИ И ЛЕЧЕНИЯ. ПОЛИЦИТЕМИЯ.",
+    "official_no": "27",
+    "no_matches": true,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "5193a6922e24b427fb9434a23ce226f9b9d81cd0dbe5ef350f9ac358e9e58af6",
+   "note": "В выдержке виден номер, дата одобрения не прочитана."
+  },
+  {
+   "id": "poroki-razvitiya-diafragmy",
+   "name_in_base": "Пороки развития диафрагмы",
+   "official_title": "Пороки развития диафрагмы у новорожденных",
+   "approval": {
+    "no": "231",
+    "date": "28 мая 2025",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Q79.0",
+    "Q79.1"
+   ],
+   "internal_check": {
+    "header_no_in_text": "231",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "подтверждено_выдержкой_официального_сайта",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%80%D0%BE%D0%BA%D0%B8%20%D1%80%D0%B0%D0%B7%D0%B2%D0%B8%D1%82%D0%B8%D1%8F%20%D0%B4%D0%B8%D0%B0%D1%84%D1%80%D0%B0%D0%B3%D0%BC%D1%8B%20%D1%83%20%D0%BD%D0%BE%D0%B2%D0%BE%D1%80%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%BD%D1%8B%D1%85.pdf",
+    "quote": "Протокол №231. КЛИНИЧЕСКИЙ ПРОТОКОЛ ДИАГНОСТИКИ И ЛЕЧЕНИЯ. ПОРОКИ РАЗВИТИЯ ДИАФРАГМЫ У НОВОРОЖДЕННЫХ.",
+    "official_no": "231",
+    "no_matches": true,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "0ed896a563cd3508995cf72db3ccb0057819f82911895721ba92e0ce4becffc3",
+   "note": "В выдержке виден номер, дата одобрения не прочитана."
+  },
+  {
+   "id": "sepsis",
+   "name_in_base": "Сепсис",
+   "official_title": "Бактериальный сепсис новорожденного",
+   "approval": {
+    "no": "185",
+    "date": "28 июля 2023",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Р36",
+    "Р36.0",
+    "Р36.1",
+    "Р36.2",
+    "Р36.3",
+    "Р36.4",
+    "Р36.5",
+    "Р36.8"
+   ],
+   "internal_check": {
+    "header_no_in_text": "185",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "подтверждено_выдержкой_официального_сайта",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%91%D0%90%D0%9A%D0%A2%D0%95%D0%A0%D0%98%D0%90%D0%9B%D0%AC%D0%9D%D0%AB%D0%99%20%D0%A1%D0%95%D0%9F%D0%A1%D0%98%D0%A1%20%D0%9D%D0%9E%D0%92%D0%9E%D0%A0%D0%9E%D0%96%D0%94%D0%95%D0%9D%D0%9D%D0%9E%D0%93%D0%9E.pdf",
+    "quote": "Объединенной комиссией по качеству медицинских услуг от «28» июля 2023 года Протокол №185 КЛИНИЧЕСКИЙ ПРОТОКОЛ ДИАГНОСТИКИ И ЛЕЧЕНИЯ БАКТЕРИАЛЬНЫЙ СЕПСИС НОВОРОЖДЕННОГО",
+    "official_no": "185",
+    "no_matches": true,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "8af99bde4c85fd7547489da3fc7abdd7885cd4f826e2da6b75916c8f3a17401a",
+   "note": ""
+  },
+  {
+   "id": "uhod-za-malovesnymi",
+   "name_in_base": "Уход за маловесными",
+   "official_title": "Уход за маловесными новорожденными",
+   "approval": {
+    "no": "177",
+    "date": "13 января 2023",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Р05",
+    "Р05.0"
+   ],
+   "internal_check": {
+    "header_no_in_text": "177",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "подтверждено_выдержкой_официального_сайта",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%A3%D0%A5%D0%9E%D0%94%20%D0%97%D0%90%20%D0%9C%D0%90%D0%9B%D0%9E%D0%92%D0%95%D0%A1%D0%9D%D0%AB%D0%9C%D0%98%20%D0%9D%D0%9E%D0%92%D0%9E%D0%A0%D0%9E%D0%96%D0%94%D0%95%D0%9D%D0%9D%D0%AB%D0%9C%D0%98.pdf",
+    "quote": "Одобрен. Объединенной комиссией по качеству медицинских услуг. Министерства здравоохранения. Республики Казахстан от «13» января 2023 года. Протокол №177.",
+    "official_no": "177",
+    "no_matches": true,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "3cdd11a942d291e2dc3e6ab1dc9ec157be343f95653181a312a45ce8554ba22a",
+   "note": ""
+  },
+  {
+   "id": "bld",
+   "name_in_base": "БЛД (бронхолёгочная дисплазия)",
+   "official_title": "Бронхолегочная дисплазия, возникшая в перинатальном периоде",
+   "approval": {
+    "no": "210",
+    "date": "28 июня 2024",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "P27.1",
+    "J96.1",
+    "J96.0",
+    "I27.2",
+    "I27.9",
+    "I15.8",
+    "Е44.1"
+   ],
+   "internal_check": {
+    "header_no_in_text": "210",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "подтверждено_протоколом_ОКК",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BE%D0%BC%D0%B8%D1%81%D1%81%D0%B8%D1%8F%20%D0%BF%D0%BE%20%D0%BA%D0%B0%D1%87%D0%B5%D1%81%D1%82%D0%B2%D1%83%20%D0%BC%D0%B5%D0%B4%D0%B8%D1%86%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%D1%85%20%D1%83%D1%81%D0%BB%D1%83%D0%B3/%D0%9F%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%20%D0%B7%D0%B0%D1%81%D0%B5%D0%B4%D0%B0%D0%BD%D0%B8%D0%B8%20%D0%9E%D0%9A%D0%9A_%E2%84%96210%20%D0%BE%D1%82%2028.06.2024.PDF",
+    "quote": "клинический протокол диагностики и лечения «Бронхолегочная дисплазия, возникшая в перинатальном периоде»",
+    "official_no": "210",
+    "no_matches": true,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "a00876e1b62b1a9fa805d50936d89866890b72537961dc3df0d815d236299849",
+   "note": "Одобрение подтверждено официальным протоколом заседания ОКК №210 от 28.06.2024; PDF самого протокола на сайте не найден в этой сверке."
+  },
+  {
+   "id": "giperammoniemiya",
+   "name_in_base": "Гипераммониемия",
+   "official_title": "Гипераммониемия. Нарушение цикла мочевины",
+   "approval": {
+    "no": "220",
+    "date": "28 ноября 2024",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Е72",
+    "Е72.2",
+    "Е72.4"
+   ],
+   "internal_check": {
+    "header_no_in_text": "220",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "документ_найден_шапка_не_прочитана",
+    "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%93%D0%98%D0%9F%D0%95%D0%A0%D0%90%D0%9C%D0%9C%D0%9E%D0%9D%D0%98%D0%95%D0%9C%D0%98%D0%AF.%20%D0%9D%D0%90%D0%A0%D0%A3%D0%A8%D0%95%D0%9D%D0%98%D0%95%20%D0%A6%D0%98%D0%9A%D0%9B%D0%90%20%D0%9C%D0%9E%D0%A7%D0%95%D0%92%D0%98%D0%9D%D0%AB.pdf",
+    "quote": "",
+    "official_no": null,
+    "no_matches": null,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "1a3bde0664059149ad5142cf092d5b49d5bb9f7e0c237ef0de4de64bf9edf676",
+   "note": "Документ есть на официальном сайте; номер и дата одобрения не прочитаны."
+  },
+  {
+   "id": "nek",
+   "name_in_base": "НЭК",
+   "official_title": "Некротизирующий энтероколит новорожденных",
+   "approval": {
+    "no": "185",
+    "date": "28 июля 2023",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Р77"
+   ],
+   "internal_check": {
+    "header_no_in_text": "185",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "только_вторичный_источник",
+    "url": "https://diseases.medelement.com/disease/%D0%BD%D0%B5%D0%BA%D1%80%D0%BE%D1%82%D0%B8%D0%B7%D0%B8%D1%80%D1%83%D1%8E%D1%89%D0%B8%D0%B9-%D1%8D%D0%BD%D1%82%D0%B5%D1%80%D0%BE%D0%BA%D0%BE%D0%BB%D0%B8%D1%82-%D0%BD%D0%BE%D0%B2%D0%BE%D1%80%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%BD%D1%8B%D1%85-%D0%BA%D0%BF-%D1%80%D0%BA-2023/17718",
+    "quote": "Одобрен Объединенной комиссией по качеству медицинских услуг Министерства здравоохранения Республики Казахстан от «28» июля 2023 года Протокол №185 КЛИНИЧЕСКИЙ ПРОТОКОЛ ДИАГНОСТИКИ И ЛЕЧЕНИЯ НЕКРОТИЗИРУЮЩИЙ ЭНТЕРОКОЛИТ НОВОРОЖДЕННЫХ",
+    "official_no": "185",
+    "no_matches": true,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "1e50782ffb4be865b4d8e9eb2682b7f839fadf23e5552c32dee2a4bc3d28fc13",
+   "note": "Только MedElement (вторичный источник). Официальный PDF не найден."
+  },
+  {
+   "id": "parenteralnoe-pitanie",
+   "name_in_base": "Парентеральное питание",
+   "official_title": "Парентеральное питание новорожденных",
+   "approval": {
+    "no": "185",
+    "date": "28 июля 2023",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [],
+   "internal_check": {
+    "header_no_in_text": "185",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "только_вторичный_источник",
+    "url": "https://diseases.medelement.com/disease/%D0%BF%D0%B0%D1%80%D0%B5%D0%BD%D1%82%D0%B5%D1%80%D0%B0%D0%BB%D1%8C%D0%BD%D0%BE%D0%B5-%D0%BF%D0%B8%D1%82%D0%B0%D0%BD%D0%B8%D0%B5-%D0%BD%D0%BE%D0%B2%D0%BE%D1%80%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%BD%D1%8B%D1%85-%D0%BA%D0%BF-%D1%80%D0%BA-2023/17517",
+    "quote": "Одобрен Объединенной комиссией по качеству медицинских услуг Министерства здравоохранения Республики Казахстан от «28» июля 2023 года Протокол №185 КЛИНИЧЕСКИЙ ПРОТОКОЛ МЕДИЦИНСКОГО ВМЕШАТЕЛЬСТВА ПАРЕНТЕРАЛЬНОЕ ПИТАНИЕ НОВОРОЖДЕННЫХ",
+    "official_no": "185",
+    "no_matches": true,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "3310a7ec0887a03f1eb73d1c65a4b6b6f0a6ef7aa0ece64c47cfc0b8b8eeec7a",
+   "note": "Только MedElement (вторичный источник). Официальный PDF не найден."
+  },
+  {
+   "id": "diabeticheskaya-fetopatiya",
+   "name_in_base": "Диабетическая фетопатия",
+   "official_title": null,
+   "approval": {
+    "no": "27",
+    "date": "15 сентября 2017",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Р70.0",
+    "Р70.1"
+   ],
+   "internal_check": {
+    "header_no_in_text": "27",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "на_официальном_сайте_не_найдено",
+    "url": null,
+    "quote": "",
+    "official_no": null,
+    "no_matches": null,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "c6dee15866a3fa2f3638317ed6debc1523b7eb11a181294a2060dc8460da839e",
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+  },
+  {
+   "id": "enteralnoe-pitanie",
+   "name_in_base": "Энтеральное питание",
+   "official_title": null,
+   "approval": {
+    "no": "177",
+    "date": "13 января 2023",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [],
+   "internal_check": {
+    "header_no_in_text": "177",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "на_официальном_сайте_не_найдено",
+    "url": null,
+    "quote": "",
+    "official_no": null,
+    "no_matches": null,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "aaefeab1a90b0c045cb904b0d18edd3113e337f361b4d1d1b464a62257b96b8a",
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+  },
+  {
+   "id": "gemorragicheskaya-bolezn",
+   "name_in_base": "Геморрагическая болезнь",
+   "official_title": null,
+   "approval": {
+    "no": "1",
+    "date": "21 января 2014",
+    "body": "Экспертная комиссия МЗ РК"
+   },
+   "icd": [
+    "Р53",
+    "Р54.0",
+    "Р54.1",
+    "Р54.2",
+    "Р54.3"
+   ],
+   "internal_check": {
+    "header_no_in_text": "1",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "на_официальном_сайте_не_найдено",
+    "url": null,
+    "quote": "",
+    "official_no": null,
+    "no_matches": null,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "cb453024538dc15d48d1a5c84bf0f18c2880bc95e142e45c89a096e1d7065938",
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+  },
+  {
+   "id": "gie",
+   "name_in_base": "ГИЭ (гипоксически-ишемическая энцефалопатия)",
+   "official_title": null,
+   "approval": {
+    "no": "74",
+    "date": "03 октября 2019",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Р91.0"
+   ],
+   "internal_check": {
+    "header_no_in_text": "74",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "на_официальном_сайте_не_найдено",
+    "url": null,
+    "quote": "",
+    "official_no": null,
+    "no_matches": null,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "41147e8f91bf82ec4d329391d232b0759bb421aadc51369f2301f5b7b58136cb",
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+  },
+  {
+   "id": "gipotermiya-lechebnaya",
+   "name_in_base": "Гипотермия лечебная",
+   "official_title": null,
+   "approval": {
+    "no": "10",
+    "date": "4 июля 2014",
+    "body": "Экспертная комиссия МЗ РК"
+   },
+   "icd": [
+    "P81.0",
+    "P81.8",
+    "P81.9"
+   ],
+   "internal_check": {
+    "header_no_in_text": "10",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "на_официальном_сайте_не_найдено",
+    "url": null,
+    "quote": "",
+    "official_no": null,
+    "no_matches": null,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "36d199e30d72aa2b4b75ef63a2cf4bd099417f05f148561e3048e3ea1884ee79",
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+  },
+  {
+   "id": "krestcovookopchikovaya-teratoma",
+   "name_in_base": "Крестцово-копчиковая тератома",
+   "official_title": null,
+   "approval": {
+    "no": "238",
+    "date": "28 августа 2025",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Q89.8",
+    "D21.5",
+    "C45.9"
+   ],
+   "internal_check": {
+    "header_no_in_text": "238",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "на_официальном_сайте_не_найдено",
+    "url": null,
+    "quote": "",
+    "official_no": null,
+    "no_matches": null,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "60ff50bb894de844294e4e85d704b1f85c7e582ab4a3d86a1cf849607154e5cf",
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+  },
+  {
+   "id": "neonatalnaya-zheltuha",
+   "name_in_base": "Неонатальная желтуха",
+   "official_title": null,
+   "approval": {
+    "no": "171",
+    "date": "06 октября 2022",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Р58",
+    "Р58.0",
+    "Р58.2",
+    "Р58.3",
+    "Р58.4",
+    "Р58.5",
+    "Р58.8",
+    "Р58.9"
+   ],
+   "internal_check": {
+    "header_no_in_text": "171",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "на_официальном_сайте_не_найдено",
+    "url": null,
+    "quote": "",
+    "official_no": null,
+    "no_matches": null,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "b3110432dc9b7ecb665bf92f146b6d3011f91fbcf9cf71cf8107ab96b07792e9",
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+  },
+  {
+   "id": "rds",
+   "name_in_base": "РДС (респираторный дистресс-синдром)",
+   "official_title": null,
+   "approval": {
+    "no": "4",
+    "date": "9 июня 2016",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Р22.0"
+   ],
+   "internal_check": {
+    "header_no_in_text": "4",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "на_официальном_сайте_не_найдено",
+    "url": null,
+    "quote": "",
+    "official_no": null,
+    "no_matches": null,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "8b8d6d867e569d5ce889f1633a3d5c5325ecf82a50ba8a908687bb90e622e13f",
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+  },
+  {
+   "id": "reanimaciya-nedonoshennyh-detey",
+   "name_in_base": "Реанимация недоношенных детей",
+   "official_title": null,
+   "approval": {
+    "no": "10",
+    "date": "30 сентября 2015",
+    "body": "Экспертный совет РЦРЗ"
+   },
+   "icd": [
+    "Р21.0",
+    "Р21.1",
+    "Р21.9"
+   ],
+   "internal_check": {
+    "header_no_in_text": "10",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "на_официальном_сайте_не_найдено",
+    "url": null,
+    "quote": "",
+    "official_no": null,
+    "no_matches": null,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "397ea7dbf64c325783f73ef6d460f35d9c794f6fed9854583fa0b0070537ad61",
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+  },
+  {
+   "id": "rodovaya-travma",
+   "name_in_base": "Родовая травма",
+   "official_title": null,
+   "approval": {
+    "no": "35",
+    "date": "14 декабря 2017",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Р12.0"
+   ],
+   "internal_check": {
+    "header_no_in_text": "35",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "на_официальном_сайте_не_найдено",
+    "url": null,
+    "quote": "",
+    "official_no": null,
+    "no_matches": null,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "942015abcc18ab941b309ca570b3959b674f7d44156f0c6642c34c81aa0d5c95",
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+  },
+  {
+   "id": "stoykoe-fetalnoe-kroobraschenie",
+   "name_in_base": "Стойкое фетальное кровообращение (ПЛГН)",
+   "official_title": null,
+   "approval": {
+    "no": "4",
+    "date": "9 июня 2016",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК"
+   },
+   "icd": [
+    "Р29.3"
+   ],
+   "internal_check": {
+    "header_no_in_text": "4",
+    "matches_metadata": true
+   },
+   "official_check": {
+    "result": "на_официальном_сайте_не_найдено",
+    "url": null,
+    "quote": "",
+    "official_no": null,
+    "no_matches": null,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "поиск и чтение официального сайта nrchd.kz (Firecrawl)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта"
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": "9e9a536dcf14c92c092e88e3ad6473d6cc90aae4dd38e7acce3e7cc02710325f",
+   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен)."
+  }
+ ]
+}
