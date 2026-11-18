@@ -1,7 +1,7 @@
 /*
  * Антидефект — модуль «Отклонение от протокола + обоснование».
- * Этапы 1–2 ТЗ v0.3 (docs/deviation-module-spec.md): модель данных,
- * независимые проверки, детерминированный механизм статусов, журнал решений эксперта.
+ * ТЗ v0.4 (docs/deviation-module-spec.md): модель данных, независимые проверки,
+ * детерминированный механизм статусов, подтверждения с происхождением, журнал решений эксперта.
  *
  * Модуль только читает входные данные и ничего в них не меняет.
  * Не использует ИИ и сеть. Работает в браузере (window.DeviationEngine) и в Node.
@@ -12,7 +12,7 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.3.0-stage2';
+  const VERSION = '0.4.0-stage3';
 
   const STATUS = Object.freeze({
     URGENT: 'Требуется срочная оценка эксперта',
@@ -44,28 +44,70 @@
     consilium: 'консилиум',
     consent: 'информированное согласие'
   });
+  const REGISTRY_STATUS = Object.freeze(['действует', 'заменён', 'не проверен']);
   const SIGNAL_KINDS = Object.freeze(['возможное_противопоказание', 'возможное_превышение_дозы',
     'возможное_несоответствие_пути_введения', 'возможное_несоответствие_интервала']);
   const SEVERITY = Object.freeze(['низкая', 'средняя', 'высокая', 'критическая']);
   const CONFIDENCE = Object.freeze(['низкая', 'средняя', 'высокая']);
   const APPLICABILITY = Object.freeze(['совпадает', 'частично', 'не_совпадает', 'не_определено']);
   const REGIMEN = Object.freeze(['совпадает', 'частично', 'нет', 'не_определено']);
+  const BIB_METHODS = Object.freeze(['manual', 'pubmed_api']);
+  const SIGNAL_LEVEL = Object.freeze({ URGENT: 'срочно', EXPERT: 'эксперт', WARNING: 'предупреждение' });
 
   const NOT_REG_STATEMENT = 'прямая рекомендация не найдена в проверенном наборе применимых протоколов';
 
   const DEFAULT_CONFIG = Object.freeze({
     consilium_mandatory: false,        // true только при указании основания
     consilium_basis: '',               // нормативный или локальный документ
-    extra_required_documentation_for_deviation: [],
-    urgent_min_severity: 'высокая',
-    urgent_min_confidence: 'средняя'
+    extra_required_documentation_for_deviation: []
   });
 
   function isStr(x) { return typeof x === 'string' && x.trim().length > 0; }
   function uniq(a) { return Array.from(new Set(a)); }
   function rank(list, v) { return list.indexOf(v); }
 
-  /* ---------- Этап 1: проверка структуры ---------- */
+  /* ---------- Подтверждения с происхождением ----------
+   * Библиографическая проверка и экспертная оценка учитываются только если созданы
+   * функциями attest* этого экземпляра модуля (с указанием, кто и когда проверил).
+   * Объекты из входного JSON, импорта или вставки подтверждением не считаются.
+   * Ограничение: защищает от случайного или импортированного «подтверждения»,
+   * но не от умышленной подделки в браузере. Для реальной работы нужна
+   * серверная подпись и учётные записи (вне этапа 3). */
+  const ATTESTED = new WeakSet();
+  function seal(kind, o) { const a = Object.freeze(Object.assign({ kind }, o)); ATTESTED.add(a); return a; }
+  function isAttested(x, kind) { return !!x && typeof x === 'object' && ATTESTED.has(x) && x.kind === kind; }
+
+  function attestBibliographic(o) {
+    const e = [];
+    o = o || {};
+    if (typeof o.found !== 'boolean') e.push('не указано, найден ли источник');
+    if (o.found === true && typeof o.metadata_match !== 'boolean') e.push('не указано, совпадают ли метаданные');
+    if (!BIB_METHODS.includes(o.method)) e.push('способ проверки: manual или pubmed_api');
+    if (!isStr(o.checked_by)) e.push('не указано, кто проверил');
+    if (e.length) return { ok: false, errors: e };
+    return { ok: true, attestation: seal('bibliographic', {
+      found: o.found, metadata_match: o.found ? o.metadata_match : false, method: o.method,
+      checked_by: o.checked_by.trim(), checked_at: o.checked_at || new Date().toISOString(),
+      ref: isStr(o.ref) ? o.ref.trim() : '' }) };
+  }
+
+  function attestExpertAssessment(o) {
+    const e = [];
+    o = o || {};
+    if (!APPLICABILITY.includes(o.applicability)) e.push('применимость: недопустимое значение');
+    if (!REGIMEN.includes(o.regimen_match)) e.push('соответствие схемы: недопустимое значение');
+    if (!isStr(o.assessed_by)) e.push('не указано, кто оценил');
+    if (e.length) return { ok: false, errors: e };
+    return { ok: true, attestation: seal('expert_assessment', {
+      applicability: o.applicability, regimen_match: o.regimen_match,
+      assessed_by: o.assessed_by.trim(), role: isStr(o.role) ? o.role.trim() : '',
+      at: o.at || new Date().toISOString(), comment: isStr(o.comment) ? o.comment.trim() : '' }) };
+  }
+
+  /* ---------- Проверка структуры ---------- */
+
+  // Простая проверка: 12 цифр подряд (возможный ИИН). Это НЕ обезличивание.
+  const IIN_LIKE = /(^|\D)\d{12}(?!\d)/;
 
   function validate(d, config) {
     const cfg = Object.assign({}, DEFAULT_CONFIG, config || {});
@@ -79,6 +121,10 @@
     const pc = d.protocol_check;
     if (!pc || !Object.values(RELATION).includes(pc.relation)) e.push('protocol_check.relation: недопустимое значение');
     else if (!Array.isArray(pc.searched)) e.push('protocol_check.searched должен быть массивом');
+    else pc.searched.forEach((s, i) => {
+      if (!isStr(s.protocol_no)) e.push('searched[' + i + ']: нет номера протокола');
+      if (s.registry_status != null && !REGISTRY_STATUS.includes(s.registry_status)) e.push('searched[' + i + ']: статус в реестре: действует / заменён / не проверен');
+    });
 
     if (!d.indications || !Object.values(INDICATIONS).includes(d.indications.value)) e.push('indications.value: недопустимое значение');
     if (!d.documentation || typeof d.documentation !== 'object') e.push('нет documentation');
@@ -114,28 +160,26 @@
       const p = 'evidence[' + i + ']: ';
       if (typeof v.presented !== 'boolean') e.push(p + 'не указано, предъявлен ли источник');
       if (v.presented && !isStr(v.citation) && !isStr(v.pmid) && !isStr(v.doi)) e.push(p + 'нет описания источника');
-      const ea = v.expert_assessment;
-      if (ea) {
-        if (!APPLICABILITY.includes(ea.applicability)) e.push(p + 'applicability: недопустимое значение');
-        if (!REGIMEN.includes(ea.regimen_match)) e.push(p + 'regimen_match: недопустимое значение');
-        if (!isStr(ea.assessed_by)) e.push(p + 'не указано, кто оценил');
-      }
     });
 
     if (cfg.consilium_mandatory && !isStr(cfg.consilium_basis))
       e.push('настройки: обязательный консилиум без указания основания не принимается');
-    if (!SEVERITY.includes(cfg.urgent_min_severity) || !CONFIDENCE.includes(cfg.urgent_min_confidence))
-      e.push('настройки: недопустимые пороги срочности');
 
-    if (/(^|\D)\d{12}(?!\d)/.test(JSON.stringify(d)))
+    if (IIN_LIKE.test(JSON.stringify(d)))
       e.push('во входных данных есть последовательность из 12 цифр (возможный ИИН) — используйте псевдоним');
     return e;
   }
 
   /* ---------- Отношение к протоколу ---------- */
 
+  function editionProblem(s) {
+    if (s.valid_on_care_date !== 'да') return 'редакция протокола №' + s.protocol_no + ' на дату оказания помощи не подтверждена';
+    if (s.registry_status !== 'действует' && s.registry_status !== 'заменён') return 'актуальность протокола №' + s.protocol_no + ' в реестре не проверена';
+    return '';
+  }
+
   function deriveRelation(d) {
-    const pc = d.protocol_check, notes = [], warnings = [];
+    const pc = d.protocol_check, notes = [], warnings = [], unconfirmed = [];
     let relation = pc.relation, source = 'supplied';
     const match = pc.match || null;
     const ranges = match && match.ranges && typeof match.ranges === 'object' ? match.ranges : null;
@@ -168,7 +212,8 @@
         notes.push('редакция протокола №' + sp.protocol_no + ' на дату оказания помощи не подтверждена (' + (sp.valid_on_care_date || 'не указано') + ')');
       } else {
         statement = 'протокол №' + match.protocol_no + ', раздел «' + match.section + '»: «' + match.quote + '»';
-        if (sp.registry_status === 'не проверен') warnings.push('актуальность протокола №' + sp.protocol_no + ' в реестре не проверена');
+        const pr = editionProblem(sp);
+        if (pr) unconfirmed.push(pr);
       }
     }
     if (relation === RELATION.NOT_REG) {
@@ -176,35 +221,42 @@
       if (!pc.searched.length || !cov || typeof cov.total !== 'number' || !Array.isArray(cov.missing_applicable)) {
         relation = RELATION.UNKNOWN;
         notes.push('«не урегулировано» нельзя установить без перечня просмотренных протоколов и сведений о полноте реестра');
+      } else if (cov.missing_applicable.length) {
+        relation = RELATION.UNKNOWN;
+        notes.push('реестр неполный: не внесены применимые протоколы (' + cov.missing_applicable.join(', ') + ') — «не урегулировано» установить нельзя');
       } else {
         statement = NOT_REG_STATEMENT + ' (просмотрены: ' + pc.searched.map(s => '№' + s.protocol_no).join(', ') + ')';
-        if (cov.missing_applicable.length) warnings.push('в реестр не внесены применимые протоколы: ' + cov.missing_applicable.join(', '));
-        pc.searched.forEach(s => { if (s.valid_on_care_date !== 'да') warnings.push('редакция протокола №' + s.protocol_no + ' на дату помощи не подтверждена'); });
+        pc.searched.forEach(s => { const pr = editionProblem(s); if (pr) unconfirmed.push(pr); });
       }
     }
     if (relation === RELATION.UNKNOWN && !notes.length) notes.push('отношение к протоколу невозможно проверить');
-    return { relation, source, statement, notes, warnings };
+    return { relation, source, statement, notes, warnings, unconfirmed };
   }
 
   /* ---------- Научное обоснование ---------- */
 
   function assessEvidence(list) {
-    const out = { qualifies: false, needs_expert: [], gaps: [], items: [] };
+    const out = { qualifies: false, needs_expert: [], gaps: [], items: [], warnings: [] };
     const presented = (list || []).filter(v => v.presented);
     if (!presented.length) { out.gaps.push('источник не предъявлен'); return out; }
     for (const v of presented) {
       const name = '«' + (v.citation || v.pmid || v.doi) + '»';
-      const b = v.bibliographic || {};
-      const bibOk = b.found === true && b.metadata_match === true;
+      const b = v.bibliographic, ea = v.expert_assessment;
       let verdict;
-      if (!bibOk) {
+      if (b && !isAttested(b, 'bibliographic')) out.warnings.push('источник ' + name + ': результат библиографической проверки во входных данных не подтверждён проверяющим и не учитывается');
+      if (ea && !isAttested(ea, 'expert_assessment')) out.warnings.push('источник ' + name + ': экспертная оценка во входных данных не подтверждена и не учитывается');
+
+      if (!isAttested(b, 'bibliographic')) {
+        verdict = 'библиография не подтверждена';
+        out.needs_expert.push('источник ' + name + ': нужна библиографическая проверка с указанием проверяющего');
+      } else if (!(b.found === true && b.metadata_match === true)) {
         verdict = 'не прошёл библиографическую проверку';
         out.gaps.push('источник ' + name + ' не прошёл библиографическую проверку');
-      } else if (!v.expert_assessment) {
+      } else if (!isAttested(ea, 'expert_assessment')) {
         verdict = 'ждёт экспертной оценки';
         out.needs_expert.push('источник ' + name + ' найден, но применимость и схема не оценены экспертом');
       } else {
-        const a = v.expert_assessment.applicability, r = v.expert_assessment.regimen_match;
+        const a = ea.applicability, r = ea.regimen_match;
         if (a === 'не_совпадает' || r === 'нет') {
           verdict = 'не применим';
           out.gaps.push('источник ' + name + ' не применим к пациенту или схеме (оценка эксперта)');
@@ -223,19 +275,28 @@
     return out;
   }
 
-  function isUrgent(s, cfg) {
-    return rank(SEVERITY, s.severity) >= rank(SEVERITY, cfg.urgent_min_severity) &&
-      (s.confirmed === true || rank(CONFIDENCE, s.confidence) >= rank(CONFIDENCE, cfg.urgent_min_confidence));
+  /* Пороги тестовой версии:
+   * критическая — срочно (при наличии цитаты требования, факта и источника, проверено в validate);
+   * высокая — срочно, если подтверждён или уверенность не ниже средней, иначе эксперт;
+   * средняя — эксперт (повышение срочности — решением эксперта);
+   * низкая — предупреждение, статус не меняет. */
+  function signalLevel(s) {
+    if (s.severity === 'критическая') return SIGNAL_LEVEL.URGENT;
+    if (s.severity === 'высокая')
+      return (s.confirmed === true || rank(CONFIDENCE, s.confidence) >= rank(CONFIDENCE, 'средняя')) ? SIGNAL_LEVEL.URGENT : SIGNAL_LEVEL.EXPERT;
+    if (s.severity === 'средняя') return SIGNAL_LEVEL.EXPERT;
+    return SIGNAL_LEVEL.WARNING;
   }
 
-  function composeHeadline(status, documentation) {
+  function composeHeadline(status, documentation, positiveBlocked) {
     let h = status;
+    if (positiveBlocked) h += ' (положительный вывод заблокирован: редакция или актуальность протокола не подтверждена)';
     if (documentation.state === 'неполная') h += '; документация неполная: ' + documentation.missing_items.join(', ');
     else if (documentation.state === 'не_определена') h += '; полнота документации не определена (предоставлен фрагмент)';
     return h;
   }
 
-  /* ---------- Этап 2: механизм статусов ---------- */
+  /* ---------- Механизм статусов ---------- */
 
   function evaluate(d, config) {
     const cfg = Object.assign({}, DEFAULT_CONFIG, config || {});
@@ -265,20 +326,24 @@
       missing_items: docMissing.map(k => DOC_LABEL[k]), unknown_items: docUnknown.map(k => DOC_LABEL[k])
     };
 
-    const signals = (d.signals || []).map(s => Object.assign({}, s, { urgent: isUrgent(s, cfg) }));
-    const urgent = signals.filter(s => s.urgent);
+    const signals = (d.signals || []).map(s => Object.assign({}, s, { level: signalLevel(s) }));
+    const urgentS = signals.filter(s => s.level === SIGNAL_LEVEL.URGENT);
+    const expertS = signals.filter(s => s.level === SIGNAL_LEVEL.EXPERT);
+    signals.filter(s => s.level === SIGNAL_LEVEL.WARNING)
+      .forEach(s => warnings.push('предупреждение (низкая серьёзность): ' + s.kind + ' — ' + s.fact));
     const conflicts = (d.conflicts || []).slice();
     const conflict_detected = conflicts.length > 0;
     const evidence = isDeviation ? assessEvidence(d.evidence) : null;
+    if (evidence) warnings.push.apply(warnings, evidence.warnings);
 
     let status;
-    if (urgent.length) {
+    if (urgentS.length) {
       status = STATUS.URGENT;
-      urgent.forEach(s => reasons.push('срочный сигнал: ' + s.kind + ' (серьёзность ' + s.severity + ', уверенность ' + s.confidence + (s.confirmed ? ', подтверждён' : '') + ')'));
-    } else if (conflict_detected || signals.length) {
+      urgentS.forEach(s => reasons.push('срочный сигнал: ' + s.kind + ' (серьёзность ' + s.severity + ', уверенность ' + s.confidence + (s.confirmed ? ', подтверждён' : '') + ')'));
+    } else if (conflict_detected || expertS.length) {
       status = STATUS.EXPERT;
       conflicts.forEach(c => reasons.push('противоречие: «' + c.a + '» и «' + c.b + '»'));
-      signals.forEach(s => reasons.push('сигнал ниже порога срочности: ' + s.kind + ' (серьёзность ' + s.severity + ', уверенность ' + s.confidence + ')'));
+      expertS.forEach(s => reasons.push('сигнал для экспертной проверки: ' + s.kind + ' (серьёзность ' + s.severity + ', уверенность ' + s.confidence + ')'));
     } else {
       const ins = [];
       if (relation === RELATION.UNKNOWN) ins.push('отношение к протоколу невозможно проверить');
@@ -300,22 +365,30 @@
       }
     }
 
+    // Неподтверждённая редакция или актуальность протокола блокирует положительный вывод
+    let positive_blocked = false;
+    if ((status === STATUS.COMPLIANT || status === STATUS.JUSTIFIED) && rel.unconfirmed.length) {
+      positive_blocked = true;
+      reasons.push('предварительный вывод «' + status + '» не может быть окончательным: ' + rel.unconfirmed.join('; '));
+      status = STATUS.EXPERT;
+    } else if (rel.unconfirmed.length) warnings.push.apply(warnings, rel.unconfirmed);
+
     // Рекомендации (не влияют на статус)
-    const highRisk = signals.length > 0 || (d.order && (d.order.off_label === true || d.order.high_risk === true));
+    const highRisk = urgentS.length + expertS.length > 0 || (d.order && (d.order.off_label === true || d.order.high_risk === true));
     if (highRisk && d.documentation.consilium !== DOC.FOUND && !(cfg.consilium_mandatory && isDeviation))
-      recommendations.push('рекомендуется консилиум (высокий риск: ' + [signals.length ? 'сигнал безопасности' : '', d.order.off_label ? 'вне инструкции' : '', d.order.high_risk ? 'отметка высокого риска' : ''].filter(Boolean).join(', ') + ')');
+      recommendations.push('рекомендуется консилиум (высокий риск: ' + [urgentS.length + expertS.length ? 'сигнал безопасности' : '', d.order.off_label ? 'вне инструкции' : '', d.order.high_risk ? 'отметка высокого риска' : ''].filter(Boolean).join(', ') + ')');
     if (isDeviation) ['risk_benefit', 'monitoring'].forEach(k => {
       if (!required.includes(k) && d.documentation[k] !== DOC.FOUND) recommendations.push('желательно отразить: ' + DOC_LABEL[k]);
     });
 
     return {
       ok: true, engine_version: VERSION, id: d.id,
-      status, status_set_by: 'auto',
-      headline: composeHeadline(status, documentation),
+      status, status_set_by: 'auto', positive_blocked, blocked_by: positive_blocked ? rel.unconfirmed.slice() : [],
+      headline: composeHeadline(status, documentation, positive_blocked),
       clinical: { relation, relation_source: rel.source, indications: ind, statement: rel.statement },
       documentation,
       conflict_detected, conflicts,
-      safety: { signals, urgent: urgent.length > 0 },
+      safety: { signals, urgent: urgentS.length > 0 },
       evidence,
       reasons, missing, recommendations, warnings,
       original: null, history: []
@@ -334,14 +407,16 @@
     const entry = { at: o.at || new Date().toISOString(), who: o.who, from: result.status, to: o.status, reason: o.reason, source: o.source };
     return Object.assign({}, result, {
       status: o.status, status_set_by: 'expert',
-      headline: composeHeadline(o.status, result.documentation) + ' (решение эксперта)',
+      headline: composeHeadline(o.status, result.documentation, false) + ' (решение эксперта)',
       original, history: (result.history || []).concat([entry])
     });
   }
 
   return {
-    VERSION, STATUS, AUTO_STATUSES, ALL_STATUSES, RELATION, INDICATIONS, DOC, DOC_LABEL,
-    SIGNAL_KINDS, SEVERITY, CONFIDENCE, APPLICABILITY, REGIMEN, DEFAULT_CONFIG, NOT_REG_STATEMENT,
-    validate, evaluate, applyExpertOverride
+    VERSION, STATUS, AUTO_STATUSES, ALL_STATUSES, RELATION, INDICATIONS, DOC, DOC_LABEL, REGISTRY_STATUS,
+    SIGNAL_KINDS, SEVERITY, CONFIDENCE, APPLICABILITY, REGIMEN, BIB_METHODS, SIGNAL_LEVEL,
+    DEFAULT_CONFIG, NOT_REG_STATEMENT, IIN_LIKE,
+    validate, evaluate, applyExpertOverride, signalLevel,
+    attestBibliographic, attestExpertAssessment, isAttested
   };
 });

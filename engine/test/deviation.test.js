@@ -42,10 +42,12 @@ function deviation() {
   };
   return d;
 }
+// Подтверждения создаются только через attest* (с проверяющим)
+const bib = (o) => E.attestBibliographic(Object.assign({ found: true, metadata_match: true, method: 'manual', checked_by: 'эксперт-1', checked_at: '2026-11-18' }, o || {})).attestation;
+const ea = (o) => E.attestExpertAssessment(Object.assign({ applicability: 'совпадает', regimen_match: 'совпадает', assessed_by: 'эксперт-1', at: '2026-11-18' }, o || {})).attestation;
 const goodEvidence = (o) => Object.assign({
   citation: 'Синтетическая публикация А', presented: true,
-  bibliographic: { method: 'pubmed_api', found: true, metadata_match: true, checked_at: '2026-11-18' },
-  expert_assessment: { applicability: 'совпадает', regimen_match: 'совпадает', assessed_by: 'эксперт-1' },
+  bibliographic: bib(), expert_assessment: ea(),
   transfer_rationale_documented: false, year: 2022
 }, o || {});
 const signal = (o) => Object.assign({
@@ -100,7 +102,7 @@ const CASES = [
     build: () => { const d = deviation(); d.evidence = [goodEvidence()]; return d; },
     expect: { status: S.JUSTIFIED, relation: 'не_урегулировано', statement: E.NOT_REG_STATEMENT } },
   { n: 15, title: 'Частичная применимость с записью врача о причине переноса',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence({ expert_assessment: { applicability: 'частично', regimen_match: 'совпадает', assessed_by: 'эксперт-1' }, transfer_rationale_documented: true })]; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence({ expert_assessment: ea({ applicability: 'частично' }), transfer_rationale_documented: true })]; return d; },
     expect: { status: S.JUSTIFIED } },
   { n: 16, title: 'Вне инструкции, консилиум не обязателен — рекомендация консилиума',
     build: () => { const d = deviation(); d.order.off_label = true; d.evidence = [goodEvidence()]; return d; },
@@ -112,10 +114,10 @@ const CASES = [
     build: () => { const d = base(); d.order.params.dose_mg_per_kg = 20; d.indications.value = 'не_подтверждены'; return d; },
     expect: { status: S.INCOMPLETE, relation: 'отличается', missing: ['показания у пациента не подтверждены'] } },
   { n: 19, title: 'Источник о взрослых для недоношенного 700 г: эксперт — не совпадает',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence({ population: 'взрослые', expert_assessment: { applicability: 'не_совпадает', regimen_match: 'частично', assessed_by: 'эксперт-1' } })]; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence({ population: 'взрослые', expert_assessment: ea({ applicability: 'не_совпадает', regimen_match: 'частично' }) })]; return d; },
     expect: { status: S.INCOMPLETE, missing: ['не применим'] } },
   { n: 20, title: 'Источник не найден в PubMed',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence({ bibliographic: { method: 'pubmed_api', found: false, metadata_match: null } })]; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence({ bibliographic: bib({ found: false }) })]; return d; },
     expect: { status: S.INCOMPLETE, missing: ['библиографическую проверку'] } },
   { n: 21, title: 'Консилиум обязателен по положению центра, но не найден',
     cfg: { consilium_mandatory: true, consilium_basis: 'синтетическое положение центра' },
@@ -125,11 +127,41 @@ const CASES = [
     build: () => { const d = deviation(); d.evidence = [goodEvidence({ expert_assessment: null })]; return d; },
     expect: { status: S.EXPERT } },
   { n: 23, title: 'Частичная применимость без записи о причине переноса',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence({ expert_assessment: { applicability: 'частично', regimen_match: 'частично', assessed_by: 'эксперт-1' } })]; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence({ expert_assessment: ea({ applicability: 'частично', regimen_match: 'частично' }) })]; return d; },
     expect: { status: S.EXPERT } },
   { n: 24, title: 'Назначение по протоколу, но показания не подтверждены (полная история)',
     build: () => { const d = base(); d.indications.value = 'не_подтверждены'; return d; },
-    expect: { status: S.INCOMPLETE, relation: 'соответствует' } }
+    expect: { status: S.INCOMPLETE, relation: 'соответствует' } },
+  { n: 25, title: 'Критическая серьёзность при низкой уверенности — срочно',
+    build: () => { const d = base(); d.signals = [signal({ severity: 'критическая', confidence: 'низкая', confirmed: false })]; return d; },
+    expect: { status: S.URGENT } },
+  { n: 26, title: 'Высокая серьёзность, не подтверждён, уверенность низкая — обычная экспертиза',
+    build: () => { const d = base(); d.signals = [signal({ severity: 'высокая', confidence: 'низкая', confirmed: false })]; return d; },
+    expect: { status: S.EXPERT, urgent: false } },
+  { n: 27, title: 'Низкая серьёзность — только предупреждение, статус не меняется',
+    build: () => { const d = base(); d.signals = [signal({ severity: 'низкая', confidence: 'низкая', confirmed: false })]; return d; },
+    expect: { status: S.COMPLIANT, warning: 'предупреждение' } },
+  { n: 28, title: 'Реестр неполный: «не урегулировано» уверенно установить нельзя',
+    build: () => { const d = deviation(); d.evidence = [goodEvidence()]; d.protocol_check.registry_coverage.missing_applicable = ['протокол по кандидозу (не внесён)']; return d; },
+    expect: { status: S.INSUFFICIENT, relation: 'невозможно_проверить' } },
+  { n: 29, title: 'Протокол «не проверен» в реестре — положительный вывод заблокирован',
+    build: () => { const d = base(); d.protocol_check.searched[0].registry_status = 'не проверен'; return d; },
+    expect: { status: S.EXPERT, blocked: true } },
+  { n: 30, title: 'Обоснованное отклонение, но редакция одного из просмотренных протоколов не подтверждена',
+    build: () => { const d = deviation(); d.evidence = [goodEvidence()]; d.protocol_check.searched[1].valid_on_care_date = 'не_определено'; return d; },
+    expect: { status: S.EXPERT, blocked: true } },
+  { n: 31, title: 'Протокол сейчас заменён, но действовал на дату помощи',
+    build: () => { const d = base(); d.protocol_check.searched[0].registry_status = 'заменён'; return d; },
+    expect: { status: S.COMPLIANT, blocked: false } },
+  { n: 32, title: 'Экспертная оценка пришла во входных данных без подтверждения',
+    build: () => { const d = deviation(); d.evidence = [goodEvidence({ expert_assessment: { applicability: 'совпадает', regimen_match: 'совпадает', assessed_by: 'кто-то' } })]; return d; },
+    expect: { status: S.EXPERT, warning: 'не подтверждена и не учитывается' } },
+  { n: 33, title: 'Результат PubMed во входных данных без подтверждения проверяющего',
+    build: () => { const d = deviation(); d.evidence = [goodEvidence({ bibliographic: { method: 'pubmed_api', found: true, metadata_match: true } })]; return d; },
+    expect: { status: S.EXPERT, warning: 'не подтверждён проверяющим' } },
+  { n: 34, title: 'Протокол «не проверен», доза вне диапазона без обоснования — проблемы всё равно видны',
+    build: () => { const d = base(); d.protocol_check.searched[0].registry_status = 'не проверен'; d.order.params.dose_mg_per_kg = 20; d.documentation.physician_note = 'не_найдено_в_полной_истории'; return d; },
+    expect: { status: S.INCOMPLETE, missing: ['источник не предъявлен', 'запись врача'] } }
 ];
 
 for (const c of CASES) {
@@ -146,6 +178,8 @@ for (const c of CASES) {
     if (x.statement) assert.ok(r.clinical.statement.startsWith(x.statement), r.clinical.statement);
     if (x.conflict !== undefined) assert.equal(r.conflict_detected, x.conflict);
     if (x.urgent !== undefined) assert.equal(r.safety.urgent, x.urgent);
+    if (x.blocked !== undefined) { assert.equal(r.positive_blocked, x.blocked); assert.equal(r.blocked_by.length > 0, x.blocked); }
+    if (x.warning) assert.ok(r.warnings.some(t => t.includes(x.warning)), r.warnings.join(' | '));
     if (x.recommendation) assert.ok(r.recommendations.some(t => t.includes(x.recommendation)), r.recommendations.join(' | '));
     (x.missing || []).forEach(m => assert.ok(r.missing.some(t => t.includes(m)), `нет «${m}» в: ${r.missing.join(' | ')}`));
   });
@@ -190,4 +224,30 @@ test('проверка входных данных', () => {
   assert.equal(bad(d => { d.required_documentation = ['consent']; }).ok, false, 'обязательная запись без результата поиска');
   assert.equal(bad(() => {}, { consilium_mandatory: true }).ok, false, 'обязательный консилиум без основания');
   assert.equal(bad(d => { d.conflicts = [{ a: 'факт', b: '' }]; }).ok, false, 'противоречие без второго факта');
+});
+
+test('подтверждение теряет силу после сериализации (импорт JSON не подтверждает)', () => {
+  const d = deviation(); d.evidence = [goodEvidence()];
+  assert.equal(E.evaluate(d).status, S.JUSTIFIED);
+  const copy = JSON.parse(JSON.stringify(d));
+  assert.equal(E.evaluate(copy).status, S.EXPERT);
+});
+
+test('attest* требуют проверяющего и допустимые значения', () => {
+  assert.equal(E.attestBibliographic({ found: true, metadata_match: true, method: 'manual' }).ok, false);
+  assert.equal(E.attestBibliographic({ found: true, metadata_match: true, method: 'на глаз', checked_by: 'э' }).ok, false);
+  assert.equal(E.attestExpertAssessment({ applicability: 'да', regimen_match: 'совпадает', assessed_by: 'э' }).ok, false);
+  assert.equal(E.attestExpertAssessment({ applicability: 'совпадает', regimen_match: 'совпадает' }).ok, false);
+  const a = E.attestExpertAssessment({ applicability: 'совпадает', regimen_match: 'совпадает', assessed_by: 'э' }).attestation;
+  assert.ok(Object.isFrozen(a) && E.isAttested(a, 'expert_assessment'));
+});
+
+test('пороги сигналов', () => {
+  const L = (severity, confidence, confirmed) => E.signalLevel({ severity, confidence, confirmed });
+  assert.equal(L('критическая', 'низкая', false), 'срочно');
+  assert.equal(L('высокая', 'низкая', true), 'срочно');
+  assert.equal(L('высокая', 'средняя', false), 'срочно');
+  assert.equal(L('высокая', 'низкая', false), 'эксперт');
+  assert.equal(L('средняя', 'высокая', true), 'эксперт');
+  assert.equal(L('низкая', 'высокая', true), 'предупреждение');
 });

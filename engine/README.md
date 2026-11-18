@@ -1,9 +1,10 @@
 # Модуль «Отклонение от протокола + обоснование»
 
-Этапы 1–2 ТЗ v0.3 (`docs/deviation-module-spec.md`): модель данных, независимые проверки, детерминированный механизм статусов, журнал решений эксперта. Интерфейса пока нет (этап 3), реестр протоколов не подключён (этап 4).
+Этапы 1–3 ТЗ v0.4 (`docs/deviation-module-spec.md`): модель данных, независимые проверки, механизм статусов, подтверждения с происхождением, журнал решений эксперта и простой интерфейс аудита. Реестр протоколов и инструкций не подключён (этап 4). Тестовая версия: только синтетические данные.
 
 - `deviation-engine.js` — модуль без зависимостей, без ИИ и без сети. В браузере доступен как `window.DeviationEngine`, в Node — через `require`.
-- `test/deviation.test.js` — 24 синтетических случая и проверки валидации, журнала, неизменности входа.
+- `audit.html` — интерфейс аудита. Открыть в браузере (рядом должен лежать `deviation-engine.js`). Кнопка «Загрузить синтетический пример» показывает весь сценарий.
+- `test/deviation.test.js` — 34 синтетических случая и проверки порогов, подтверждений, валидации, журнала, неизменности входа (42 теста).
 
 ## Запуск тестов
 
@@ -17,6 +18,8 @@ node --test engine/test/*.test.js
 
 ```js
 const r = DeviationEngine.evaluate(deviation, config);   // r.ok, r.status, r.headline, r.missing ...
+const b = DeviationEngine.attestBibliographic({found, metadata_match, method: 'manual', checked_by});
+const a = DeviationEngine.attestExpertAssessment({applicability, regimen_match, assessed_by});
 const r2 = DeviationEngine.applyExpertOverride(r, {who, status, reason, source});
 ```
 
