@@ -124,7 +124,34 @@ class Stage4Requirements(unittest.TestCase):
         self.assertEqual(len(claims), 9)
         for p in claims:
             self.assertIsNone(p['reviewer_claim']['url'])
-            self.assertNotIn(p['official_check']['result'], V.OFFICIAL - {'подтверждено_выдержкой_официального_сайта', 'подтверждено_официальным_PDF', 'подтверждено_протоколом_ОКК'} | set())
+            self.assertTrue(p['reviewer_claim']['status'].startswith('не подтверждено'))
+            self.assertNotIn(p['official_check']['result'], V.OFFICIAL, p['id'])
+
+    def test_unconfirmed_claim_with_official_result_rejected(self):
+        r = copy.deepcopy(REG)
+        p = next(x for x in r['protocols'] if x.get('reviewer_claim'))
+        p['official_check']['result'] = 'подтверждено_официальным_PDF'
+        self.assertTrue(any('заявление проверяющего не подтверждено' in e for e in V.check(r)[0]))
+
+    def test_source_found_but_file_not_verified_is_not_official(self):
+        r = copy.deepcopy(REG)
+        p = next(x for x in r['protocols'] if x.get('reviewer_claim'))
+        p['reviewer_claim']['status'] = 'подтверждено: официальный источник найден'
+        p['official_check']['result'] = 'официальный_источник_найден_файл_не_верифицирован'
+        p['official_check']['url'] = 'https://nrchd.kz/synthetic.pdf'
+        self.assertEqual(V.check(r)[0], [])
+        self.assertNotIn(p['official_check']['result'], V.OFFICIAL)
+        p['registry_status'] = 'действует'
+        p['expert_confirmation'] = {'by': 'э', 'at': '2026-11-18', 'basis': 'x'}
+        p['currency_check'] = {'result': 'новее_редакции_не_найдено', 'basis': 'x'}
+        self.assertTrue(any('без официального подтверждения' in e for e in V.check(r)[0]))
+
+    def test_file_sha256_must_be_of_file(self):
+        r = copy.deepcopy(REG)
+        p = r['protocols'][0]
+        p['file_checksum']['value'] = p['official_check']['quote_sha256']   # подмена хэшем текста
+        p['file_checksum']['source'] = 'текст'
+        self.assertTrue(any('хэш файла' in e for e in V.check(r)[0]))
 
     def test_engine_entry_carries_evidence(self):
         p = next(x for x in REG['protocols'] if x['official_check']['result'] == 'подтверждено_официальным_PDF')

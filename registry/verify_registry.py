@@ -21,7 +21,7 @@ python3 registry/verify_registry.py registry/protocols-registry.json [путь/�
 import hashlib, json, sys
 
 OFFICIAL = {'подтверждено_официальным_PDF', 'подтверждено_выдержкой_официального_сайта', 'подтверждено_протоколом_ОКК'}
-ALL_RESULTS = OFFICIAL | {'документ_найден_шапка_не_прочитана', 'только_вторичный_источник', 'на_официальном_сайте_не_найдено'}
+ALL_RESULTS = OFFICIAL | {'официальный_источник_найден_файл_не_верифицирован', 'документ_найден_шапка_не_прочитана', 'только_вторичный_источник', 'на_официальном_сайте_не_найдено'}
 STATUSES = {'действует', 'заменён', 'не проверен'}
 REQUIRED = ['id', 'doc_id', 'name_in_base', 'approval', 'protocol_type', 'internal_check', 'official_check', 'currency_check', 'registry_status', 'text_sha256']
 TYPES = {'диагностика_и_лечение', 'медицинское_вмешательство', 'реабилитация', 'не_установлен'}
@@ -68,6 +68,15 @@ def check(reg, texts=None):
                 errors.append(f'{pid}: «действует» без проверки актуальности редакции (ссылки и подтверждения эксперта недостаточно)')
         if st == 'заменён' and not (p.get('replaced_by') and p.get('valid_to')):
             errors.append(f'{pid}: «заменён» без replaced_by и valid_to')
+        rc = p.get('reviewer_claim')
+        if rc and str(rc.get('status', '')).startswith('не подтверждено') and oc.get('result') in OFFICIAL:
+            errors.append(f'{pid}: заявление проверяющего не подтверждено, а результат сверки официальный')
+        fc = p.get('file_checksum') or {}
+        if fc.get('value'):
+            if fc.get('source') != 'байты PDF-файла' or not fc.get('downloaded_from'):
+                errors.append(f'{pid}: хэш файла должен быть вычислен по байтам скачанного PDF (source, downloaded_from)')
+            if fc['value'] in (oc.get('quote_sha256'), p.get('text_sha256')):
+                errors.append(f'{pid}: хэш файла совпадает с хэшем текста — подмена недопустима')
         if oc.get('result') == 'только_вторичный_источник':
             warnings.append(f'{pid}: подтверждён только вторичным источником')
         if texts is not None:

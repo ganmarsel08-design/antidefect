@@ -10,12 +10,30 @@ function deepFreeze(o) {
   if (o && typeof o === 'object' && !Object.isFrozen(o)) { Object.freeze(o); Object.values(o).forEach(deepFreeze); }
   return o;
 }
-// Синтетические записи «из реестра»: официальное подтверждение и проверка актуальности
-const searched = (o) => Object.assign({
-  protocol_no: 'T-1', approved_date: '01.01.2020 (синтетический)', edition: 'ред. 1',
-  registry_status: 'действует', valid_on_care_date: 'да', sections: ['раздел 1'], applicability: 'синтетическая группа',
-  official_evidence: 'подтверждено_официальным_PDF', currency_verified: true, protocol_type: 'диагностика_и_лечение'
-}, o || {});
+// Синтетический реестр: записи протоколов модуль получает только через loadRegistry/registryEntry
+const SYN_REG = { version: 'синтетический-1', protocols: [] };
+function synDoc(o) {
+  const p = Object.assign({ doc_id: 'КП-ДЛ:t-1:2020-01-01', approval: { no: 'T-1', date_iso: '2020-01-01' }, protocol_type: 'диагностика_и_лечение',
+    registry_status: 'действует', official_check: { result: 'подтверждено_официальным_PDF' },
+    currency_check: { result: 'новее_редакции_не_найдено', basis: 'синтетическая проверка' }, valid_to: null }, o || {});
+  return p;
+}
+['T-1', '4', '185', '231', 'nek-a', 'nek-b', 'sep', 'secondary', 'no-currency', 'unverified', '10'].forEach(k => SYN_REG.protocols.push(synDoc({
+  doc_id: k === 'T-1' ? 'КП-ДЛ:t-1:2020-01-01' : 'КП-ДЛ:' + k + ':2020-01-01',
+  approval: { no: { 'nek-a': '185', 'nek-b': '185', sep: '185', secondary: 'S', 'no-currency': 'NC', unverified: 'U' }[k] || k, date_iso: '2020-01-01' },
+  official_check: { result: k === 'secondary' ? 'только_вторичный_источник' : 'подтверждено_официальным_PDF' },
+  currency_check: k === 'no-currency' ? { result: 'не_проверена', basis: null } : { result: 'новее_редакции_не_найдено', basis: 'синтетическая проверка' },
+  registry_status: k === 'unverified' ? 'не проверен' : 'действует'
+})));
+const REGH = E.loadRegistry(SYN_REG).registry;
+const CARE = '2026-01-10';
+const searched = (o) => {
+  o = o || {};
+  const key = o.doc_id || (o.protocol_no && o.protocol_no !== 'T-1' ? 'КП-ДЛ:' + o.protocol_no + ':2020-01-01' : 'КП-ДЛ:t-1:2020-01-01');
+  const r = E.registryEntry(REGH, key, o.care_date || CARE, { sections: ['раздел 1'] });
+  if (!r.ok) throw new Error(r.errors.join('; '));
+  return r.entry;
+};
 
 // Назначение по протоколу: всё на месте
 function base() {
@@ -33,7 +51,7 @@ function base() {
     signals: [], conflicts: [], evidence: []
   };
 }
-const regAtt = E.attestRegistryCompleteness({ confirmed_by: 'эксперт-1', total: 29, registry_version: 'синтетический v1', checked_protocols: ['4', '185', '231'], basis: 'синтетическая сверка' }).attestation;
+const regAtt = E.attestRegistryCompleteness({ confirmed_by: 'эксперт-1', total: 29, registry_version: 'синтетический v1', checked_protocols: ['КП-ДЛ:4:2020-01-01', 'КП-ДЛ:185:2020-01-01', 'КП-ДЛ:231:2020-01-01'], basis: 'синтетическая сверка' }).attestation;
 // Отклонение по дозе (вне диапазона протокола): реестр полноты не требуется
 function diffDev() { const d = base(); d.order.params.dose_mg_per_kg = 20; return d; }
 // Отклонение «не урегулировано»: лечебный курс противогрибкового препарата
@@ -98,7 +116,7 @@ const CASES = [
     build: () => { const d = base(); delete d.order.params.dose_mg_per_kg; return d; },
     expect: { status: S.INSUFFICIENT, relation: 'невозможно_проверить' } },
   { n: 11, title: 'Редакция протокола на дату помощи не подтверждена',
-    build: () => { const d = base(); d.protocol_check.searched[0].valid_on_care_date = 'не_определено'; return d; },
+    build: () => { const d = base(); d.protocol_check.searched = [searched({ care_date: '2019-01-01' })]; return d; },
     expect: { status: S.INSUFFICIENT, relation: 'невозможно_проверить' } },
   { n: 12, title: 'Отклонение, запись врача не найдена во фрагменте',
     build: () => { const d = asFragment(deviation()); d.evidence = [goodEvidence(d)]; d.documentation.physician_note = 'не_найдено_во_фрагменте'; return d; },
@@ -153,13 +171,13 @@ const CASES = [
     build: () => { const d = deviation(); d.evidence = [goodEvidence(d)]; d.protocol_check.registry_coverage.missing_applicable = ['протокол по кандидозу (не внесён)']; return d; },
     expect: { status: S.INSUFFICIENT, relation: 'невозможно_проверить' } },
   { n: 29, title: 'Протокол «не проверен» в реестре — положительный вывод заблокирован',
-    build: () => { const d = base(); d.protocol_check.searched[0].registry_status = 'не проверен'; return d; },
+    build: () => { const d = base(); d.protocol_check.searched = [searched({ doc_id: 'КП-ДЛ:unverified:2020-01-01' })]; d.protocol_check.match.protocol_no = 'U'; return d; },
     expect: { status: S.EXPERT, blocked: true } },
   { n: 30, title: 'Обоснованное отклонение, но редакция одного из просмотренных протоколов не подтверждена',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence(d)]; d.protocol_check.searched[1].valid_on_care_date = 'не_определено'; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence(d)]; d.protocol_check.searched[1] = searched({ protocol_no: '185', care_date: '2019-01-01' }); return d; },
     expect: { status: S.EXPERT, blocked: true } },
   { n: 31, title: 'Протокол сейчас заменён, но действовал на дату помощи',
-    build: () => { const d = base(); d.protocol_check.searched[0].registry_status = 'заменён'; return d; },
+    build: () => { const d = base(); return d; },   // «заменён» с датой окончания позже даты помощи — см. отдельный тест
     expect: { status: S.COMPLIANT, blocked: false } },
   { n: 32, title: 'Экспертная оценка пришла во входных данных без подтверждения',
     build: () => { const d = deviation(); d.evidence = [goodEvidence(d, { expert_assessment: { applicability: 'совпадает', regimen_match: 'совпадает', assessed_by: 'кто-то' } })]; return d; },
@@ -168,7 +186,7 @@ const CASES = [
     build: () => { const d = deviation(); d.evidence = [goodEvidence(d, { bibliographic: { method: 'pubmed_api', found: true, metadata_match: true } })]; return d; },
     expect: { status: S.EXPERT, warning: 'не подтверждён проверяющим' } },
   { n: 34, title: 'Протокол «не проверен», доза вне диапазона без обоснования — проблемы всё равно видны',
-    build: () => { const d = base(); d.protocol_check.searched[0].registry_status = 'не проверен'; d.order.params.dose_mg_per_kg = 20; d.documentation.physician_note = 'не_найдено_в_полной_истории'; return d; },
+    build: () => { const d = base(); d.protocol_check.searched = [searched({ doc_id: 'КП-ДЛ:unverified:2020-01-01' })]; d.protocol_check.match.protocol_no = 'U'; d.order.params.dose_mg_per_kg = 20; d.documentation.physician_note = 'не_найдено_в_полной_истории'; return d; },
     expect: { status: S.INCOMPLETE, missing: ['источник не предъявлен', 'запись врача'] } }
 ];
 
@@ -305,7 +323,7 @@ test('замечание 1: осторожные формулировки при
   const tb = E.buildJustificationDraft(bad, E.evaluate(bad));
   assert.equal(tb.cautious, true);
   assert.ok(tb.text.includes('Не хватает:'));
-  const blk = deviation(); blk.evidence = [goodEvidence(blk)]; blk.protocol_check.searched[0].registry_status = 'не проверен';
+  const blk = deviation(); blk.evidence = [goodEvidence(blk)]; blk.protocol_check.searched[0] = searched({ doc_id: 'КП-ДЛ:unverified:2020-01-01' });
   assert.ok(E.buildJustificationDraft(blk, E.evaluate(blk)).text.includes('Вывод предварительный'));
 });
 
@@ -368,7 +386,7 @@ test('риск 1: подтверждение полноты реестра кн�
 });
 
 test('риск 1: подтверждение полноты хранит перечень протоколов, версию реестра и основание', () => {
-  assert.deepEqual(Array.from(regAtt.checked_protocols), ['4', '185', '231']);
+  assert.deepEqual(Array.from(regAtt.checked_protocols), ['КП-ДЛ:4:2020-01-01', 'КП-ДЛ:185:2020-01-01', 'КП-ДЛ:231:2020-01-01']);
   assert.equal(regAtt.registry_version, 'синтетический v1');
   assert.equal(regAtt.basis, 'синтетическая сверка');
   const miss = (o) => E.attestRegistryCompleteness(Object.assign({ confirmed_by: 'э', total: 29, registry_version: 'v', checked_protocols: ['4'], basis: 'b' }, o)).ok;
@@ -408,50 +426,66 @@ test('риск 2: оценка другого источника не перен
 
 /* ---------- Этап 4: требования проверки PR #6 ---------- */
 
-test('ручная отметка «действует» без официального подтверждения не разблокирует положительный вывод', () => {
-  const d = base(); d.protocol_check.searched[0].official_evidence = undefined;
+test('ручные поля official_evidence/currency_verified во входных данных не учитываются', () => {
+  const d = base();
+  d.protocol_check.searched = [Object.assign({}, searched())];   // копия: те же поля, но не из реестра
   const r = E.evaluate(d);
-  assert.equal(r.status, S.EXPERT); assert.equal(r.positive_blocked, true);
-  assert.ok(r.blocked_by.some(x => x.includes('ручной отметки недостаточно')));
+  assert.equal(r.positive_blocked, true);
+  assert.ok(r.blocked_by.some(x => x.includes('не из загруженного реестра')));
 });
 
 test('официальный документ без проверки актуальности не даёт положительного вывода', () => {
-  const d = base(); d.protocol_check.searched[0].currency_verified = false;
+  const d = base(); d.protocol_check.searched = [searched({ doc_id: 'КП-ДЛ:no-currency:2020-01-01' })]; d.protocol_check.match.protocol_no = 'NC';
   const r = E.evaluate(d);
-  assert.equal(r.positive_blocked, true);
-  assert.ok(r.blocked_by.some(x => x.includes('актуальность редакции')));
+  assert.equal(r.status, S.INSUFFICIENT);   // без проверки актуальности редакция на дату помощи не определяется
 });
 
 test('вторичный источник не заменяет официальное подтверждение', () => {
-  const d = base(); d.protocol_check.searched[0].official_evidence = 'только_вторичный_источник';
-  assert.equal(E.evaluate(d).positive_blocked, true);
+  const d = base(); d.protocol_check.searched = [searched({ doc_id: 'КП-ДЛ:secondary:2020-01-01' })]; d.protocol_check.match.protocol_no = 'S';
+  const r = E.evaluate(d);
+  assert.equal(r.positive_blocked, true);
+  assert.ok(r.blocked_by.some(x => x.includes('не подтверждён официальным документом')));
+});
+
+test('применимость на дату помощи вычисляется из реестра, а не со входа', () => {
+  assert.equal(searched({ care_date: '2019-06-01' }).valid_on_care_date, 'не_определено');   // помощь до одобрения
+  assert.equal(searched().valid_on_care_date, 'да');
+  assert.equal(E.registryEntry({ version: 'x', _map: new Map() }, 'КП-ДЛ:t-1:2020-01-01', CARE).ok, false);   // поддельный реестр
+  assert.equal(E.registryEntry(REGH, 'КП-ДЛ:нет:2020-01-01', CARE).ok, false);
+  const reg2 = E.loadRegistry({ version: 'v', protocols: [synDoc(), synDoc()] });
+  assert.equal(reg2.ok, false);   // повтор doc_id
+});
+
+test('заменённая редакция применима только до даты окончания', () => {
+  const h = E.loadRegistry({ version: 'v', protocols: [synDoc({ registry_status: 'заменён', valid_to: '2023-07-28' })] }).registry;
+  assert.equal(E.registryEntry(h, 'КП-ДЛ:t-1:2020-01-01', '2022-01-01').entry.valid_on_care_date, 'да');
+  assert.equal(E.registryEntry(h, 'КП-ДЛ:t-1:2020-01-01', '2024-01-01').entry.valid_on_care_date, 'не_определено');
 });
 
 test('номер заседания ОКК не идентифицирует документ: два документа №185 → невозможно проверить', () => {
   const d = base();
-  d.protocol_check.searched = [searched({ protocol_no: '185', doc_id: 'КП-ДЛ:sepsis:2023-07-28' }), searched({ protocol_no: '185', doc_id: 'КП-ДЛ:nek:2023-07-28' })];
+  d.protocol_check.searched = [searched({ doc_id: 'КП-ДЛ:sep:2020-01-01' }), searched({ doc_id: 'КП-ДЛ:nek-a:2020-01-01' })];
   d.protocol_check.match.protocol_no = '185';
   const r = E.evaluate(d);
   assert.equal(r.clinical.relation, 'невозможно_проверить');
   assert.ok(r.reasons.some(x => x.includes('не идентифицирует документ однозначно')));
-  // по doc_id — однозначно
   const d2 = base();
   d2.protocol_check.searched = d.protocol_check.searched;
-  d2.protocol_check.match = Object.assign({}, d.protocol_check.match, { doc_id: 'КП-ДЛ:nek:2023-07-28' });
+  d2.protocol_check.match = Object.assign({}, d.protocol_check.match, { doc_id: 'КП-ДЛ:nek-a:2020-01-01' });
   const r2 = E.evaluate(d2);
   assert.equal(r2.status, S.COMPLIANT);
-  assert.ok(r2.clinical.statement.includes('КП-ДЛ:nek:2023-07-28'));
+  assert.ok(r2.clinical.statement.includes('КП-ДЛ:nek-a:2020-01-01'));
 });
 
 test('полнота подтверждается по doc_id, а не по номеру заседания', () => {
   const d = deviation(); d.evidence = [goodEvidence(d)];
-  d.protocol_check.searched = [searched({ protocol_no: '185', doc_id: 'КП-ДЛ:a:2023-07-28' }), searched({ protocol_no: '185', doc_id: 'КП-ДЛ:b:2023-07-28' })];
+  d.protocol_check.searched = [searched({ doc_id: 'КП-ДЛ:nek-a:2020-01-01' }), searched({ doc_id: 'КП-ДЛ:nek-b:2020-01-01' })];
   d.protocol_check.registry_coverage.completeness_attestation = E.attestRegistryCompleteness({ confirmed_by: 'э', total: 29, registry_version: 'v', basis: 'b', checked_protocols: ['185'] }).attestation;
   assert.ok(E.evaluate(d).blocked_by.some(x => x.includes('заявлена, но не подтверждена')));
 });
 
 test('недопустимый тип протокола отклоняется', () => {
-  const d = base(); d.protocol_check.searched[0].protocol_type = 'лечение';
+  const d = base(); d.protocol_check.searched = [Object.assign({}, searched(), { protocol_type: 'лечение' })];
   assert.equal(E.evaluate(d).ok, false);
 });
 

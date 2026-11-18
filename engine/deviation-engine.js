@@ -12,7 +12,7 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.7.0-stage4';
+  const VERSION = '0.8.0-stage4';
   const OFFICIAL_EVIDENCE = Object.freeze(['подтверждено_официальным_PDF', 'подтверждено_выдержкой_официального_сайта', 'подтверждено_протоколом_ОКК']);
   const PROTOCOL_TYPES = Object.freeze(['диагностика_и_лечение', 'медицинское_вмешательство', 'реабилитация', 'не_установлен']);
   const TEST_ASSURANCE = 'тестовое подтверждение в браузере (без авторизации и защищённого журнала)';
@@ -141,6 +141,46 @@
       at: o.at || new Date().toISOString() }) };
   }
 
+  /* ---------- Защищённая передача данных реестра ----------
+   * official_evidence и currency_verified учитываются, только если запись получена
+   * функцией registryEntry из реестра, загруженного loadRegistry. Те же поля во входных
+   * данных игнорируются. Применимость редакции на дату помощи вычисляется здесь,
+   * а не принимается со входа. Ограничение тестовой версии — как у attest*: для реальной
+   * работы реестр должен приходить с сервера с подписью. */
+  const REGISTRIES = new WeakSet();
+  function loadRegistry(reg) {
+    const e = [];
+    if (!reg || !Array.isArray(reg.protocols)) return { ok: false, errors: ['нет списка protocols'] };
+    if (!isStr(reg.version)) e.push('нет версии реестра');
+    const byId = new Map();
+    reg.protocols.forEach((p, i) => {
+      if (!isStr(p.doc_id)) e.push('protocols[' + i + ']: нет doc_id');
+      else if (byId.has(p.doc_id)) e.push('doc_id не уникален: ' + p.doc_id);
+      else byId.set(p.doc_id, Object.freeze({
+        doc_id: p.doc_id, protocol_no: String(p.approval && p.approval.no || ''),
+        approved: p.approval && p.approval.date_iso, protocol_type: p.protocol_type,
+        registry_status: p.registry_status, valid_to: p.valid_to || null,
+        official_evidence: p.official_check && p.official_check.result,
+        currency_verified: !!(p.currency_check && p.currency_check.result === 'новее_редакции_не_найдено' && p.currency_check.basis)
+      }));
+    });
+    if (e.length) return { ok: false, errors: e };
+    const h = Object.freeze({ version: reg.version, size: byId.size, _map: byId });
+    REGISTRIES.add(h);
+    return { ok: true, registry: h };
+  }
+  function registryEntry(h, docId, careDate, extra) {
+    if (!h || !REGISTRIES.has(h)) return { ok: false, errors: ['реестр не загружен через loadRegistry'] };
+    const p = h._map.get(docId);
+    if (!p) return { ok: false, errors: ['документ ' + docId + ' отсутствует в реестре'] };
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(careDate || ''))) return { ok: false, errors: ['дата помощи: ГГГГ-ММ-ДД'] };
+    const valid = p.currency_verified && p.approved && p.approved <= careDate && (!p.valid_to || careDate < p.valid_to) ? 'да' : 'не_определено';
+    return { ok: true, entry: seal('registry_entry', Object.assign({}, extra || {}, {
+      doc_id: p.doc_id, protocol_no: p.protocol_no, protocol_type: p.protocol_type, registry_status: p.registry_status,
+      official_evidence: p.official_evidence, currency_verified: p.currency_verified,
+      valid_on_care_date: valid, care_date: careDate, registry_version: h.version })) };
+  }
+
   /* ---------- Проверка структуры ---------- */
 
   // Простая проверка: 12 цифр подряд (возможный ИИН). Это НЕ обезличивание.
@@ -218,6 +258,7 @@
   function editionProblem(s) {
     if (s.valid_on_care_date !== 'да') return 'редакция протокола ' + docName(s) + ' на дату оказания помощи не подтверждена';
     if (s.registry_status !== 'действует' && s.registry_status !== 'заменён') return 'актуальность протокола ' + docName(s) + ' в реестре не проверена';
+    if (!isAttested(s, 'registry_entry')) return 'сведения о протоколе ' + docName(s) + ' получены не из загруженного реестра (входным данным не доверяем)';
     if (!OFFICIAL_EVIDENCE.includes(s.official_evidence)) return 'протокол ' + docName(s) + ' не подтверждён официальным документом в реестре (ручной отметки недостаточно)';
     if (s.currency_verified !== true) return 'актуальность редакции протокола ' + docName(s) + ' не проверена по официальным данным (ручной отметки недостаточно)';
     return '';
@@ -549,7 +590,7 @@
     SIGNAL_KINDS, SEVERITY, CONFIDENCE, OFFICIAL_EVIDENCE, PROTOCOL_TYPES, APPLICABILITY, REGIMEN, BIB_METHODS, SIGNAL_LEVEL,
     DEFAULT_CONFIG, NOT_REG_STATEMENT, IIN_LIKE,
     validate, evaluate, applyExpertOverride, signalLevel,
-    attestBibliographic, attestExpertAssessment, attestRegistryCompleteness, isAttested,
+    attestBibliographic, attestExpertAssessment, attestRegistryCompleteness, isAttested, loadRegistry, registryEntry,
     fingerprint, isStale, reevaluate, contextFingerprint, sourceKey, buildJustificationDraft, TEST_ASSURANCE, ANALYSIS_BASIS
   };
 });
