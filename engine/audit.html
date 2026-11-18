@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Антидефект — аудит отклонений (тестовая версия)</title>
+<style>
+:root{--bg:#f6f5f2;--card:#fff;--ink:#1d1f21;--muted:#666;--line:#ddd9d0;--acc:#24527a;
+--red:#b3261e;--amber:#b06a00;--gray:#5f6368;--green:#2e7d32;--teal:#00796b;--orange:#c75000;--dark:#7a1212}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:#1f3b57;color:#fff;padding:14px 18px}
+header h1{margin:0;font-size:19px;font-weight:600}
+header p{margin:2px 0 0;font-size:13px;opacity:.85}
+main{max-width:920px;margin:0 auto;padding:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 14px}
+h2{font-size:16px;margin:0 0 10px}
+h3{font-size:14px;margin:12px 0 6px}
+.warn{background:#fff4e5;border:1px solid #f0c27a;border-radius:8px;padding:10px 12px;font-size:13.5px}
+.err{background:#fdecea;border:1px solid #f1a9a0;border-radius:8px;padding:8px 12px;font-size:13.5px;color:var(--red)}
+.hint{color:var(--muted);font-size:13px}
+label.f{display:block;margin:8px 0 3px;font-size:13.5px;font-weight:600}
+input[type=text],input[type=datetime-local],select,textarea{width:100%;padding:7px 9px;border:1px solid #c9c4b8;border-radius:6px;font:inherit;background:#fff}
+textarea{min-height:70px;resize:vertical}
+#histText{min-height:160px;font-family:ui-monospace,Consolas,monospace;font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row>*{flex:1 1 180px}
+.btn{display:inline-block;flex:none;padding:7px 12px;border:1px solid var(--acc);border-radius:6px;background:#fff;color:var(--acc);font:inherit;font-size:14px;cursor:pointer}
+.btn.primary{background:var(--acc);color:#fff}
+.btn.small{padding:3px 9px;font-size:13px}
+.btn.link{border:0;padding:3px 4px;text-decoration:underline}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;margin:8px 0}
+.chk input{margin-top:3px}
+.pill{display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-size:13px;font-weight:600}
+.s-urgent{background:var(--red)}.s-expert{background:var(--amber)}.s-insuf{background:var(--gray)}
+.stale{background:#fdecea;border:1px solid #f1a9a0;border-radius:8px;padding:8px 12px;font-size:13.5px;margin:6px 0}
+.tag{display:inline-block;font-size:11px;font-weight:700;color:#7a4b00;background:#ffe9b8;border-radius:4px;padding:0 5px;margin-left:4px}
+.s-ok{background:var(--green)}.s-just{background:var(--teal)}.s-inc{background:var(--orange)}.s-def{background:var(--dark)}.s-none{background:#999}
+.item-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.item-h .t{font-weight:600}
+.headline{margin:6px 0;font-size:14px}
+ul.prob{margin:6px 0;padding-left:20px}
+ul.prob li{margin:2px 0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.tabs .btn.on{background:#e8eef5}
+.panel{margin-top:10px;padding:10px 12px;background:#faf9f6;border:1px solid var(--line);border-radius:8px}
+.blk{margin:0 0 10px}
+.blk b{display:block;font-size:13.5px}
+.sub{border:1px dashed #cfc9bc;border-radius:8px;padding:8px 10px;margin:6px 0}
+.journal{font-size:13px;margin:6px 0;padding-left:18px}
+.journal li{margin:3px 0}
+pre{white-space:pre-wrap;word-break:break-word;font-size:12px;background:#f0eee9;padding:8px;border-radius:6px;max-height:300px;overflow:auto}
+.draft{white-space:pre-wrap;font-size:13.5px;background:#fff;border:1px solid var(--line);padding:10px;border-radius:6px}
+.summary{display:flex;gap:6px;flex-wrap:wrap}
+details>summary{cursor:pointer;color:var(--acc);font-size:14px;margin:8px 0}
+footer{max-width:920px;margin:0 auto;padding:0 14px 30px;color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Антидефект · аудит отклонений от протокола</h1>
+  <p>Тестовая версия (этап 3). Только синтетические или обезличенные тексты.</p>
+</header>
+<main>
+
+<section class="card">
+  <div class="warn"><b>Реальные истории пока не загружайте.</b> Программа не обезличивает текст: она только отклоняет 12 цифр подряд (похоже на ИИН) и предупреждает о телефонах. Это не обезличивание. Данные хранятся только в этой вкладке и пропадают при её закрытии.</div>
+  <label class="chk"><input type="checkbox" id="consent"> <span>Текст синтетический или обезличен мною. Понимаю, что программа сама данные не обезличивает.</span></label>
+  <div class="row">
+    <div><label class="f" for="expert">Эксперт (ФИО или псевдоним, роль)</label><input type="text" id="expert" placeholder="Нужен для подтверждений и решений"></div>
+    <div><label class="f" for="patient">Пациент (псевдоним)</label><input type="text" id="patient" value="П-001"></div>
+  </div>
+  <details><summary>Настройки</summary>
+    <label class="chk"><input type="checkbox" id="cfgCons"> <span>Консилиум при отклонении от протокола обязателен</span></label>
+    <label class="f" for="cfgBasis">Основание (приказ, положение центра) — без него настройка не действует</label>
+    <input type="text" id="cfgBasis" placeholder="Например: положение центра № … от …">
+  </details>
+</section>
+
+<section class="card">
+  <h2>1. Текст истории</h2>
+  <div class="row">
+    <label class="chk" style="flex:none"><input type="radio" name="scope" value="full"> <span>Полная история</span></label>
+    <label class="chk" style="flex:none"><input type="radio" name="scope" value="fragment" checked> <span>Фрагмент</span></label>
+  </div>
+  <p class="hint" style="margin:0">Если загружен фрагмент, программа не делает вывод «записи нет» — только «не найдено во фрагменте».</p>
+  <textarea id="histText" placeholder="Вставьте обезличенный текст или загрузите файл .txt"></textarea>
+  <div class="row" style="margin-top:6px">
+    <input type="file" id="histFile" accept=".txt,text/plain" style="flex:none">
+    <button class="btn small" id="demo">Загрузить синтетический пример</button>
+  </div>
+  <div id="textMsg"></div>
+</section>
+
+<section class="card">
+  <div class="item-h"><h2 style="margin:0">2. Назначения для проверки</h2>
+    <button class="btn primary" id="addItem">+ Добавить назначение</button></div>
+  <div class="warn" style="margin-top:8px"><b>Анализируются только сведения, введённые в карточку вручную.</b> Текст истории программа не разбирает: он нужен, чтобы сверить введённые факты и выделять фрагменты.</div>
+  <div class="summary" id="summary" style="margin-top:8px"></div>
+</section>
+<div id="items"></div>
+
+<section class="card">
+  <button class="btn" id="export">Выгрузить результаты (JSON)</button>
+  <p class="hint">Выгрузка содержит журнал. Подтверждения эксперта при повторной загрузке не восстанавливаются: их нужно делать заново.</p>
+</section>
+</main>
+<footer>
+  Программа показывает, чего в обосновании хватает и чего нет. Окончательное решение принимает назначенный врач-эксперт или комиссия. Статус «Потенциальный дефект» ставит только эксперт. Черновик обоснования строится только из введённых данных; не вносите в историю задним числом то, чего не было.
+</footer>
+
+<script src="deviation-engine.js"></script>
+<script>
+(function(){
+"use strict";
+const E = window.DeviationEngine;
+const $ = (s,r)=>(r||document).querySelector(s), $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
+const esc = s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const now = ()=>new Date().toISOString();
+const fmt = iso=>{try{return new Date(iso).toLocaleString('ru-RU');}catch(e){return iso;}};
+const DOC_KEYS = Object.keys(E.DOC_LABEL);
+const REL_LABEL = {'соответствует':'В пределах протокола','отличается':'Протокол регулирует, но назначение отличается',
+  'не_урегулировано':'В проверенных протоколах прямой рекомендации нет','невозможно_проверить':'Не могу проверить'};
+const IND_LABEL = {'подтверждены':'Подтверждены','не_подтверждены':'Не подтверждены (проверена полная история)','недостаточно_данных':'Недостаточно данных'};
+const ST_CLASS = {}; ST_CLASS[E.STATUS.URGENT]='s-urgent'; ST_CLASS[E.STATUS.EXPERT]='s-expert'; ST_CLASS[E.STATUS.INSUFFICIENT]='s-insuf';
+ST_CLASS[E.STATUS.COMPLIANT]='s-ok'; ST_CLASS[E.STATUS.JUSTIFIED]='s-just'; ST_CLASS[E.STATUS.INCOMPLETE]='s-inc'; ST_CLASS[E.STATUS.POTENTIAL_DEFECT]='s-def';
+const POSITIVE = [E.STATUS.COMPLIANT, E.STATUS.JUSTIFIED];
+
+let seq = 0;
+const items = [];
+function newForm(){
+  return {regAtt:null,order:'',dt:'',offlabel:false,highrisk:false,rel:'не_урегулировано',
+    pno:'',psec:'',pquote:'',pvalid:'не_определено',preg:'не проверен',
+    plist:'',complete:'unknown',missingList:'',
+    ind:'недостаточно_данных',facts:'',
+    docs:{physician_note:'no',risk_benefit:'no',monitoring:'no',consilium:'no',consent:'no'},
+    sources:[],conflicts:[],signals:[]};
+}
+function scope(){ return ($('input[name=scope]:checked')||{}).value||'fragment'; }
+function expertName(){ return $('#expert').value.trim(); }
+function cfg(){ return {consilium_mandatory:$('#cfgCons').checked, consilium_basis:$('#cfgBasis').value.trim()}; }
+function norm(s){ return String(s).toLowerCase().replace(/\s+/g,' ').trim(); }
+function log(it, who, what){ it.journal.push({at:now(), who:who||'программа', what, test: !!who && who!=='программа'}); }
+
+/* ---------- Текст ---------- */
+function checkText(){
+  const t = $('#histText').value, msgs=[];
+  let block=false;
+  if (E.IIN_LIKE.test(t)) { block=true; msgs.push('<div class="err">В тексте есть 12 цифр подряд (похоже на ИИН). Замените их перед проверкой.</div>'); }
+  if (/(\+7|8)[\s(-]*7\d{2}[\s)-]*\d{3}[\s-]*\d{2}[\s-]*\d{2}/.test(t)) msgs.push('<div class="warn">Похоже на номер телефона. Проверьте обезличивание.</div>');
+  $('#textMsg').innerHTML = msgs.join('');
+  return !block;
+}
+$('#histText').addEventListener('input', checkText);
+$('#histFile').addEventListener('change', e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader(); r.onload=()=>{ $('#histText').value=r.result; checkText(); }; r.readAsText(f,'utf-8');
+});
+
+/* ---------- Сбор данных для модуля ---------- */
+function toInput(it){
+  const f=it.f, sc=scope(), miss = sc==='full'?E.DOC.FULL:E.DOC.FRAGMENT;
+  const documentation={}; DOC_KEYS.forEach(k=>documentation[k]= f.docs[k]==='yes'?E.DOC.FOUND:miss);
+  let pc;
+  const today=new Date().toISOString().slice(0,10);
+  if (f.rel==='соответствует'||f.rel==='отличается'){
+    pc={relation:f.rel, searched:[{protocol_no:f.pno.replace(/^№\s*/,''), registry_status:f.preg, valid_on_care_date:f.pvalid, sections:[f.psec]}],
+        match:{protocol_no:f.pno.replace(/^№\s*/,''), section:f.psec, quote:f.pquote}, search_date:today, registry_coverage:null};
+  } else if (f.rel==='не_урегулировано'){
+    const nos=f.plist.split(/[,;\s]+/).map(x=>x.replace(/^№/,'')).filter(Boolean);
+    const cov = f.complete==='yes'?Object.assign({total:29,missing_applicable:[]}, f.regAtt?{completeness_attestation:f.regAtt}:{})
+      : f.complete==='no'?{total:29,missing_applicable:(f.missingList.split(/[,;]+/).map(x=>x.trim()).filter(Boolean).length?f.missingList.split(/[,;]+/).map(x=>x.trim()).filter(Boolean):['не указано какие'])}
+      : null;
+    pc={relation:f.rel, searched:nos.map(no=>({protocol_no:no, registry_status:f.preg, valid_on_care_date:f.pvalid})), match:null, search_date:today, registry_coverage:cov};
+  } else pc={relation:'невозможно_проверить', searched:[], match:null, search_date:today, registry_coverage:null};
+  return {
+    id:it.id, patient_ref:$('#patient').value.trim()||'П-тест', history_scope:sc,
+    order:{text:f.order, date_time:f.dt, off_label:f.offlabel, high_risk:f.highrisk},
+    protocol_check:pc,
+    indications:{value:f.ind, facts:f.facts.split('\n').map(x=>x.trim()).filter(Boolean).map(text=>({text, source:'текст истории'}))},
+    required_documentation:[], documentation,
+    conflicts:f.conflicts.filter(c=>c.a||c.b),
+    signals:f.signals.map(s=>({kind:s.kind,severity:s.severity,confidence:s.confidence,confirmed:s.confirmed,requirement_quote:s.quote,fact:s.fact,source:s.source})),
+    evidence:f.sources.map(s=>({citation:s.citation, pmid:/^\d+$/.test(s.ref)?s.ref:'', doi:/^10\./.test(s.ref)?s.ref:'', presented:true,
+      bibliographic:s.bib||null, expert_assessment:s.ea||null, transfer_rationale_documented:!!s.transfer}))
+  };
+}
+
+function run(it, why){
+  it.errors=[];
+  if (!$('#consent').checked) { it.errors=['Подтвердите вверху страницы, что текст синтетический или обезличен.']; return; }
+  if (!checkText()) { it.errors=['В тексте истории есть 12 цифр подряд. Замените их перед проверкой.']; return; }
+  if (!it.f.order.trim()) { it.errors=['Укажите, что назначено.']; return; }
+  const r=it.result?E.reevaluate(it.result, toInput(it), cfg()):E.evaluate(toInput(it), cfg());
+  if (!r.ok) { it.errors=r.errors; return; }
+  it.result=r; it.dirty=false; it.cfgKey=JSON.stringify(cfg());
+  log(it,'программа',(why||'Проверка')+': '+r.headline);
+}
+
+function isStale(it){ return !!it.result && (it.dirty || it.cfgKey!==JSON.stringify(cfg()) || E.isStale(it.result, toInput(it))); }
+const STALE_MSG='Данные изменены после проверки — результат устарел. Нажмите «Проверить» во вкладке «Данные». История решений сохранится.';
+
+/* ---------- Отрисовка ---------- */
+function pill(st){ return '<span class="pill '+(ST_CLASS[st]||'s-none')+'">'+esc(st||'Не проверено')+'</span>'; }
+function opt(v,cur,label){ return '<option value="'+esc(v)+'"'+(v===cur?' selected':'')+'>'+esc(label||v)+'</option>'; }
+
+function problems(it){
+  const r=it.result; if(!r) return [];
+  const out=r.missing.slice();
+  if (r.positive_blocked) (r.blocked_by||[]).forEach(x=>out.push('положительный вывод не окончательный: '+x));
+  else if (!POSITIVE.includes(r.status)) r.reasons.forEach(x=>out.push(x));
+  if (r.documentation.state==='неполная') out.push('нет обязательной записи: '+r.documentation.missing_items.join(', '));
+  return Array.from(new Set(out));
+}
+function textWarnings(it){
+  const t=norm($('#histText').value), w=[];
+  if (!t) return w;
+  it.f.facts.split('\n').map(x=>x.trim()).filter(Boolean).forEach(fct=>{ if(!t.includes(norm(fct))) w.push('Показание «'+fct+'» не найдено в тексте истории дословно.'); });
+  return w;
+}
+
+function renderForm(it){
+  const f=it.f, isProt=f.rel==='соответствует'||f.rel==='отличается', isNR=f.rel==='не_урегулировано', frag=scope()==='fragment';
+  let h='<div class="panel" data-form>';
+  h+='<label class="f">Что назначено</label><input type="text" data-f="order" value="'+esc(f.order)+'" placeholder="Препарат, доза, кратность, длительность">';
+  h+='<div class="row"><div><label class="f">Дата и время назначения</label><input type="datetime-local" data-f="dt" value="'+esc(f.dt)+'"></div></div>';
+  h+='<label class="f">Есть ли это в протоколе?</label><select data-f="rel">'+Object.keys(REL_LABEL).map(k=>opt(k,f.rel,REL_LABEL[k])).join('')+'</select>';
+  if (isProt) {
+    h+='<div class="row"><div><label class="f">Протокол №</label><input type="text" data-f="pno" value="'+esc(f.pno)+'"></div><div><label class="f">Раздел</label><input type="text" data-f="psec" value="'+esc(f.psec)+'"></div></div>';
+    h+='<label class="f">Цитата из протокола (дословно)</label><textarea data-f="pquote">'+esc(f.pquote)+'</textarea>';
+  }
+  if (isNR) {
+    h+='<label class="f">Какие протоколы просмотрены (номера через запятую)</label><input type="text" data-f="plist" value="'+esc(f.plist)+'" placeholder="4, 185, 231">';
+    h+='<label class="f">Все применимые протоколы есть в реестре? (заявляет пользователь; подтверждает эксперт во вкладке «Эксперт и журнал»)</label><select data-f="complete">'+opt('yes',f.complete,'Да')+opt('no',f.complete,'Нет')+opt('unknown',f.complete,'Не знаю')+'</select>';
+    if (f.complete==='no') h+='<label class="f">Каких не хватает</label><input type="text" data-f="missingList" value="'+esc(f.missingList)+'">';
+  }
+  if (isProt||isNR) {
+    h+='<div class="row"><div><label class="f">Редакция действовала на дату помощи?</label><select data-f="pvalid">'+opt('да',f.pvalid,'Да, подтверждено')+opt('не_определено',f.pvalid,'Не знаю')+'</select></div>';
+    h+='<div><label class="f">Статус протокола в реестре</label><select data-f="preg">'+E.REGISTRY_STATUS.map(x=>opt(x,f.preg)).join('')+'</select></div></div>';
+  }
+  h+='<label class="f">Показания у ребёнка</label><select data-f="ind">'+Object.keys(IND_LABEL).map(k=>(frag&&k==='не_подтверждены')?'':opt(k,f.ind,IND_LABEL[k])).join('')+'</select>';
+  h+='<label class="f">Факты из истории (по одному в строке)</label><textarea data-f="facts">'+esc(f.facts)+'</textarea>';
+  h+='<button class="btn small" data-act="pasteSel">Вставить выделенное из текста истории</button>';
+  h+='<h3>Что есть в истории</h3>';
+  DOC_KEYS.forEach(k=>{ h+='<div class="row"><div>'+esc(E.DOC_LABEL[k])+'</div><select data-doc="'+k+'" style="flex:0 0 170px">'+opt('yes',f.docs[k],'Найдено')+opt('no',f.docs[k],frag?'Нет во фрагменте':'Нет в истории')+'</select></div>'; });
+  h+='<h3>Научные источники</h3>';
+  f.sources.forEach((s,i)=>{
+    h+='<div class="sub" data-src="'+i+'"><label class="f">Источник (авторы, название, журнал, год)</label><input type="text" data-k="citation" value="'+esc(s.citation)+'">';
+    h+='<div class="row"><div><label class="f">PMID или DOI</label><input type="text" data-k="ref" value="'+esc(s.ref)+'"></div></div>';
+    h+='<label class="chk"><input type="checkbox" data-k="transfer"'+(s.transfer?' checked':'')+'> <span>В истории есть запись врача, почему данные исследования применимы к этому ребёнку</span></label>';
+    h+='<button class="btn small link" data-act="delSrc" data-i="'+i+'">Удалить источник</button></div>';
+  });
+  h+='<button class="btn small" data-act="addSrc">+ Источник</button>';
+  h+='<details'+(f.conflicts.length||f.signals.length?' open':'')+'><summary>Подробнее: вне инструкции, противоречия, сигналы безопасности</summary>';
+  h+='<label class="chk"><input type="checkbox" data-f="offlabel"'+(f.offlabel?' checked':'')+'> <span>Применение вне инструкции</span></label>';
+  h+='<label class="chk"><input type="checkbox" data-f="highrisk"'+(f.highrisk?' checked':'')+'> <span>Решение высокого риска</span></label>';
+  h+='<h3>Противоречия в истории</h3>';
+  f.conflicts.forEach((c,i)=>{ h+='<div class="sub" data-conf="'+i+'"><div class="row"><div><label class="f">Факт 1</label><input type="text" data-k="a" value="'+esc(c.a)+'"></div><div><label class="f">Противоречащий факт 2</label><input type="text" data-k="b" value="'+esc(c.b)+'"></div></div><button class="btn small link" data-act="delConf" data-i="'+i+'">Удалить</button></div>'; });
+  h+='<button class="btn small" data-act="addConf">+ Противоречие</button>';
+  h+='<h3>Сигналы безопасности</h3>';
+  f.signals.forEach((s,i)=>{
+    h+='<div class="sub" data-sig="'+i+'"><div class="row"><div><label class="f">Вид</label><select data-k="kind">'+E.SIGNAL_KINDS.map(x=>opt(x,s.kind,x.replace(/_/g,' '))).join('')+'</select></div>';
+    h+='<div><label class="f">Серьёзность</label><select data-k="severity">'+E.SEVERITY.map(x=>opt(x,s.severity)).join('')+'</select></div>';
+    h+='<div><label class="f">Уверенность</label><select data-k="confidence">'+E.CONFIDENCE.map(x=>opt(x,s.confidence)).join('')+'</select></div></div>';
+    h+='<label class="chk"><input type="checkbox" data-k="confirmed"'+(s.confirmed?' checked':'')+'> <span>Подтверждён документально</span></label>';
+    h+='<label class="f">Требование (цитата из протокола или инструкции)</label><input type="text" data-k="quote" value="'+esc(s.quote)+'">';
+    h+='<div class="row"><div><label class="f">Факт из истории</label><input type="text" data-k="fact" value="'+esc(s.fact)+'"></div><div><label class="f">Где в истории</label><input type="text" data-k="source" value="'+esc(s.source)+'"></div></div>';
+    h+='<button class="btn small link" data-act="delSig" data-i="'+i+'">Удалить</button></div>';
+  });
+  h+='<button class="btn small" data-act="addSig">+ Сигнал</button></details>';
+  h+='<div class="row" style="margin-top:12px"><button class="btn primary" data-act="save">Проверить</button><button class="btn" data-act="cancel">Свернуть</button></div>';
+  return h+'</div>';
+}
+
+function renderJust(it){
+  const r=it.result, f=it.f;
+  if(!r) return '<div class="panel hint">Сначала нажмите «Проверить».</div>';
+  const isDev = r.clinical.relation==='отличается'||r.clinical.relation==='не_урегулировано';
+  let h='<div class="panel">';
+  h+='<div class="blk"><b>1. Назначение</b>'+esc(f.order)+'<br><span class="hint">'+esc(REL_LABEL[r.clinical.relation])+(r.clinical.statement?': '+esc(r.clinical.statement):'')+'</span></div>';
+  const facts=f.facts.split('\n').map(x=>x.trim()).filter(Boolean);
+  h+='<div class="blk"><b>2. Показания: '+esc(IND_LABEL[r.clinical.indications])+'</b>'+(facts.length?'<ul class="prob">'+facts.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<span class="hint">факты не указаны</span>')+'</div>';
+  h+='<div class="blk"><b>3. Научное обоснование</b>';
+  if(!isDev) h+='<span class="hint">не требуется: назначение не выходит за протокол</span>';
+  else if(!f.sources.length) h+='<span class="hint">источник не предъявлен</span>';
+  else h+='<ul class="prob">'+f.sources.map(s=>{
+      const it2=(r.evidence.items||[]).find(x=>x.source===(s.citation||s.ref));
+      return '<li>'+esc(s.citation||s.ref)+' — '+esc(it2?it2.verdict:'')+'</li>'; }).join('')+'</ul>';
+  h+='</div>';
+  h+='<div class="blk"><b>4. Записи в истории</b><ul class="prob">'+DOC_KEYS.map(k=>'<li>'+esc(E.DOC_LABEL[k])+': '+(f.docs[k]==='yes'?'найдено':(scope()==='full'?'не найдено в истории':'не найдено во фрагменте'))+'</li>').join('')+'</ul></div>';
+  h+='<div class="blk"><b>5. Вывод программы</b>'+esc(r.headline)+'</div>';
+  if(isStale(it)) h+='<div class="stale">'+esc(STALE_MSG)+' Черновик недоступен.</div>';
+  else if(r.clinical.relation!=='соответствует'){
+    const dr=E.buildJustificationDraft(toInput(it), r);
+    if(dr.ok){
+      h+='<h3>Черновик обоснования для комиссии <span class="tag">ТЕСТ</span></h3><div class="draft" data-draft>'+esc(dr.text)+'</div>';
+      h+='<p class="hint">Строится по результату проверки и введённым данным. '+(dr.cautious?'Проверка неполная — формулировки осторожные. ':'')+'Пропуски в [скобках] заполняет врач по фактам. Не вносить в историю задним числом.</p>';
+      h+='<button class="btn small" data-act="copyDraft">Копировать</button>';
+    }
+  }
+  return h+'</div>';
+}
+
+function srcState(s){
+  const b=s.bib, a=s.ea;
+  const T=' <span class="tag">ТЕСТ</span>';
+  const bs = !b?'библиография не проверена':(b.found?(b.metadata_match?'найден, данные совпадают':'найден, данные не совпадают'):'не найден')+' ('+esc(b.checked_by)+', '+fmt(b.checked_at)+')'+T;
+  const as = !a?'применимость не оценена':'применимость: '+a.applicability.replace(/_/g,' ')+', схема: '+a.regimen_match.replace(/_/g,' ')+' ('+esc(a.assessed_by)+')'+T;
+  return bs+'; '+as;
+}
+
+function renderExpert(it){
+  const r=it.result;
+  let h='<div class="panel">';
+  h+='<div class="warn">Все подтверждения и решения здесь <b>тестовые</b>: без авторизации и защищённого журнала. Для реальной экспертизы не используются.</div>';
+  if(isStale(it)) h+='<div class="stale">'+esc(STALE_MSG)+' Решение по статусу недоступно.</div>';
+  if(!expertName()) h+='<div class="warn">Укажите эксперта вверху страницы — без этого подтверждения и решения не принимаются.</div>';
+  if(it.f.sources.length){
+    h+='<h3>Подтверждение источников</h3>';
+    it.f.sources.forEach((s,i)=>{
+      const vi=r&&r.evidence?(r.evidence.items||[]).find(x=>x.source===(s.citation||s.ref)):null;
+      h+='<div class="sub" data-xsrc="'+i+'"><b>'+esc(s.citation||s.ref)+'</b><div class="hint">'+srcState(s)+(vi?'<br>Итог: '+esc(vi.verdict):'')+'</div>';
+      h+='<div class="row"><div><label class="f">Источник найден (PubMed, журнал, DOI)?</label><select data-k="found">'+opt('yes','yes','Да')+opt('no','','Нет')+'</select></div>';
+      h+='<div><label class="f">Авторы, название, год совпадают?</label><select data-k="meta">'+opt('yes','yes','Да')+opt('no','','Нет')+'</select></div></div>';
+      h+='<button class="btn small" data-act="attBib" data-i="'+i+'">Подтвердить библиографию</button>';
+      h+='<div class="row"><div><label class="f">Применимость к ребёнку (ГВ, масса, диагноз)</label><select data-k="appl">'+E.APPLICABILITY.map(x=>opt(x,'',x.replace(/_/g,' '))).join('')+'</select></div>';
+      h+='<div><label class="f">Схема (препарат, доза, путь, длительность)</label><select data-k="reg">'+E.REGIMEN.map(x=>opt(x,'',x.replace(/_/g,' '))).join('')+'</select></div></div>';
+      h+='<label class="f">Комментарий</label><input type="text" data-k="comm">';
+      h+='<button class="btn small" data-act="attEA" data-i="'+i+'"'+(s.bib?'':' disabled title="Сначала подтвердите библиографию"')+'>Сохранить экспертную оценку</button></div>';
+    });
+  }
+  if(r && r.clinical && it.f.rel==='не_урегулировано' && it.f.complete==='yes'){
+    h+='<h3>Полнота реестра</h3><div class="hint">'+(it.f.regAtt?'Подтверждена экспертом: '+esc(it.f.regAtt.confirmed_by)+', '+fmt(it.f.regAtt.at)+'; протоколы: '+esc(it.f.regAtt.checked_protocols.join(', '))+'; версия: '+esc(it.f.regAtt.registry_version)+'; основание: '+esc(it.f.regAtt.basis)+' <span class="tag">ТЕСТ</span>':'Заявлена пользователем, не подтверждена')+'</div>';
+    h+='<div class="warn" style="margin-top:6px">Сверка реестра с официальными источниками ещё не проведена (этап 4). До неё положительный вывод по «прямой рекомендации нет» остаётся заблокированным, даже после подтверждения.</div>';
+    if(!it.f.regAtt){
+      h+='<label class="f">Версия реестра</label><input type="text" data-k="regver" value="neo-pro data/protocols.json, 29 протоколов">';
+      h+='<label class="f">Основание сверки (что и по какому источнику проверено)</label><input type="text" data-k="regbasis" placeholder="Например: сверено с перечнем протоколов МЗ РК на дату …">';
+      h+='<button class="btn small" data-act="attReg">Подтвердить полноту для протоколов: '+esc(it.f.plist||'—')+'</button>';
+    }
+  }
+  if(r && !isStale(it)){
+    h+='<h3>Решение по статусу</h3><div class="row"><div><label class="f">Новый статус</label><select data-k="xstatus">'+E.ALL_STATUSES.map(x=>opt(x,r.status)).join('')+'</select></div></div>';
+    h+='<label class="f">Причина</label><input type="text" data-k="xreason">';
+    h+='<label class="f">Основание (документ, протокол заседания)</label><input type="text" data-k="xsource">';
+    h+='<button class="btn small" data-act="override">Сохранить решение</button>';
+    if(r.original) h+='<p class="hint">Исходный результат программы: '+esc(r.original.headline)+'</p>';
+  }
+  h+='<h3>Журнал</h3><ol class="journal">'+it.journal.map(j=>'<li>'+fmt(j.at)+' · '+esc(j.who)+': '+esc(j.what)+(j.test?' <span class="tag">ТЕСТ</span>':'')+'</li>').join('')+'</ol>';
+  return h+'</div>';
+}
+
+function renderMore(it){
+  const r=it.result; let h='<div class="panel">';
+  if(r){
+    const L=(t,a)=>a&&a.length?'<h3>'+t+'</h3><ul class="prob">'+a.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'';
+    h+=L('Причины статуса',r.reasons)+L('Чего не хватает',r.missing)+L('Рекомендации',r.recommendations)+L('Предупреждения',r.warnings.concat(textWarnings(it)));
+    h+='<details><summary>Технические данные</summary><pre>'+esc(JSON.stringify({input:toInput(it),result:r},null,1))+'</pre></details>';
+  } else h+='<span class="hint">Проверка ещё не выполнялась.</span>';
+  return h+'</div>';
+}
+
+function renderItem(it){
+  const r=it.result, pr=problems(it), tw=textWarnings(it);
+  const st=isStale(it);
+  let h='<section class="card" data-item="'+it.id+'"><div class="item-h"><div class="t">'+esc(it.f.order||'Новое назначение')+'</div><div>'+(st?'<span class="pill s-none">Устарел</span> ':'')+pill(r&&r.status)+'</div></div>';
+  if(st) h+='<div class="stale" data-stale>'+esc(STALE_MSG)+'</div>';
+  if(r) h+='<div class="hint">Основа проверки: введённые вручную сведения.'+(r.test_confirmations_used?' Использованы тестовые подтверждения.':'')+'</div>';
+  if(it.errors&&it.errors.length) h+='<div class="err"><b>Исправьте данные:</b><ul class="prob">'+it.errors.map(e=>'<li>'+esc(e)+'</li>').join('')+'</ul></div>';
+  if(r){
+    h+='<div class="headline">'+esc(r.headline)+'</div>';
+    if(pr.length) h+='<b>Проблемы</b><ul class="prob">'+pr.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';
+    else h+='<div class="hint">Проблем не найдено.</div>';
+    const wn=r.warnings.length+tw.length;
+    if(wn) h+='<div class="hint">Предупреждений: '+wn+' — в «Подробнее».</div>';
+    if(r.recommendations.length) h+='<div class="hint">Рекомендации: '+esc(r.recommendations.join('; '))+'</div>';
+  }
+  const tab=it.tab;
+  h+='<div class="tabs">'+[['edit','Данные'],['just','Обоснование'],['expert','Эксперт и журнал'],['more','Подробнее']].map(([k,l])=>'<button class="btn small'+(tab===k?' on':'')+'" data-tab="'+k+'">'+l+'</button>').join('')+'<button class="btn small link" data-act="delItem" style="margin-left:auto">Удалить</button></div>';
+  if(tab==='edit') h+=renderForm(it);
+  if(tab==='just') h+=renderJust(it);
+  if(tab==='expert') h+=renderExpert(it);
+  if(tab==='more') h+=renderMore(it);
+  return h+'</section>';
+}
+
+function renderSummary(){
+  const c={}; items.forEach(it=>{ const s=it.result?it.result.status:'Не проверено'; c[s]=(c[s]||0)+1; });
+  $('#summary').innerHTML = Object.keys(c).map(s=>pill(s)+' '+c[s]).join(' &nbsp; ');
+}
+function rerender(it){
+  const el=$('[data-item="'+it.id+'"]'), html=renderItem(it);
+  if(el) el.outerHTML=html; else $('#items').insertAdjacentHTML('beforeend',html);
+  renderSummary();
+}
+function rerenderAll(){ $('#items').innerHTML=items.map(renderItem).join(''); renderSummary(); }
+
+/* ---------- Сбор формы ---------- */
+function collect(it, el){
+  const form=$('[data-form]',el); if(!form) return;
+  const f=it.f;
+  const oldList=f.plist, oldComplete=f.complete;
+  $$('[data-f]',form).forEach(x=>{ f[x.dataset.f]= x.type==='checkbox'?x.checked:x.value; });
+  if(f.regAtt && (f.complete!=='yes' || f.plist!==oldList || oldComplete!=='yes')){ f.regAtt=null; log(it,'программа','подтверждение полноты реестра снято: изменены сведения о реестре'); }
+  $$('[data-doc]',form).forEach(x=>{ f.docs[x.dataset.doc]=x.value; });
+  const old=f.sources;
+  f.sources=$$('[data-src]',form).map((row,i)=>{
+    const s={citation:$('[data-k=citation]',row).value.trim(), ref:$('[data-k=ref]',row).value.trim(), transfer:$('[data-k=transfer]',row).checked};
+    const o=old[i];
+    if(o&&o.citation===s.citation&&o.ref===s.ref){ s.bib=o.bib; s.ea=o.ea; }
+    else if(o&&(o.bib||o.ea)) log(it,'программа','источник изменён — подтверждения сняты: «'+(o.citation||o.ref)+'»');
+    return s;
+  });
+  f.conflicts=$$('[data-conf]',form).map(row=>({a:$('[data-k=a]',row).value.trim(), b:$('[data-k=b]',row).value.trim()}));
+  f.signals=$$('[data-sig]',form).map(row=>({kind:$('[data-k=kind]',row).value,severity:$('[data-k=severity]',row).value,confidence:$('[data-k=confidence]',row).value,
+    confirmed:$('[data-k=confirmed]',row).checked,quote:$('[data-k=quote]',row).value.trim(),fact:$('[data-k=fact]',row).value.trim(),source:$('[data-k=source]',row).value.trim()}));
+}
+
+/* ---------- События ---------- */
+let lastSel='';
+$('#histText').addEventListener('select', e=>{ const t=e.target; lastSel=t.value.substring(t.selectionStart,t.selectionEnd).trim(); });
+$('#histText').addEventListener('mouseup', e=>{ const t=e.target; const s=t.value.substring(t.selectionStart,t.selectionEnd).trim(); if(s) lastSel=s; });
+
+$('#addItem').addEventListener('click', ()=>{
+  const it={id:'N'+(++seq), f:newForm(), result:null, journal:[], errors:[], tab:'edit'};
+  items.push(it); log(it,'программа','назначение добавлено'); rerender(it);
+});
+$('input[name=scope][value=full]').addEventListener('change', ()=>rerenderAll());
+['#patient','#cfgBasis'].forEach(id=>$(id).addEventListener('change', ()=>rerenderAll()));
+$('#cfgCons').addEventListener('change', ()=>rerenderAll());
+$('input[name=scope][value=fragment]').addEventListener('change', ()=>{
+  items.forEach(it=>{ if(it.f.ind==='не_подтверждены') it.f.ind='недостаточно_данных'; }); rerenderAll(); });
+
+$('#items').addEventListener('input', e=>{
+  if(!e.target.closest('[data-form]')) return;
+  const el=e.target.closest('[data-item]'), it=items.find(x=>x.id===el.dataset.item);
+  if(it && it.result && !it.dirty){ it.dirty=true; const pil=$('.item-h > div:last-child',el);
+    if(!$('[data-stale]',el)){ $('.item-h',el).insertAdjacentHTML('afterend','<div class="stale" data-stale>'+esc(STALE_MSG)+'</div>'); pil.insertAdjacentHTML('afterbegin','<span class="pill s-none">Устарел</span> '); } }
+});
+$('#items').addEventListener('change', e=>{
+  if(e.target.closest('[data-form]')){ const el0=e.target.closest('[data-item]'), it0=items.find(x=>x.id===el0.dataset.item); if(it0&&it0.result) it0.dirty=true; }
+  // смена вопроса «есть ли в протоколе» и «полный ли реестр» меняет набор полей
+  const sel=e.target; if(!sel.matches('[data-f=rel],[data-f=complete]')) return;
+  const el=sel.closest('[data-item]'), it=items.find(x=>x.id===el.dataset.item);
+  collect(it,el); rerender(it);
+});
+
+$('#items').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const el=b.closest('[data-item]'); if(!el) return;
+  const it=items.find(x=>x.id===el.dataset.item); if(!it) return;
+  if(b.dataset.tab){ if(it.tab==='edit') collect(it,el); it.tab = it.tab===b.dataset.tab?null:b.dataset.tab; rerender(it); return; }
+  const a=b.dataset.act, i=+b.dataset.i, who=expertName();
+  const needExpert=()=>{ if(!who){ it.errors=['Укажите эксперта вверху страницы.']; rerender(it); return false;} it.errors=[]; return true; };
+  switch(a){
+    case 'save': collect(it,el); run(it, it.result?'Повторная проверка после изменения данных':'Проверка'); if(!it.errors.length) it.tab=null; rerender(it); break;
+    case 'cancel': collect(it,el); it.tab=null; rerender(it); break;
+    case 'addSrc': collect(it,el); it.f.sources.push({citation:'',ref:'',transfer:false}); rerender(it); break;
+    case 'delSrc': collect(it,el); it.f.sources.splice(i,1); rerender(it); break;
+    case 'addConf': collect(it,el); it.f.conflicts.push({a:'',b:''}); rerender(it); break;
+    case 'delConf': collect(it,el); it.f.conflicts.splice(i,1); rerender(it); break;
+    case 'addSig': collect(it,el); it.f.signals.push({kind:E.SIGNAL_KINDS[0],severity:'средняя',confidence:'средняя',confirmed:false,quote:'',fact:'',source:''}); rerender(it); break;
+    case 'delSig': collect(it,el); it.f.signals.splice(i,1); rerender(it); break;
+    case 'pasteSel': collect(it,el); if(lastSel){ it.f.facts=(it.f.facts?it.f.facts+'\n':'')+lastSel; } else it.errors=['Сначала выделите фрагмент в тексте истории.']; rerender(it); break;
+    case 'delItem': items.splice(items.indexOf(it),1); el.remove(); renderSummary(); break;
+    case 'copyDraft': { const t=$('[data-draft]',el).textContent; (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{b.textContent='Скопировано';},()=>{b.textContent='Выделите текст вручную';}); break; }
+    case 'attBib': { if(!needExpert()) break; const row=$('[data-xsrc="'+i+'"]',el), s=it.f.sources[i];
+      const found=$('[data-k=found]',row).value==='yes', meta=$('[data-k=meta]',row).value==='yes';
+      const res=E.attestBibliographic({found, metadata_match:found?meta:false, method:'manual', checked_by:who, ref:s.ref});
+      if(!res.ok){ it.errors=res.errors; rerender(it); break; }
+      s.bib=res.attestation; s.ea=null;
+      log(it,who,'библиография «'+(s.citation||s.ref)+'»: '+(found?(meta?'найден, данные совпадают':'найден, данные не совпадают'):'не найден')+' (ручная проверка)');
+      if(it.result) run(it,'Повторная проверка'); rerender(it); break; }
+    case 'attEA': { if(!needExpert()) break; const row=$('[data-xsrc="'+i+'"]',el), s=it.f.sources[i];
+      const inp=toInput(it);
+      const res=E.attestExpertAssessment({applicability:$('[data-k=appl]',row).value, regimen_match:$('[data-k=reg]',row).value, assessed_by:who, comment:$('[data-k=comm]',row).value,
+        context:inp, source_key:E.sourceKey(inp.evidence[i])});
+      if(!res.ok){ it.errors=res.errors; rerender(it); break; }
+      s.ea=res.attestation;
+      log(it,who,'оценка «'+(s.citation||s.ref)+'»: применимость '+s.ea.applicability.replace(/_/g,' ')+', схема '+s.ea.regimen_match.replace(/_/g,' ')+(s.ea.comment?' — '+s.ea.comment:''));
+      if(it.result) run(it,'Повторная проверка'); rerender(it); break; }
+    case 'attReg': { if(!needExpert()) break;
+      const ver=$('[data-k=regver]',el).value.trim(), basis=$('[data-k=regbasis]',el).value.trim();
+      const res=E.attestRegistryCompleteness({confirmed_by:who, total:29, registry_version:ver, basis,
+        checked_protocols:it.f.plist.split(/[,;\s]+/).map(x=>x.replace(/^№/,'')).filter(Boolean)});
+      if(!res.ok){ it.errors=res.errors; rerender(it); break; }
+      it.f.regAtt=res.attestation; log(it,who,'заявлена полнота реестра (29), проверены протоколы: '+res.attestation.checked_protocols.join(', ')+'; версия: '+ver+'; основание: '+basis+'. Сверка с официальными источниками не проведена');
+      run(it,'Повторная проверка'); rerender(it); break; }
+    case 'override': { if(!needExpert()) break;
+      const st=$('[data-k=xstatus]',el).value, reason=$('[data-k=xreason]',el).value.trim(), src=$('[data-k=xsource]',el).value.trim();
+      const res=E.applyExpertOverride(it.result,{who, status:st, reason, source:src, current_input: toInput(it)});
+      if(!res.ok){ it.errors=res.errors.map(x=>x.replace('не указано: reason','не указана причина').replace('не указано: source','не указано основание')); rerender(it); break; }
+      log(it,who,'решение: «'+it.result.status+'» → «'+st+'». Причина: '+reason+'. Основание: '+src);
+      it.result=res; rerender(it); break; }
+  }
+});
+
+$('#export').addEventListener('click', ()=>{
+  const data={exported_at:now(), engine_version:E.VERSION, patient_ref:$('#patient').value.trim(), history_scope:scope(),
+    note:'Анализировались вручную введённые сведения. Все подтверждения и решения — тестовые, при повторной загрузке не восстанавливаются.',
+    items:items.map(it=>({id:it.id, input:toInput(it), result:it.result, journal:it.journal}))};
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:'application/json'}));
+  a.download='antidefect-audit-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+});
+
+$('#demo').addEventListener('click', ()=>{
+  $('#histText').value='СИНТЕТИЧЕСКИЙ ПРИМЕР. Пациент П-001, ГВ 27 нед, масса 900 г.\n'+
+    '12.01 10:00 Дневник: лихорадка, нарастание СРБ. Посев крови от 10.01: рост Candida (синтетические данные).\n'+
+    '12.01 10:30 Обоснование: назначен лечебный курс противогрибкового препарата Y (синтетический). Прямой рекомендации в протоколе нет; основание — публикация А (синтетическая).\n'+
+    '12.01 11:00 Оценка рисков: возможная гепатотоксичность, план мониторинга печёночных проб.';
+  $('input[name=scope][value=full]').checked=true;
+  $('#consent').checked=true; checkText();
+  const it={id:'N'+(++seq), f:newForm(), result:null, journal:[], errors:[], tab:null};
+  Object.assign(it.f,{order:'Лечебный курс противогрибкового препарата Y (синтетический пример)', dt:'2026-01-12T10:30',
+    rel:'не_урегулировано', plist:'4, 185, 231', complete:'yes', pvalid:'да', preg:'не проверен', ind:'подтверждены',
+    facts:'Посев крови от 10.01: рост Candida (синтетические данные)',
+    docs:{physician_note:'yes',risk_benefit:'yes',monitoring:'yes',consilium:'no',consent:'no'},
+    sources:[{citation:'Публикация А (синтетическая, для теста)', ref:'00000000', transfer:false}]});
+  items.push(it); log(it,'программа','загружен синтетический пример'); run(it); rerenderAll();
+});
+
+renderSummary();
+})();
+</script>
+</body>
+</html>
