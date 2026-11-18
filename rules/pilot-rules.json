@@ -1,0 +1,2878 @@
+{
+ "schema_version": "rules-0.1",
+ "name": "База медицинских правил — пилот (РДС, НЭК №185, сепсис №185)",
+ "created": "2026-11-18",
+ "status": "кандидат, ожидает экспертного подтверждения",
+ "authenticated": false,
+ "authentication": "база не подписана; ни одно правило не подтверждено экспертом",
+ "policy": {
+  "final_conclusion": "Неподтверждённые правила не формируют окончательный положительный или отрицательный вывод о качестве лечения; результат — только предварительные наблюдения для эксперта.",
+  "deviation": "Отклонение от правила может быть обосновано врачом; обоснование фиксируется и передаётся эксперту, не меняя предварительное наблюдение автоматически.",
+  "dosing": "Дозы и показания берутся только из цитат протокола; ничего не дополняется.",
+  "normativity_classes": [
+   "обязательно",
+   "рекомендуется",
+   "может_применяться",
+   "не_рекомендуется",
+   "противопоказано"
+  ]
+ },
+ "protocols": {
+  "rds": {
+   "protocol_id": "rds",
+   "doc_id": "КП-ДЛ:rds-respiratornyj-distress-sindrom:2016-06-09",
+   "title": "Респираторный дистресс синдром (рдс)",
+   "edition": {
+    "approval_no": "4",
+    "approval_date": "2016-06-09",
+    "approval_body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "revision_line_in_pdf": "Дата разработки/пересмотра протокола:2016 год."
+   },
+   "pdf": {
+    "file_name": "Респираторный дистресс-синдром (неонатология) (1).pdf",
+    "sha256": "473fd83f0e9ad7611904b7f36209ff50ae5d78a06d3cb946a14d2c0f2d431abd",
+    "pages": 18,
+    "origin": "user_upload",
+    "identity_with_official_file": "не установлено"
+   },
+   "registry_official_check": "на_официальном_сайте_не_найдено",
+   "registry_status": "не проверен"
+  },
+  "nek": {
+   "protocol_id": "nek",
+   "doc_id": "КП-ДЛ:nekrotiziruusij-enterokolit-novorojdennyh:2023-07-28",
+   "title": "Некротизирующий энтероколит новорожденных",
+   "edition": {
+    "approval_no": "185",
+    "approval_date": "2023-07-28",
+    "approval_body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "revision_line_in_pdf": "2014 год (пересмотр 2021 г./2023 г.)"
+   },
+   "pdf": {
+    "file_name": "Некротизирующий энтероколит новорожденных.pdf",
+    "sha256": "a5b96a67bc17a8a9ddd9183aacbc5ad9be4e64e6d69efe50f2726b0491e39c4c",
+    "pages": 18,
+    "origin": "user_upload",
+    "identity_with_official_file": "не установлено"
+   },
+   "registry_official_check": "официальный_источник_найден_файл_не_верифицирован",
+   "registry_status": "не проверен"
+  },
+  "sepsis": {
+   "protocol_id": "sepsis",
+   "doc_id": "КП-ДЛ:bakterial-nyj-sepsis-novorojdennogo:2023-07-28",
+   "title": "Бактериальный сепсис новорожденного",
+   "edition": {
+    "approval_no": "185",
+    "approval_date": "2023-07-28",
+    "approval_body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "revision_line_in_pdf": null
+   },
+   "pdf": {
+    "file_name": "БАКТЕРИАЛЬНЫЙ СЕПСИС НОВОРОЖДЕННОГО.pdf",
+    "sha256": "cbcd8b8e686d4b8a9aba19feb442669814e5c1d13f17f36498fea1deb59451c6",
+    "pages": 31,
+    "origin": "user_upload",
+    "identity_with_official_file": "не установлено"
+   },
+   "registry_official_check": "подтверждено_выдержкой_официального_сайта",
+   "registry_status": "не проверен"
+  }
+ },
+ "data_dictionary": {
+  "gestational_age_weeks": {
+   "description": "Гестационный возраст при рождении",
+   "unit": "недели"
+  },
+  "birth_weight_g": {
+   "description": "Масса тела при рождении",
+   "unit": "г"
+  },
+  "rds_risk": {
+   "description": "Ребёнок отнесён к группе риска развития РДС (решение врача)",
+   "unit": "да/нет"
+  },
+  "rds_diagnosed": {
+   "description": "Диагноз РДС установлен",
+   "unit": "да/нет"
+  },
+  "cpap_from_birth": {
+   "description": "СРАР начат с момента рождения",
+   "unit": "да/нет"
+  },
+  "cpap_pressure_cmh2o": {
+   "description": "Начальное давление СРАР",
+   "unit": "см H2O"
+  },
+  "intubated": {
+   "description": "Ребёнок интубирован",
+   "unit": "да/нет"
+  },
+  "surfactant_given": {
+   "description": "Введён сурфактант",
+   "unit": "да/нет"
+  },
+  "antenatal_steroids_given": {
+   "description": "Мать получила антенатальные стероиды",
+   "unit": "да/нет"
+  },
+  "intubation_needed_for_stabilization": {
+   "description": "Для стабилизации потребовалась интубация",
+   "unit": "да/нет"
+  },
+  "fio2": {
+   "description": "FiO2 во время стабилизации",
+   "unit": "доля 0–1"
+  },
+  "surfactant_in_delivery_room": {
+   "description": "Сурфактант введён в родильном зале",
+   "unit": "да/нет"
+  },
+  "oxygen_given": {
+   "description": "Подавался кислород",
+   "unit": "да/нет"
+  },
+  "oxygen_via_blender": {
+   "description": "Кислород подавался через кислородно-воздушный смеситель",
+   "unit": "да/нет"
+  },
+  "oxygen_after_stabilization": {
+   "description": "Оксигенотерапия после начальной стабилизации",
+   "unit": "да/нет"
+  },
+  "spo2_target_low": {
+   "description": "Нижняя граница целевой SpO2 в назначениях",
+   "unit": "%"
+  },
+  "spo2_target_high": {
+   "description": "Верхняя граница целевой SpO2 в назначениях",
+   "unit": "%"
+  },
+  "condition_allows_delayed_clamping": {
+   "description": "Состояние позволяло отсроченное пережатие пуповины (оценка врача)",
+   "unit": "да/нет"
+  },
+  "cord_clamp_delay_s": {
+   "description": "Время до пережатия пуповины",
+   "unit": "секунды"
+  },
+  "antibiotics_started": {
+   "description": "Начата антибактериальная терапия",
+   "unit": "да/нет"
+  },
+  "serious_bacterial_infection_excluded": {
+   "description": "Тяжёлая бактериальная инфекция исключена (решение врача)",
+   "unit": "да/нет"
+  },
+  "blood_culture_before_antibiotics": {
+   "description": "Посев крови взят до первой дозы антибиотика",
+   "unit": "да/нет"
+  },
+  "surfactant_drug": {
+   "description": "Препарат сурфактанта",
+   "unit": "название"
+  },
+  "surfactant_initial_dose_mg_kg": {
+   "description": "Начальная доза сурфактанта",
+   "unit": "мг/кг"
+  },
+  "mechanical_ventilation": {
+   "description": "Проводится механическая вентиляция (ИВЛ)",
+   "unit": "да/нет"
+  },
+  "hypocapnia_documented": {
+   "description": "Документирована гипокапния на ИВЛ (порог определяет врач)",
+   "unit": "да/нет"
+  },
+  "nec_suspected": {
+   "description": "Подозрение на НЭК",
+   "unit": "да/нет"
+  },
+  "nec_stage": {
+   "description": "Стадия НЭК по классификации протокола",
+   "unit": "1а/1б/2а/2б/3а/3б"
+  },
+  "enteral_feeding_stopped": {
+   "description": "Энтеральное кормление прекращено",
+   "unit": "да/нет"
+  },
+  "ng_tube_decompression": {
+   "description": "Установлен назогастральный зонд для декомпрессии",
+   "unit": "да/нет"
+  },
+  "umbilical_catheter_present": {
+   "description": "На момент подозрения стоял пупочный катетер",
+   "unit": "да/нет"
+  },
+  "umbilical_catheter_removed": {
+   "description": "Пупочный катетер удалён",
+   "unit": "да/нет"
+  },
+  "gi_passage_restored": {
+   "description": "Функция пассажа по ЖКТ восстановлена (оценка врача)",
+   "unit": "да/нет"
+  },
+  "enteral_feeding_resumed_day": {
+   "description": "День заболевания, когда возобновлена энтеральная нагрузка",
+   "unit": "сутки"
+  },
+  "parenteral_nutrition_started_day": {
+   "description": "День заболевания, когда начато парентеральное питание",
+   "unit": "сутки"
+  },
+  "xray_48h_after_diagnosis": {
+   "description": "Обзорная рентгенография через 48 часов после диагноза",
+   "unit": "да/нет"
+  },
+  "clinical_deterioration": {
+   "description": "Клиническое ухудшение состояния",
+   "unit": "да/нет"
+  },
+  "xray_vertical_or_lateral_at_deterioration": {
+   "description": "При ухудшении рентгенография в вертикальном положении или латеропозиции",
+   "unit": "да/нет"
+  },
+  "metronidazole_given": {
+   "description": "Метронидазол включён в терапию",
+   "unit": "да/нет"
+  },
+  "antibiotic_days": {
+   "description": "Длительность антибактериальной терапии",
+   "unit": "сутки"
+  },
+  "facility_level": {
+   "description": "Уровень родовспомогательной организации",
+   "unit": "1/2/3"
+  },
+  "surgeon_consulted": {
+   "description": "Проведена консультация хирурга",
+   "unit": "да/нет"
+  },
+  "transferred_to_surgery": {
+   "description": "Переведён в хирургическое отделение",
+   "unit": "да/нет"
+  },
+  "red_flag_count": {
+   "description": "Число признаков/факторов из группы «Красный флаг»",
+   "unit": "число"
+  },
+  "risk_factor_or_sign_count": {
+   "description": "Число факторов риска и клинических признаков сепсиса (без «Красного флага»)",
+   "unit": "число"
+  },
+  "antibiotics_start_minutes": {
+   "description": "Минут от выявления показания до первой дозы антибиотика",
+   "unit": "минуты"
+  },
+  "early_onset_sepsis_suspected": {
+   "description": "Подозрение на ранний неонатальный сепсис",
+   "unit": "да/нет"
+  },
+  "empirical_regimen": {
+   "description": "Эмпирическая схема",
+   "unit": "benzylpenicillin+gentamicin / ampicillin+gentamicin / другое"
+  },
+  "benzylpenicillin_given": {
+   "description": "Назначен бензилпенициллин",
+   "unit": "да/нет"
+  },
+  "benzylpenicillin_dose_mg_kg": {
+   "description": "Разовая доза бензилпенициллина",
+   "unit": "мг/кг"
+  },
+  "benzylpenicillin_interval_h": {
+   "description": "Интервал введения бензилпенициллина",
+   "unit": "часы"
+  },
+  "very_severe_condition": {
+   "description": "Состояние оценено как очень тяжёлое",
+   "unit": "да/нет"
+  },
+  "gentamicin_given": {
+   "description": "Назначен гентамицин",
+   "unit": "да/нет"
+  },
+  "gentamicin_initial_dose_mg_kg": {
+   "description": "Начальная доза гентамицина",
+   "unit": "мг/кг"
+  },
+  "gentamicin_interval_h": {
+   "description": "Интервал между первой и второй дозой гентамицина",
+   "unit": "часы"
+  },
+  "crp_18_24h_after_start": {
+   "description": "СРБ определён через 18–24 ч от начала антибиотиков",
+   "unit": "да/нет"
+  },
+  "improving": {
+   "description": "Состояние улучшается (оценка врача)",
+   "unit": "да/нет"
+  },
+  "blood_culture_result": {
+   "description": "Результат посева крови",
+   "unit": "положительный/отрицательный"
+  },
+  "high_risk_factors": {
+   "description": "Факторы риска, указывающие на высокий риск реализации сепсиса",
+   "unit": "да/нет"
+  },
+  "sepsis_suspected": {
+   "description": "Подозрение на неонатальный сепсис",
+   "unit": "да/нет"
+  },
+  "immunoglobulin_given": {
+   "description": "Введён иммуноглобулин",
+   "unit": "да/нет"
+  },
+  "immunoglobulin_indication_documented": {
+   "description": "Задокументировано отдельное показание к иммуноглобулину",
+   "unit": "да/нет"
+  }
+ },
+ "rules": [
+  {
+   "rule_id": "RDS-001",
+   "protocol": "rds",
+   "doc_id": "КП-ДЛ:rds-respiratornyj-distress-sindrom:2016-06-09",
+   "source": {
+    "section": "12. Стационарный уровень → 6) Тактика лечения → Немедикаментозное лечение → 1. Б «Стабилизация состояния новорожденного после рождения»",
+    "quotes": [
+     {
+      "page": 7,
+      "text": "использование раннего СРАР: начинать с момента рождения у всех новорожденных с риском развития РДС, а также у всех с гестационным возрастом до 30 недель, обеспечивая давление в дыхательных путях не менее 6 см Н2О, через маску или назальные канюли.",
+      "sha256": "d5ebba5e11c71cd555393d02cf204c944e6418517687e087b352a5827c8e4d74"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "новорождённый из группы риска РДС или ГВ до 30 недель",
+    "condition": {
+     "any": [
+      {
+       "field": "rds_risk",
+       "op": "is_true"
+      },
+      {
+       "field": "gestational_age_weeks",
+       "op": "lt",
+       "value": 30
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "СРАР с момента рождения, давление не менее 6 см H2O",
+    "check": {
+     "all": [
+      {
+       "field": "cpap_from_birth",
+       "op": "is_true"
+      },
+      {
+       "field": "cpap_pressure_cmh2o",
+       "op": "gte",
+       "value": 6
+      }
+     ]
+    }
+   },
+   "normativity": "рекомендуется",
+   "normativity_marker": "без модального слова («начинать … у всех»)",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Протокол не перечисляет исключений; состояния, требующие немедленной интубации, регулируются правилом RDS-002 и протоколом реанимации."
+   ],
+   "required_data": [
+    {
+     "field": "rds_risk",
+     "description": "Ребёнок отнесён к группе риска развития РДС (решение врача)",
+     "unit": "да/нет"
+    },
+    {
+     "field": "gestational_age_weeks",
+     "description": "Гестационный возраст при рождении",
+     "unit": "недели"
+    },
+    {
+     "field": "cpap_from_birth",
+     "description": "СРАР начат с момента рождения",
+     "unit": "да/нет"
+    },
+    {
+     "field": "cpap_pressure_cmh2o",
+     "description": "Начальное давление СРАР",
+     "unit": "см H2O"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "RDS-001-A1",
+     "text": "«до 30 недель» — включается ли 30 0/7 (в правиле машинно принято <30).",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    },
+    {
+     "id": "RDS-001-A2",
+     "text": "Понятие «риск развития РДС» в протоколе не определено отдельно; перечень анамнестических критериев — стр. 3. Отнесение к группе риска оставлено врачу.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    },
+    {
+     "id": "RDS-001-A3",
+     "text": "Формулировка без модального слова: обязательность или рекомендация — решает эксперт.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "RDS-002",
+   "protocol": "rds",
+   "doc_id": "КП-ДЛ:rds-respiratornyj-distress-sindrom:2016-06-09",
+   "source": {
+    "section": "12. Стационарный уровень → 6) Тактика лечения → Немедикаментозное лечение → 1. Б «Стабилизация состояния новорожденного после рождения»",
+    "quotes": [
+     {
+      "page": 7,
+      "text": "интубацию следует проводить новорожденным, которые не ответили на неинвазивную вентиляцию (СРАР). Всем интубированным новорожденным показано проведение заместительной терапии сурфактантом;",
+      "sha256": "ad31388463da24d635b0bc3bbc40f278f1df466ee07ff28921f7e54a2b4e7d00"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "ребёнок с РДС интубирован",
+    "condition": {
+     "all": [
+      {
+       "field": "rds_diagnosed",
+       "op": "is_true"
+      },
+      {
+       "field": "intubated",
+       "op": "is_true"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "введение сурфактанта",
+    "check": {
+     "field": "surfactant_given",
+     "op": "is_true"
+    }
+   },
+   "normativity": "обязательно",
+   "normativity_marker": "«показано»",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Цитата относится к стабилизации при РДС; интубация по другим причинам (например, хирургическим) в тексте не оговорена."
+   ],
+   "required_data": [
+    {
+     "field": "rds_diagnosed",
+     "description": "Диагноз РДС установлен",
+     "unit": "да/нет"
+    },
+    {
+     "field": "intubated",
+     "description": "Ребёнок интубирован",
+     "unit": "да/нет"
+    },
+    {
+     "field": "surfactant_given",
+     "description": "Введён сурфактант",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "RDS-002-A1",
+     "text": "«Всем интубированным» — только при РДС/риске РДС или при любой интубации в периоде стабилизации; в правиле принято ограничение диагнозом РДС.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "RDS-003",
+   "protocol": "rds",
+   "doc_id": "КП-ДЛ:rds-respiratornyj-distress-sindrom:2016-06-09",
+   "source": {
+    "section": "12. Стационарный уровень → 6) Тактика лечения → Медикаментозное лечение → «Терапия сурфактантом»",
+    "quotes": [
+     {
+      "page": 9,
+      "text": "сурфактант должен вводиться непосредственно в родильном зале в случаях, когда мать не получала антенатальные стероиды или же, когда для стабилизации новорожденного необходима интубация, а также недоношенным новорожденным с гестационным возрастом менее 26 недель, когда FiO2 составляет > 0,30, а для новорожденных со сроком гестации более 26 недель, при FiO2 > 0,40;",
+      "sha256": "7a437b545b877202f2f3872fba7aed95103bf837f49cb34c9fae187e979643f6"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "любое из условий цитаты (буквальное прочтение)",
+    "condition": {
+     "any": [
+      {
+       "field": "antenatal_steroids_given",
+       "op": "is_false"
+      },
+      {
+       "field": "intubation_needed_for_stabilization",
+       "op": "is_true"
+      },
+      {
+       "all": [
+        {
+         "field": "gestational_age_weeks",
+         "op": "lt",
+         "value": 26
+        },
+        {
+         "field": "fio2",
+         "op": "gt",
+         "value": 0.3
+        }
+       ]
+      },
+      {
+       "all": [
+        {
+         "field": "gestational_age_weeks",
+         "op": "gt",
+         "value": 26
+        },
+        {
+         "field": "fio2",
+         "op": "gt",
+         "value": 0.4
+        }
+       ]
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "сурфактант в родильном зале",
+    "check": {
+     "field": "surfactant_in_delivery_room",
+     "op": "is_true"
+    }
+   },
+   "normativity": "обязательно",
+   "normativity_marker": "«должен»",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [],
+   "required_data": [
+    {
+     "field": "antenatal_steroids_given",
+     "description": "Мать получила антенатальные стероиды",
+     "unit": "да/нет"
+    },
+    {
+     "field": "intubation_needed_for_stabilization",
+     "description": "Для стабилизации потребовалась интубация",
+     "unit": "да/нет"
+    },
+    {
+     "field": "gestational_age_weeks",
+     "description": "Гестационный возраст при рождении",
+     "unit": "недели"
+    },
+    {
+     "field": "fio2",
+     "description": "FiO2 во время стабилизации",
+     "unit": "доля 0–1"
+    },
+    {
+     "field": "surfactant_in_delivery_room",
+     "description": "Сурфактант введён в родильном зале",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "RDS-003-A1",
+     "text": "ГВ ровно 26 недель не попадает ни в одну ветку («менее 26» / «более 26»).",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    },
+    {
+     "id": "RDS-003-A2",
+     "text": "Относится ли условие «мать не получала антенатальные стероиды» ко всем новорождённым или только к недоношенным с РДС/риском РДС.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    },
+    {
+     "id": "RDS-003-A3",
+     "text": "Как сочетается «в родильном зале» с порогами FiO2, которые обычно оцениваются на СРАР после стабилизации.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "RDS-004",
+   "protocol": "rds",
+   "doc_id": "КП-ДЛ:rds-respiratornyj-distress-sindrom:2016-06-09",
+   "source": {
+    "section": "12. Стационарный уровень → 6) Тактика лечения → Немедикаментозное лечение → 1. Б «Стабилизация состояния новорожденного после рождения»",
+    "quotes": [
+     {
+      "page": 7,
+      "text": "кислород должен подаваться только через кислородно-воздушный смеситель. Для начала стабилизации целесообразна концентрация кислорода 21-30%,",
+      "sha256": "2541021bf6e315808719fc95d683c2bf329a80aa8edaf8f784c3606d5fa6f538"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "ребёнку подаётся кислород при стабилизации",
+    "condition": {
+     "field": "oxygen_given",
+     "op": "is_true"
+    }
+   },
+   "requirement": {
+    "description": "кислород через кислородно-воздушный смеситель",
+    "check": {
+     "field": "oxygen_via_blender",
+     "op": "is_true"
+    }
+   },
+   "normativity": "обязательно",
+   "normativity_marker": "«должен … только»",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Стартовая концентрация 21–30% названа «целесообразной» (рекомендация), в машинную проверку не включена."
+   ],
+   "required_data": [
+    {
+     "field": "oxygen_given",
+     "description": "Подавался кислород",
+     "unit": "да/нет"
+    },
+    {
+     "field": "oxygen_via_blender",
+     "description": "Кислород подавался через кислородно-воздушный смеситель",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "RDS-005",
+   "protocol": "rds",
+   "doc_id": "КП-ДЛ:rds-respiratornyj-distress-sindrom:2016-06-09",
+   "source": {
+    "section": "12. Стационарный уровень → 6) Тактика лечения → Немедикаментозное лечение → 2. «Дополнительная оксигенотерапия после стабилизации состояния новорожденного»",
+    "quotes": [
+     {
+      "page": 7,
+      "text": "при проведении оксигенотерапии недоношенным новорожденным после начальной стабилизации, уровень сатурации кислородом должен поддерживаться между 90-95%;",
+      "sha256": "6f59370f66a3bb01b7da9774e72148889e2107bd9059aba92bf52e5cd1b7e936"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "недоношенный (ГВ <37 нед.) на оксигенотерапии после начальной стабилизации",
+    "condition": {
+     "all": [
+      {
+       "field": "gestational_age_weeks",
+       "op": "lt",
+       "value": 37
+      },
+      {
+       "field": "oxygen_after_stabilization",
+       "op": "is_true"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "целевой диапазон SpO2 в пределах 90–95%",
+    "check": {
+     "all": [
+      {
+       "field": "spo2_target_low",
+       "op": "gte",
+       "value": 90
+      },
+      {
+       "field": "spo2_target_high",
+       "op": "lte",
+       "value": 95
+      }
+     ]
+    }
+   },
+   "normativity": "обязательно",
+   "normativity_marker": "«должен»",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [],
+   "required_data": [
+    {
+     "field": "gestational_age_weeks",
+     "description": "Гестационный возраст при рождении",
+     "unit": "недели"
+    },
+    {
+     "field": "oxygen_after_stabilization",
+     "description": "Оксигенотерапия после начальной стабилизации",
+     "unit": "да/нет"
+    },
+    {
+     "field": "spo2_target_low",
+     "description": "Нижняя граница целевой SpO2 в назначениях",
+     "unit": "%"
+    },
+    {
+     "field": "spo2_target_high",
+     "description": "Верхняя граница целевой SpO2 в назначениях",
+     "unit": "%"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "RDS-005-A1",
+     "text": "Проверяется задокументированный целевой диапазон, а не фактические значения SpO2; допустимая доля времени вне диапазона в протоколе не указана.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "RDS-006",
+   "protocol": "rds",
+   "doc_id": "КП-ДЛ:rds-respiratornyj-distress-sindrom:2016-06-09",
+   "source": {
+    "section": "12. Стационарный уровень → 6) Тактика лечения → Немедикаментозное лечение → 1. Б «Стабилизация состояния новорожденного после рождения»",
+    "quotes": [
+     {
+      "page": 7,
+      "text": "зажим пуповины у недоношенного новорожденного, если позволяет его состояние, рекомендуется отложить на 60 секунд, с положением младенца ниже матери, чтобы способствовать плаценто-плодовой трансфузии;",
+      "sha256": "3395c45f4389fd51ce9b66b0979cfaba1b5a5c7d94a696b3cd4a3d8cf05ae675"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "недоношенный, состояние позволяет отсроченное пережатие",
+    "condition": {
+     "all": [
+      {
+       "field": "gestational_age_weeks",
+       "op": "lt",
+       "value": 37
+      },
+      {
+       "field": "condition_allows_delayed_clamping",
+       "op": "is_true"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "пережатие пуповины не ранее 60 секунд",
+    "check": {
+     "field": "cord_clamp_delay_s",
+     "op": "gte",
+     "value": 60
+    }
+   },
+   "normativity": "рекомендуется",
+   "normativity_marker": "«рекомендуется»",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Оговорка самой цитаты: «если позволяет его состояние»."
+   ],
+   "required_data": [
+    {
+     "field": "gestational_age_weeks",
+     "description": "Гестационный возраст при рождении",
+     "unit": "недели"
+    },
+    {
+     "field": "condition_allows_delayed_clamping",
+     "description": "Состояние позволяло отсроченное пережатие пуповины (оценка врача)",
+     "unit": "да/нет"
+    },
+    {
+     "field": "cord_clamp_delay_s",
+     "description": "Время до пережатия пуповины",
+     "unit": "секунды"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "RDS-006-A1",
+     "text": "Кто и как документирует, что состояние «позволяет» (неонатолог/акушер); при отсутствии записи правило неприменимо.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "RDS-007",
+   "protocol": "rds",
+   "doc_id": "КП-ДЛ:rds-respiratornyj-distress-sindrom:2016-06-09",
+   "source": {
+    "section": "12. Стационарный уровень → 6) Тактика лечения → 5. «Профилактика инфекций»",
+    "quotes": [
+     {
+      "page": 9,
+      "text": "всем новорожденным с РДС следует начинать лечение антибиотиками до полного исключения возможной реализации тяжелой бактериальной инфекции (сепсис, пневмония).",
+      "sha256": "a32298185cfd625a3ccbe991c849c62158c8be2cfbebf6c8a854ea901bb78116"
+     },
+     {
+      "page": 9,
+      "text": "лечение антибиотиками следует прекратить как можно быстрее, как только будет исключена реализация ТБИ;",
+      "sha256": "09acad3c120d563fe0c1804ae9bd10184d3fb8914b6e07b6ac6368705b4e01b4"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "диагноз РДС, ТБИ не исключена",
+    "condition": {
+     "all": [
+      {
+       "field": "rds_diagnosed",
+       "op": "is_true"
+      },
+      {
+       "field": "serious_bacterial_infection_excluded",
+       "op": "is_false"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "антибактериальная терапия начата",
+    "check": {
+     "field": "antibiotics_started",
+     "op": "is_true"
+    }
+   },
+   "normativity": "рекомендуется",
+   "normativity_marker": "«следует»",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Там же: «лечение антибиотиками следует прекратить как можно быстрее, как только будет исключена реализация ТБИ» (стр. 9)."
+   ],
+   "required_data": [
+    {
+     "field": "rds_diagnosed",
+     "description": "Диагноз РДС установлен",
+     "unit": "да/нет"
+    },
+    {
+     "field": "serious_bacterial_infection_excluded",
+     "description": "Тяжёлая бактериальная инфекция исключена (решение врача)",
+     "unit": "да/нет"
+    },
+    {
+     "field": "antibiotics_started",
+     "description": "Начата антибактериальная терапия",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "RDS-007-A1",
+     "text": "Протокол по сепсису №185/2023 (п. 5.3.4) говорит не проводить рутинную антибиотикотерапию без факторов риска/признаков инфекции; приоритет между протоколами 2016 и 2023 годов решает эксперт.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "RDS-008",
+   "protocol": "rds",
+   "doc_id": "КП-ДЛ:rds-respiratornyj-distress-sindrom:2016-06-09",
+   "source": {
+    "section": "12. Стационарный уровень → 1) Диагностические критерии → Лабораторные исследования",
+    "quotes": [
+     {
+      "page": 3,
+      "text": "Бактериологическое исследование крови – с целью исключения сепсиса, до назначения антибактериальной терапии;",
+      "sha256": "f4b0312adf1d9f63c128ee285f1acf5a0214ee19d4810d8ed52fcd1f9aa1d572"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "начата антибактериальная терапия",
+    "condition": {
+     "field": "antibiotics_started",
+     "op": "is_true"
+    }
+   },
+   "requirement": {
+    "description": "посев крови взят до первой дозы",
+    "check": {
+     "field": "blood_culture_before_antibiotics",
+     "op": "is_true"
+    }
+   },
+   "normativity": "рекомендуется",
+   "normativity_marker": "без модального слова (перечень исследований)",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [],
+   "required_data": [
+    {
+     "field": "antibiotics_started",
+     "description": "Начата антибактериальная терапия",
+     "unit": "да/нет"
+    },
+    {
+     "field": "blood_culture_before_antibiotics",
+     "description": "Посев крови взят до первой дозы антибиотика",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "RDS-008-A1",
+     "text": "Перечень исследований без модального слова; в разделе «основные диагностические мероприятия» (стр. 5–6) бакпосев перечислен — степень обязательности решает эксперт.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "RDS-009",
+   "protocol": "rds",
+   "doc_id": "КП-ДЛ:rds-respiratornyj-distress-sindrom:2016-06-09",
+   "source": {
+    "section": "12. Стационарный уровень → 6) Тактика лечения → Медикаментозное лечение → «Терапия сурфактантом»",
+    "quotes": [
+     {
+      "page": 9,
+      "text": "для лечения РДС порактант альфа в начальной дозе 200 мг/кг лучше, чем 100 мг/ кг того же препарата или берактанта;",
+      "sha256": "a26a470ce6b7f9de14af61b866b1d6089d0554ce5448826ceceac9334c58491a"
+     },
+     {
+      "page": 11,
+      "text": "Порактант альфа 200 мг/кг",
+      "sha256": "56d972fe9c5556c4efba26f9532e4a63d087e84abf33d6d443653c2497a868aa"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "введён порактант альфа при РДС",
+    "condition": {
+     "all": [
+      {
+       "field": "rds_diagnosed",
+       "op": "is_true"
+      },
+      {
+       "field": "surfactant_drug",
+       "op": "eq",
+       "value": "порактант альфа"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "начальная доза 200 мг/кг",
+    "check": {
+     "field": "surfactant_initial_dose_mg_kg",
+     "op": "eq",
+     "value": 200
+    }
+   },
+   "normativity": "рекомендуется",
+   "normativity_marker": "сравнительная формулировка («лучше, чем»)",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Для других препаратов сурфактанта доза этим правилом не задаётся."
+   ],
+   "required_data": [
+    {
+     "field": "rds_diagnosed",
+     "description": "Диагноз РДС установлен",
+     "unit": "да/нет"
+    },
+    {
+     "field": "surfactant_drug",
+     "description": "Препарат сурфактанта",
+     "unit": "название"
+    },
+    {
+     "field": "surfactant_initial_dose_mg_kg",
+     "description": "Начальная доза сурфактанта",
+     "unit": "мг/кг"
+    }
+   ],
+   "evidence_level": {
+    "value": "А",
+    "source_page": 11,
+    "source": "Таблица «Перечень основных лекарственных средств»: строка «Порактант альфа 200 мг/кг … А»",
+    "note": "уровень указан в таблице препаратов, а не в тексте рекомендации"
+   },
+   "ambiguities": [
+    {
+     "id": "RDS-009-A1",
+     "text": "Сравнительное утверждение, не прямое предписание: является ли доза 100 мг/кг отклонением — решает эксперт.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    },
+    {
+     "id": "RDS-009-A2",
+     "text": "Допустимое округление дозы в протоколе не указано (машинно — точное совпадение).",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "RDS-010",
+   "protocol": "rds",
+   "doc_id": "КП-ДЛ:rds-respiratornyj-distress-sindrom:2016-06-09",
+   "source": {
+    "section": "12. Стационарный уровень → 6) Тактика лечения → 3. «Стратегия механической вентиляции (МВ) легких»",
+    "quotes": [
+     {
+      "page": 8,
+      "text": "Следует избегать гипокапнии, поскольку она связана с повышенным риском бронхолегочной дисплазии и перивентрикулярной лейкомаляции;",
+      "sha256": "f9387d0fb443a5a1ca467330ecd016a918e144c6ee3931cd0440b3956f21516e"
+     }
+    ]
+   },
+   "kind": "ограничение",
+   "applicability": {
+    "description": "ребёнок на механической вентиляции",
+    "condition": {
+     "field": "mechanical_ventilation",
+     "op": "is_true"
+    }
+   },
+   "requirement": {
+    "description": "гипокапния не документирована",
+    "check": {
+     "field": "hypocapnia_documented",
+     "op": "is_false"
+    }
+   },
+   "normativity": "не_рекомендуется",
+   "normativity_marker": "«следует избегать»",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [],
+   "required_data": [
+    {
+     "field": "mechanical_ventilation",
+     "description": "Проводится механическая вентиляция (ИВЛ)",
+     "unit": "да/нет"
+    },
+    {
+     "field": "hypocapnia_documented",
+     "description": "Документирована гипокапния на ИВЛ (порог определяет врач)",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "RDS-010-A1",
+     "text": "Числовой порог гипокапнии в протоколе не указан; правило не может оценить газы крови без решения эксперта о пороге.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "NEC-001",
+   "protocol": "nek",
+   "doc_id": "КП-ДЛ:nekrotiziruusij-enterokolit-novorojdennyh:2023-07-28",
+   "source": {
+    "section": "5. Стационарный уровень → 5.2 Немедикаментозное лечение",
+    "quotes": [
+     {
+      "page": 12,
+      "text": "При подозрении на НЭК немедленно: прекратить энтеральное кормление; установить назогастральный зонд (F6-10) для обеспечения свободного оттока содержимого желудка – декомпрессия кишечника;",
+      "sha256": "6ac063862501acb9726bf1d9f60364896c80f419164b3a6eb1eed347c9f5d01d"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "подозрение на НЭК",
+    "condition": {
+     "field": "nec_suspected",
+     "op": "is_true"
+    }
+   },
+   "requirement": {
+    "description": "энтеральное кормление прекращено и установлен назогастральный зонд",
+    "check": {
+     "all": [
+      {
+       "field": "enteral_feeding_stopped",
+       "op": "is_true"
+      },
+      {
+       "field": "ng_tube_decompression",
+       "op": "is_true"
+      }
+     ]
+    }
+   },
+   "normativity": "обязательно",
+   "normativity_marker": "«немедленно» (повелительная форма)",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [],
+   "required_data": [
+    {
+     "field": "nec_suspected",
+     "description": "Подозрение на НЭК",
+     "unit": "да/нет"
+    },
+    {
+     "field": "enteral_feeding_stopped",
+     "description": "Энтеральное кормление прекращено",
+     "unit": "да/нет"
+    },
+    {
+     "field": "ng_tube_decompression",
+     "description": "Установлен назогастральный зонд для декомпрессии",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "NEC-001-A1",
+     "text": "«Немедленно» не задано во времени; допустимую задержку определяет эксперт.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "NEC-002",
+   "protocol": "nek",
+   "doc_id": "КП-ДЛ:nekrotiziruusij-enterokolit-novorojdennyh:2023-07-28",
+   "source": {
+    "section": "5. Стационарный уровень → 5.2 Немедикаментозное лечение",
+    "quotes": [
+     {
+      "page": 12,
+      "text": "удалить пупочный венозный и артериальный катетер;",
+      "sha256": "f32854cfedd16fb57d35ba3701861809abbb9ce2689e76c7c2cfac0520925875"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "подозрение на НЭК при стоящем пупочном катетере",
+    "condition": {
+     "all": [
+      {
+       "field": "nec_suspected",
+       "op": "is_true"
+      },
+      {
+       "field": "umbilical_catheter_present",
+       "op": "is_true"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "пупочный катетер удалён",
+    "check": {
+     "field": "umbilical_catheter_removed",
+     "op": "is_true"
+    }
+   },
+   "normativity": "обязательно",
+   "normativity_marker": "«немедленно» (общее вступление п. 5.2)",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Протокол не оговаривает случаи, когда пупочный катетер — единственный сосудистый доступ; при отсутствии иного доступа отклонение может быть обосновано врачом."
+   ],
+   "required_data": [
+    {
+     "field": "nec_suspected",
+     "description": "Подозрение на НЭК",
+     "unit": "да/нет"
+    },
+    {
+     "field": "umbilical_catheter_present",
+     "description": "На момент подозрения стоял пупочный катетер",
+     "unit": "да/нет"
+    },
+    {
+     "field": "umbilical_catheter_removed",
+     "description": "Пупочный катетер удалён",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "NEC-002-A1",
+     "text": "Цитата — пункт списка, начинающегося словами «При подозрении на НЭК немедленно:»; сроки замены доступа не указаны.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "NEC-003",
+   "protocol": "nek",
+   "doc_id": "КП-ДЛ:nekrotiziruusij-enterokolit-novorojdennyh:2023-07-28",
+   "source": {
+    "section": "5. Тактика лечения на стационарном уровне → «при I стадии»",
+    "quotes": [
+     {
+      "page": 10,
+      "text": "исключение любой энтеральной нагрузки до восстановления функции пассажа по желудочно-кишечному тракту кишечника;",
+      "sha256": "569d58a1574938673cbcfdeee956b7461fdd3bc722c816e6e04c4307251825c8"
+     },
+     {
+      "page": 12,
+      "text": "энтеральную нагрузку начинают НЭК I на 5 день, НЭК II - на 7 день, при достижении клинико-лабораторного улучшения;",
+      "sha256": "866853a087f80b9d202beeae27934e43da4e8f6942360bcbb5f9693c515a2934"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "подтверждённый НЭК I стадии, пассаж не восстановлен",
+    "condition": {
+     "all": [
+      {
+       "field": "nec_stage",
+       "op": "in",
+       "value": [
+        "1а",
+        "1б"
+       ]
+      },
+      {
+       "field": "gi_passage_restored",
+       "op": "is_false"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "энтеральная нагрузка не возобновлена",
+    "check": {
+     "field": "enteral_feeding_stopped",
+     "op": "is_true"
+    }
+   },
+   "normativity": "обязательно",
+   "normativity_marker": "без модального слова (тактика при подтверждённом диагнозе)",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [],
+   "required_data": [
+    {
+     "field": "nec_stage",
+     "description": "Стадия НЭК по классификации протокола",
+     "unit": "1а/1б/2а/2б/3а/3б"
+    },
+    {
+     "field": "gi_passage_restored",
+     "description": "Функция пассажа по ЖКТ восстановлена (оценка врача)",
+     "unit": "да/нет"
+    },
+    {
+     "field": "enteral_feeding_stopped",
+     "description": "Энтеральное кормление прекращено",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "NEC-003-A1",
+     "text": "Стр. 12 того же протокола: «энтеральную нагрузку начинают НЭК I на 5 день … при достижении клинико-лабораторного улучшения» — критерий (пассаж или 5-й день) и их соотношение решает эксперт.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "NEC-004",
+   "protocol": "nek",
+   "doc_id": "КП-ДЛ:nekrotiziruusij-enterokolit-novorojdennyh:2023-07-28",
+   "source": {
+    "section": "5. Тактика лечения на стационарном уровне → «при II стадии»",
+    "quotes": [
+     {
+      "page": 11,
+      "text": "исключение любой энтеральной нагрузки на 7 суток;",
+      "sha256": "a77856fecfb03b68f02adde74d4a223e55c61bb962b09ba1d34bc54922b2de88"
+     },
+     {
+      "page": 12,
+      "text": "энтеральную нагрузку начинают НЭК I на 5 день, НЭК II - на 7 день, при достижении клинико-лабораторного улучшения;",
+      "sha256": "866853a087f80b9d202beeae27934e43da4e8f6942360bcbb5f9693c515a2934"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "подтверждённый НЭК II стадии",
+    "condition": {
+     "field": "nec_stage",
+     "op": "in",
+     "value": [
+      "2а",
+      "2б"
+     ]
+    }
+   },
+   "requirement": {
+    "description": "энтеральная нагрузка возобновлена не ранее 7-х суток",
+    "check": {
+     "field": "enteral_feeding_resumed_day",
+     "op": "gte",
+     "value": 7
+    }
+   },
+   "normativity": "обязательно",
+   "normativity_marker": "без модального слова (тактика при подтверждённом диагнозе)",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Возобновление — «при достижении клинико-лабораторного улучшения» (стр. 12); признаки улучшения перечислены там же."
+   ],
+   "required_data": [
+    {
+     "field": "nec_stage",
+     "description": "Стадия НЭК по классификации протокола",
+     "unit": "1а/1б/2а/2б/3а/3б"
+    },
+    {
+     "field": "enteral_feeding_resumed_day",
+     "description": "День заболевания, когда возобновлена энтеральная нагрузка",
+     "unit": "сутки"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "NEC-004-A1",
+     "text": "Отсчёт 7 суток — от подозрения или от подтверждения диагноза; в протоколе не указано (машинно — день заболевания, как ввёл пользователь).",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "NEC-005",
+   "protocol": "nek",
+   "doc_id": "КП-ДЛ:nekrotiziruusij-enterokolit-novorojdennyh:2023-07-28",
+   "source": {
+    "section": "5. Стационарный уровень → 5.3 Медикаментозное лечение → «Инфузионная терапия и поддержание гемодинамики»",
+    "quotes": [
+     {
+      "page": 13,
+      "text": "парентеральное питание следует начинать с первого дня заболевания согласно протоколу парентерального питания;",
+      "sha256": "46a9de9b89edf1a74df352797c73ce495ef4c774b37b7458d086a4d03642ec53"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "диагноз/подозрение НЭК",
+    "condition": {
+     "any": [
+      {
+       "field": "nec_suspected",
+       "op": "is_true"
+      },
+      {
+       "field": "nec_stage",
+       "op": "present"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "ПП начато в 1-й день заболевания",
+    "check": {
+     "field": "parenteral_nutrition_started_day",
+     "op": "lte",
+     "value": 1
+    }
+   },
+   "normativity": "рекомендуется",
+   "normativity_marker": "«следует»",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Состав и объём ПП — по отдельному протоколу «Парентеральное питание новорожденных» (не входит в пилот)."
+   ],
+   "required_data": [
+    {
+     "field": "nec_suspected",
+     "description": "Подозрение на НЭК",
+     "unit": "да/нет"
+    },
+    {
+     "field": "nec_stage",
+     "description": "Стадия НЭК по классификации протокола",
+     "unit": "1а/1б/2а/2б/3а/3б"
+    },
+    {
+     "field": "parenteral_nutrition_started_day",
+     "description": "День заболевания, когда начато парентеральное питание",
+     "unit": "сутки"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "NEC-006",
+   "protocol": "nek",
+   "doc_id": "КП-ДЛ:nekrotiziruusij-enterokolit-novorojdennyh:2023-07-28",
+   "source": {
+    "section": "5. Тактика лечения на стационарном уровне → «при II стадии»",
+    "quotes": [
+     {
+      "page": 11,
+      "text": "обзорная рентгенография грудной и брюшной полостей через 48 часов после установленного диагноза, затем 1 раз в неделю (допустимо в горизонтальном положении при клинически спокойном течении), обязательно в вертикальном положении или латеропозиции в случае клинического ухудшения состояния.",
+      "sha256": "ce93283760dc5705b252e9e81ae82b7804efcae8c44e7aaa660ece9c046cd8bc"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "подтверждённый НЭК II стадии",
+    "condition": {
+     "field": "nec_stage",
+     "op": "in",
+     "value": [
+      "2а",
+      "2б"
+     ]
+    }
+   },
+   "requirement": {
+    "description": "рентгенография через 48 ч; при ухудшении — вертикально/латеропозиция",
+    "check": {
+     "all": [
+      {
+       "field": "xray_48h_after_diagnosis",
+       "op": "is_true"
+      },
+      {
+       "any": [
+        {
+         "field": "clinical_deterioration",
+         "op": "is_false"
+        },
+        {
+         "field": "xray_vertical_or_lateral_at_deterioration",
+         "op": "is_true"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   "normativity": "обязательно",
+   "normativity_marker": "«обязательно» (для положения при ухудшении); график — без модального слова",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Горизонтальное положение допустимо «при клинически спокойном течении»."
+   ],
+   "required_data": [
+    {
+     "field": "nec_stage",
+     "description": "Стадия НЭК по классификации протокола",
+     "unit": "1а/1б/2а/2б/3а/3б"
+    },
+    {
+     "field": "xray_48h_after_diagnosis",
+     "description": "Обзорная рентгенография через 48 часов после диагноза",
+     "unit": "да/нет"
+    },
+    {
+     "field": "clinical_deterioration",
+     "description": "Клиническое ухудшение состояния",
+     "unit": "да/нет"
+    },
+    {
+     "field": "xray_vertical_or_lateral_at_deterioration",
+     "description": "При ухудшении рентгенография в вертикальном положении или латеропозиции",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "NEC-007",
+   "protocol": "nek",
+   "doc_id": "КП-ДЛ:nekrotiziruusij-enterokolit-novorojdennyh:2023-07-28",
+   "source": {
+    "section": "5. Стационарный уровень → 5.3 Медикаментозное лечение → «Антибактериальная терапия»",
+    "quotes": [
+     {
+      "page": 13,
+      "text": "с целью усиления антианаэробного звена в терапию должен быть введен метронидазол;",
+      "sha256": "d3c5561da2f29a339fe2fc5b9b79bc1d4dc04110fad6bac28dbf7fe3f24f847f"
+     },
+     {
+      "page": 13,
+      "text": "Антибактериальные препараты подбирают индивидуально в каждом случае при участии клинического фармаколога",
+      "sha256": "306d0a5378f25815be5ac5453ce89e7aebe1a2a15e0722da50acc37d6373ed30"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "НЭК, проводится антибактериальная терапия",
+    "condition": {
+     "all": [
+      {
+       "field": "nec_stage",
+       "op": "present"
+      },
+      {
+       "field": "antibiotics_started",
+       "op": "is_true"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "метронидазол в схеме",
+    "check": {
+     "field": "metronidazole_given",
+     "op": "is_true"
+    }
+   },
+   "normativity": "обязательно",
+   "normativity_marker": "«должен»",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Вводная часть: препараты «подбирают индивидуально в каждом случае при участии клинического фармаколога» (стр. 13) — индивидуальный выбор может быть обоснованием."
+   ],
+   "required_data": [
+    {
+     "field": "nec_stage",
+     "description": "Стадия НЭК по классификации протокола",
+     "unit": "1а/1б/2а/2б/3а/3б"
+    },
+    {
+     "field": "antibiotics_started",
+     "description": "Начата антибактериальная терапия",
+     "unit": "да/нет"
+    },
+    {
+     "field": "metronidazole_given",
+     "description": "Метронидазол включён в терапию",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": "А",
+    "source_page": 15,
+    "source": "Таблица «Перечень основных лекарственных средств»: «Метронидазол … А»",
+    "note": "уровень указан в таблице препаратов"
+   },
+   "ambiguities": [
+    {
+     "id": "NEC-007-A1",
+     "text": "Обязательность метронидазола при любой стадии (включая 1а) не уточнена.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "NEC-008",
+   "protocol": "nek",
+   "doc_id": "КП-ДЛ:nekrotiziruusij-enterokolit-novorojdennyh:2023-07-28",
+   "source": {
+    "section": "5. Стационарный уровень → 5.3 Медикаментозное лечение → «Антибактериальная терапия»",
+    "quotes": [
+     {
+      "page": 14,
+      "text": "антибактериальные препараты применяют до устойчивой стабилизации клинико-лабораторного статуса и восстановления функций ЖКТ, НЭК I в течение5 дней, НЭК II не менее 10 дней;",
+      "sha256": "c70b90dd8c5fd2e87d9a858340ec2818d1e9970a14adc7a85ea8b806ee58339b"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "НЭК II стадии, проводится антибактериальная терапия",
+    "condition": {
+     "all": [
+      {
+       "field": "nec_stage",
+       "op": "in",
+       "value": [
+        "2а",
+        "2б"
+       ]
+      },
+      {
+       "field": "antibiotics_started",
+       "op": "is_true"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "антибактериальная терапия не менее 10 суток",
+    "check": {
+     "field": "antibiotic_days",
+     "op": "gte",
+     "value": 10
+    }
+   },
+   "normativity": "обязательно",
+   "normativity_marker": "без модального слова («применяют»)",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Для НЭК I указано «в течение 5 дней» — отдельная проверка в пилот не включена.",
+    "Для III стадии длительность не указана."
+   ],
+   "required_data": [
+    {
+     "field": "nec_stage",
+     "description": "Стадия НЭК по классификации протокола",
+     "unit": "1а/1б/2а/2б/3а/3б"
+    },
+    {
+     "field": "antibiotics_started",
+     "description": "Начата антибактериальная терапия",
+     "unit": "да/нет"
+    },
+    {
+     "field": "antibiotic_days",
+     "description": "Длительность антибактериальной терапии",
+     "unit": "сутки"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "NEC-008-A1",
+     "text": "Два критерия окончания (стабилизация/восстановление ЖКТ и число дней) — какой главный при расхождении, решает эксперт.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": "В тексте PDF «в течение5» без пробела — цитата сохранена как есть.",
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "NEC-009",
+   "protocol": "nek",
+   "doc_id": "КП-ДЛ:nekrotiziruusij-enterokolit-novorojdennyh:2023-07-28",
+   "source": {
+    "section": "5. Стационарный уровень → 5.1 «Карта наблюдения пациента, маршрутизация пациента»",
+    "quotes": [
+     {
+      "page": 12,
+      "text": "В случае выявления больного ребенка с НЭК 1-2а степени в родовспомогательном учреждении 2 уровня – обеспечить консультацию хирурга;",
+      "sha256": "2c5f760540322ba593bb54395375627684da4bc738f1822af2ba89696bbb0edd"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "НЭК 1–2а в организации 2-го уровня",
+    "condition": {
+     "all": [
+      {
+       "field": "nec_stage",
+       "op": "in",
+       "value": [
+        "1а",
+        "1б",
+        "2а"
+       ]
+      },
+      {
+       "field": "facility_level",
+       "op": "eq",
+       "value": 2
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "консультация хирурга",
+    "check": {
+     "field": "surgeon_consulted",
+     "op": "is_true"
+    }
+   },
+   "normativity": "обязательно",
+   "normativity_marker": "«обеспечить»",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [],
+   "required_data": [
+    {
+     "field": "nec_stage",
+     "description": "Стадия НЭК по классификации протокола",
+     "unit": "1а/1б/2а/2б/3а/3б"
+    },
+    {
+     "field": "facility_level",
+     "description": "Уровень родовспомогательной организации",
+     "unit": "1/2/3"
+    },
+    {
+     "field": "surgeon_consulted",
+     "description": "Проведена консультация хирурга",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": [
+    "NEC-010"
+   ]
+  },
+  {
+   "rule_id": "NEC-010",
+   "protocol": "nek",
+   "doc_id": "КП-ДЛ:nekrotiziruusij-enterokolit-novorojdennyh:2023-07-28",
+   "source": {
+    "section": "5. Стационарный уровень → 5.1 «Карта наблюдения пациента, маршрутизация пациента»",
+    "quotes": [
+     {
+      "page": 12,
+      "text": "При 2а, б и 3 степени - перевод в экстренное хирургическое отделение (неонатальные хирургические койки) детских медицинских организаций.",
+      "sha256": "a7c8590f2fb853ed6cddb0490bb5d223b7f090f43129dec6eff1ce2240a1e4bf"
+     },
+     {
+      "page": 12,
+      "text": "При I а, б и II а стадиях некротизирующего энтероколита показано консервативное лечение.",
+      "sha256": "bb9029b37fb00c36222a2edac5c4a991fecf392fb629f11670ea9ece5b17fdaf"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "НЭК 2а, 2б или 3",
+    "condition": {
+     "field": "nec_stage",
+     "op": "in",
+     "value": [
+      "2а",
+      "2б",
+      "3а",
+      "3б"
+     ]
+    }
+   },
+   "requirement": {
+    "description": "перевод в хирургическое отделение",
+    "check": {
+     "field": "transferred_to_surgery",
+     "op": "is_true"
+    }
+   },
+   "normativity": "обязательно",
+   "normativity_marker": "без модального слова",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [],
+   "required_data": [
+    {
+     "field": "nec_stage",
+     "description": "Стадия НЭК по классификации протокола",
+     "unit": "1а/1б/2а/2б/3а/3б"
+    },
+    {
+     "field": "transferred_to_surgery",
+     "description": "Переведён в хирургическое отделение",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "NEC-010-A1",
+     "text": "Противоречие внутри п. 5.1: при 2а показано консервативное лечение и для 1–2а — перевод в 3-й уровень/консультация хирурга, но здесь 2а включена в перевод в хирургию.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    },
+    {
+     "id": "NEC-010-A2",
+     "text": "«Степень» и «стадия» используются как синонимы — уточнить.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": [
+    "NEC-009"
+   ]
+  },
+  {
+   "rule_id": "SEP-001",
+   "protocol": "sepsis",
+   "doc_id": "КП-ДЛ:bakterial-nyj-sepsis-novorojdennogo:2023-07-28",
+   "source": {
+    "section": "5. Стационарный уровень → 5.3 Медикаментозное лечение → «Основные принципы антибактериальной терапии» п. 1",
+    "quotes": [
+     {
+      "page": 12,
+      "text": "при наличии одного любого фактора риска или клинического признака из группы «Красный флаг», или двух или более факторов риска или клинических признаков, рекомендуется быстрое начало (в течение 1 часа) эмпирической антибактериальной терапии, не ожидая результатов анализов.",
+      "sha256": "0675a161ff2c5c2714612e5af1bb7b568543f20501a6f5018d958aba81b886b0"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "≥1 из «Красного флага» или ≥2 факторов риска/признаков",
+    "condition": {
+     "any": [
+      {
+       "field": "red_flag_count",
+       "op": "gte",
+       "value": 1
+      },
+      {
+       "field": "risk_factor_or_sign_count",
+       "op": "gte",
+       "value": 2
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "первая доза антибиотика в течение 60 минут",
+    "check": {
+     "all": [
+      {
+       "field": "antibiotics_started",
+       "op": "is_true"
+      },
+      {
+       "field": "antibiotics_start_minutes",
+       "op": "lte",
+       "value": 60
+      }
+     ]
+    }
+   },
+   "normativity": "рекомендуется",
+   "normativity_marker": "«рекомендуется»",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Перечни факторов риска и «Красного флага» — таблицы 1–3 (стр. 3–5); подсчёт ведёт врач."
+   ],
+   "required_data": [
+    {
+     "field": "red_flag_count",
+     "description": "Число признаков/факторов из группы «Красный флаг»",
+     "unit": "число"
+    },
+    {
+     "field": "risk_factor_or_sign_count",
+     "description": "Число факторов риска и клинических признаков сепсиса (без «Красного флага»)",
+     "unit": "число"
+    },
+    {
+     "field": "antibiotics_started",
+     "description": "Начата антибактериальная терапия",
+     "unit": "да/нет"
+    },
+    {
+     "field": "antibiotics_start_minutes",
+     "description": "Минут от выявления показания до первой дозы антибиотика",
+     "unit": "минуты"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "SEP-001-A1",
+     "text": "Точка отсчёта «1 часа» не указана (выявление признака, рождение, решение врача).",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    },
+    {
+     "id": "SEP-001-A2",
+     "text": "Грамматика неоднозначна: «одного любого фактора риска или клинического признака из группы «Красный флаг»» — относится ли «Красный флаг» к обоим; в правиле принято: ≥1 из группы «Красный флаг».",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": [
+    "SEP-002"
+   ]
+  },
+  {
+   "rule_id": "SEP-002",
+   "protocol": "sepsis",
+   "doc_id": "КП-ДЛ:bakterial-nyj-sepsis-novorojdennogo:2023-07-28",
+   "source": {
+    "section": "2. Диагностика → Лабораторные исследования → «Бактериологическое исследование крови»",
+    "quotes": [
+     {
+      "page": 6,
+      "text": "Бактериологическое исследование крови (для определения возбудителя) и тест на чувствительность к антибиотикам: выполняется до начала антибактериальной терапии;",
+      "sha256": "6be08ec45164b501f268bbfd749010e492ef83b251f381d9580bf3eda11f95f2"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "начата антибактериальная терапия при подозрении на сепсис",
+    "condition": {
+     "all": [
+      {
+       "field": "sepsis_suspected",
+       "op": "is_true"
+      },
+      {
+       "field": "antibiotics_started",
+       "op": "is_true"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "посев крови до первой дозы",
+    "check": {
+     "field": "blood_culture_before_antibiotics",
+     "op": "is_true"
+    }
+   },
+   "normativity": "обязательно",
+   "normativity_marker": "«выполняется» (без модального слова)",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [],
+   "required_data": [
+    {
+     "field": "sepsis_suspected",
+     "description": "Подозрение на неонатальный сепсис",
+     "unit": "да/нет"
+    },
+    {
+     "field": "antibiotics_started",
+     "description": "Начата антибактериальная терапия",
+     "unit": "да/нет"
+    },
+    {
+     "field": "blood_culture_before_antibiotics",
+     "description": "Посев крови взят до первой дозы антибиотика",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "SEP-002-A1",
+     "text": "Соотношение с SEP-001 (начать в течение 1 часа, «не ожидая результатов»): допустима ли задержка антибиотика ради взятия посева — протокол не говорит.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": [
+    "SEP-001"
+   ]
+  },
+  {
+   "rule_id": "SEP-003",
+   "protocol": "sepsis",
+   "doc_id": "КП-ДЛ:bakterial-nyj-sepsis-novorojdennogo:2023-07-28",
+   "source": {
+    "section": "5. Стационарный уровень → 5.3 Медикаментозное лечение → «Основные принципы антибактериальной терапии» п. 18",
+    "quotes": [
+     {
+      "page": 14,
+      "text": "Рутинное применение иммуноглобулина для лечения и профилактики сепсиса новорожденных не рекомендуется [13].",
+      "sha256": "9cc09317965db67262835ce9e0d455fca5add485f599025c37e040610f711f0d"
+     }
+    ]
+   },
+   "kind": "ограничение",
+   "applicability": {
+    "description": "подозрение/лечение сепсиса и введён иммуноглобулин",
+    "condition": {
+     "all": [
+      {
+       "field": "sepsis_suspected",
+       "op": "is_true"
+      },
+      {
+       "field": "immunoglobulin_given",
+       "op": "is_true"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "есть отдельное задокументированное показание",
+    "check": {
+     "field": "immunoglobulin_indication_documented",
+     "op": "is_true"
+    }
+   },
+   "normativity": "не_рекомендуется",
+   "normativity_marker": "«не рекомендуется»",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Запрет касается «рутинного» применения; применение по отдельному показанию не исключено."
+   ],
+   "required_data": [
+    {
+     "field": "sepsis_suspected",
+     "description": "Подозрение на неонатальный сепсис",
+     "unit": "да/нет"
+    },
+    {
+     "field": "immunoglobulin_given",
+     "description": "Введён иммуноглобулин",
+     "unit": "да/нет"
+    },
+    {
+     "field": "immunoglobulin_indication_documented",
+     "description": "Задокументировано отдельное показание к иммуноглобулину",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "SEP-003-A1",
+     "text": "Что считать «рутинным» и какие показания допустимы — протокол не определяет.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "SEP-004",
+   "protocol": "sepsis",
+   "doc_id": "КП-ДЛ:bakterial-nyj-sepsis-novorojdennogo:2023-07-28",
+   "source": {
+    "section": "5. Стационарный уровень → 5.3 Медикаментозное лечение → «Основные принципы антибактериальной терапии» п. 5",
+    "quotes": [
+     {
+      "page": 12,
+      "text": "При подозрении на развитие раннего неонатального сепсиса в качестве антибиотикотерапии первого выбора рекомендуется внутривенное введение бензилпенициллина/ампициллина с гентамицином, с последующей корректировкой в соответствии с чувствительностью возбудителя инфекции к антибиотикам.",
+      "sha256": "7e3f43fb3ee1d09b8a3c6dff4d04721c1f73f2c572689831e69901f9314f8cd8"
+     },
+     {
+      "page": 12,
+      "text": "При решении вопроса о выборе антибиотиков можно использовать местные данные, адаптированные к местной эпидемиологической ситуации и профилю устойчивости патогенов.",
+      "sha256": "b4257bc9c61ca64d252af5fbab22adbed7fbe88f5adbb0fff2b90f1411a83fe1"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "подозрение на ранний сепсис, начата эмпирическая терапия",
+    "condition": {
+     "all": [
+      {
+       "field": "early_onset_sepsis_suspected",
+       "op": "is_true"
+      },
+      {
+       "field": "antibiotics_started",
+       "op": "is_true"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "бензилпенициллин/ампициллин + гентамицин",
+    "check": {
+     "field": "empirical_regimen",
+     "op": "in",
+     "value": [
+      "benzylpenicillin+gentamicin",
+      "ampicillin+gentamicin"
+     ]
+    }
+   },
+   "normativity": "рекомендуется",
+   "normativity_marker": "«рекомендуется»",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "П. 2 (стр. 12): «можно использовать местные данные, адаптированные к местной эпидемиологической ситуации и профилю устойчивости патогенов» — возможное обоснование иной схемы."
+   ],
+   "required_data": [
+    {
+     "field": "early_onset_sepsis_suspected",
+     "description": "Подозрение на ранний неонатальный сепсис",
+     "unit": "да/нет"
+    },
+    {
+     "field": "antibiotics_started",
+     "description": "Начата антибактериальная терапия",
+     "unit": "да/нет"
+    },
+    {
+     "field": "empirical_regimen",
+     "description": "Эмпирическая схема",
+     "unit": "benzylpenicillin+gentamicin / ampicillin+gentamicin / другое"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "SEP-005",
+   "protocol": "sepsis",
+   "doc_id": "КП-ДЛ:bakterial-nyj-sepsis-novorojdennogo:2023-07-28",
+   "source": {
+    "section": "5. Стационарный уровень → 5.3 Медикаментозное лечение → «Основные принципы антибактериальной терапии» п. 6",
+    "quotes": [
+     {
+      "page": 12,
+      "text": "Бензилпенициллин назначается в дозе 25 мг/кг через каждые 12 часов.",
+      "sha256": "6643c06f3fce7006c6dcb3aad38f1c143c14d138509a33e22d128abfba20d3cc"
+     },
+     {
+      "page": 13,
+      "text": "состояние ребенка оценивается очень тяжелым следует рассмотреть возможность сокращения интервала между дозами через каждые 8 часов.",
+      "sha256": "79559fda8fa9221034aaa554492659d7cafe2ab2c623083dc55a2662e62c03fa"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "назначен бензилпенициллин при подозрении на ранний сепсис",
+    "condition": {
+     "all": [
+      {
+       "field": "early_onset_sepsis_suspected",
+       "op": "is_true"
+      },
+      {
+       "field": "benzylpenicillin_given",
+       "op": "is_true"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "25 мг/кг; интервал 12 ч (8 ч — если состояние очень тяжёлое)",
+    "check": {
+     "all": [
+      {
+       "field": "benzylpenicillin_dose_mg_kg",
+       "op": "eq",
+       "value": 25
+      },
+      {
+       "any": [
+        {
+         "field": "benzylpenicillin_interval_h",
+         "op": "eq",
+         "value": 12
+        },
+        {
+         "all": [
+          {
+           "field": "very_severe_condition",
+           "op": "is_true"
+          },
+          {
+           "field": "benzylpenicillin_interval_h",
+           "op": "eq",
+           "value": 8
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   },
+   "normativity": "рекомендуется",
+   "normativity_marker": "без модального слова («назначается»)",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Продолжение на стр. 13: при очень тяжёлом состоянии «следует рассмотреть возможность сокращения интервала между дозами через каждые 8 часов».",
+    "При менингите, вызванном стрептококком группы B, протокол даёт иную дозу (50 мг/кг каждые 12 часов, стр. 16) — правило к менингиту не применяется."
+   ],
+   "required_data": [
+    {
+     "field": "early_onset_sepsis_suspected",
+     "description": "Подозрение на ранний неонатальный сепсис",
+     "unit": "да/нет"
+    },
+    {
+     "field": "benzylpenicillin_given",
+     "description": "Назначен бензилпенициллин",
+     "unit": "да/нет"
+    },
+    {
+     "field": "benzylpenicillin_dose_mg_kg",
+     "description": "Разовая доза бензилпенициллина",
+     "unit": "мг/кг"
+    },
+    {
+     "field": "benzylpenicillin_interval_h",
+     "description": "Интервал введения бензилпенициллина",
+     "unit": "часы"
+    },
+    {
+     "field": "very_severe_condition",
+     "description": "Состояние оценено как очень тяжёлое",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "SEP-005-A1",
+     "text": "Единица дозы (мг/кг) для бензилпенициллина — подтвердить по оригиналу; в таблице препаратов (стр. 17–18) бензилпенициллин пилотом не сверялся.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "SEP-006",
+   "protocol": "sepsis",
+   "doc_id": "КП-ДЛ:bakterial-nyj-sepsis-novorojdennogo:2023-07-28",
+   "source": {
+    "section": "5. Стационарный уровень → 5.3 Медикаментозное лечение → «Основные принципы антибактериальной терапии» п. 7",
+    "quotes": [
+     {
+      "page": 13,
+      "text": "Гентамицин вводится в начальной дозе 5 мг/кг, при этом следует помнить, что:",
+      "sha256": "8dc6f807558c94f0bc97272c3a41327ac82b550ea676ddeac706a730640d6e0e"
+     },
+     {
+      "page": 13,
+      "text": "данные, рассмотренные для руководства, поддерживают начальную дозу 5 мг/кг каждые 36 часов, вводимую однократно;",
+      "sha256": "d03effbcfb9a75defefcdf80104df56d674c9d4e18daca9706dc1dc6f702f07f"
+     },
+     {
+      "page": 13,
+      "text": "вторая доза гентамицина вводится через 36 часов после первой дозы, однако возможен более короткий интервал, если ребенок выглядит очень больным и посев крови показывает грамотрицательную инфекцию.",
+      "sha256": "b536ea96c749a876a9877be91e98a5766976054ba8f6f0016b75edede40656b8"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "назначен гентамицин при подозрении на ранний сепсис",
+    "condition": {
+     "all": [
+      {
+       "field": "early_onset_sepsis_suspected",
+       "op": "is_true"
+      },
+      {
+       "field": "gentamicin_given",
+       "op": "is_true"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "начальная доза 5 мг/кг",
+    "check": {
+     "field": "gentamicin_initial_dose_mg_kg",
+     "op": "eq",
+     "value": 5
+    }
+   },
+   "normativity": "рекомендуется",
+   "normativity_marker": "без модального слова («вводится»)",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Вторая доза — через 36 часов, «однако возможен более короткий интервал, если ребенок выглядит очень больным и посев крови показывает грамотрицательную инфекцию» (п. 7c).",
+    "Последующий режим — с учётом концентрации в крови «при наличии возможности» (п. 7d)."
+   ],
+   "required_data": [
+    {
+     "field": "early_onset_sepsis_suspected",
+     "description": "Подозрение на ранний неонатальный сепсис",
+     "unit": "да/нет"
+    },
+    {
+     "field": "gentamicin_given",
+     "description": "Назначен гентамицин",
+     "unit": "да/нет"
+    },
+    {
+     "field": "gentamicin_initial_dose_mg_kg",
+     "description": "Начальная доза гентамицина",
+     "unit": "мг/кг"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "SEP-006-A1",
+     "text": "П. 7a упоминает 4–7 мг/кг/день, п. 7b — 5 мг/кг каждые 36 часов; протокол НЭК №185 (таблица, стр. 15) даёт 2,5–4 мг/кг/сут 1 раз в 36 часов. Какую дозу считать протокольной при сочетании НЭК и сепсиса — решает эксперт.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "SEP-007",
+   "protocol": "sepsis",
+   "doc_id": "КП-ДЛ:bakterial-nyj-sepsis-novorojdennogo:2023-07-28",
+   "source": {
+    "section": "5. Стационарный уровень → 5.3 Медикаментозное лечение → «Основные принципы антибактериальной терапии» п. 9a",
+    "quotes": [
+     {
+      "page": 13,
+      "text": "проводить контроль уровня С-реактивного белка через 18–24 часа после начала антибактериальной терапии;",
+      "sha256": "7d64fe0ce8328afe49dbe42c38f27c582258d5d0ab5ef98cd434b97dcfe0bbf7"
+     },
+     {
+      "page": 13,
+      "text": "У детей, получающих антибиотики по наличию факторов риска или клинических признаков возможного сепсиса, следует:",
+      "sha256": "2bd98f05e47a75170273b93866f390be34253f9577ca7f1b4cf0a4bddee6749b"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "антибиотики начаты по факторам риска/признакам возможного сепсиса",
+    "condition": {
+     "all": [
+      {
+       "field": "sepsis_suspected",
+       "op": "is_true"
+      },
+      {
+       "field": "antibiotics_started",
+       "op": "is_true"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "СРБ через 18–24 ч",
+    "check": {
+     "field": "crp_18_24h_after_start",
+     "op": "is_true"
+    }
+   },
+   "normativity": "рекомендуется",
+   "normativity_marker": "«следует» (вводная фраза п. 9)",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [],
+   "required_data": [
+    {
+     "field": "sepsis_suspected",
+     "description": "Подозрение на неонатальный сепсис",
+     "unit": "да/нет"
+    },
+    {
+     "field": "antibiotics_started",
+     "description": "Начата антибактериальная терапия",
+     "unit": "да/нет"
+    },
+    {
+     "field": "crp_18_24h_after_start",
+     "description": "СРБ определён через 18–24 ч от начала антибиотиков",
+     "unit": "да/нет"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": []
+  },
+  {
+   "rule_id": "SEP-008",
+   "protocol": "sepsis",
+   "doc_id": "КП-ДЛ:bakterial-nyj-sepsis-novorojdennogo:2023-07-28",
+   "source": {
+    "section": "5. Стационарный уровень → 5.3 Медикаментозное лечение → «Основные принципы антибактериальной терапии» п. 13",
+    "quotes": [
+     {
+      "page": 14,
+      "text": "Если состояние ребенка улучшается и результат бактериологического посева крови отрицательный, следует прекратить лечение ампициллином и гентамицином после 3-5 дней терапии.",
+      "sha256": "26e5d737e066519dd9afb428e2c8c23a507d2694150ceea73a0e4902c0f00d23"
+     },
+     {
+      "page": 15,
+      "text": "через 36/48 часов от начала антибактериальной терапии следует рассмотреть возможность прекращения введения антибиотиков, если:",
+      "sha256": "f0d5a6b36950231661beaacb6aeb4309a0f375d9eeb014ffb16146cdbfdf37b7"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "улучшение, посев отрицательный, нет факторов высокого риска",
+    "condition": {
+     "all": [
+      {
+       "field": "antibiotics_started",
+       "op": "is_true"
+      },
+      {
+       "field": "improving",
+       "op": "is_true"
+      },
+      {
+       "field": "blood_culture_result",
+       "op": "eq",
+       "value": "отрицательный"
+      },
+      {
+       "field": "high_risk_factors",
+       "op": "is_false"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "терапия не более 5 суток",
+    "check": {
+     "field": "antibiotic_days",
+     "op": "lte",
+     "value": 5
+    }
+   },
+   "normativity": "рекомендуется",
+   "normativity_marker": "«следует»",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [],
+   "required_data": [
+    {
+     "field": "antibiotics_started",
+     "description": "Начата антибактериальная терапия",
+     "unit": "да/нет"
+    },
+    {
+     "field": "improving",
+     "description": "Состояние улучшается (оценка врача)",
+     "unit": "да/нет"
+    },
+    {
+     "field": "blood_culture_result",
+     "description": "Результат посева крови",
+     "unit": "положительный/отрицательный"
+    },
+    {
+     "field": "high_risk_factors",
+     "description": "Факторы риска, указывающие на высокий риск реализации сепсиса",
+     "unit": "да/нет"
+    },
+    {
+     "field": "antibiotic_days",
+     "description": "Длительность антибактериальной терапии",
+     "unit": "сутки"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "SEP-008-A1",
+     "text": "Противоречие длительности внутри протокола: здесь 3–5 дней; на стр. 14–15 — решение о прекращении через 36/48 часов; на стр. 15 — 7 дней при отрицательном посеве и факторах высокого риска. В правиле условие ограничено отсутствием факторов высокого риска; правильность разграничения решает эксперт.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": [
+    "SEP-010"
+   ]
+  },
+  {
+   "rule_id": "SEP-009",
+   "protocol": "sepsis",
+   "doc_id": "КП-ДЛ:bakterial-nyj-sepsis-novorojdennogo:2023-07-28",
+   "source": {
+    "section": "5. Стационарный уровень → 5.3 Медикаментозное лечение → «Основные принципы антибактериальной терапии» п. 14",
+    "quotes": [
+     {
+      "page": 14,
+      "text": "Если состояние ребенка улучшается при положительном бактериологическом посеве крови, то лечение ампициллином и гентамицином продолжается10 дней.",
+      "sha256": "e16f9e224c643a0837ea7bfe1f436689ce7b7300283cca8983cf0e314d01e3c2"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "улучшение при положительном посеве",
+    "condition": {
+     "all": [
+      {
+       "field": "antibiotics_started",
+       "op": "is_true"
+      },
+      {
+       "field": "improving",
+       "op": "is_true"
+      },
+      {
+       "field": "blood_culture_result",
+       "op": "eq",
+       "value": "положительный"
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "длительность 10 суток",
+    "check": {
+     "field": "antibiotic_days",
+     "op": "gte",
+     "value": 10
+    }
+   },
+   "normativity": "рекомендуется",
+   "normativity_marker": "без модального слова («продолжается»)",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [],
+   "required_data": [
+    {
+     "field": "antibiotics_started",
+     "description": "Начата антибактериальная терапия",
+     "unit": "да/нет"
+    },
+    {
+     "field": "improving",
+     "description": "Состояние улучшается (оценка врача)",
+     "unit": "да/нет"
+    },
+    {
+     "field": "blood_culture_result",
+     "description": "Результат посева крови",
+     "unit": "положительный/отрицательный"
+    },
+    {
+     "field": "antibiotic_days",
+     "description": "Длительность антибактериальной терапии",
+     "unit": "сутки"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "SEP-009-A1",
+     "text": "Противоречит стр. 15: «Детям с положительным посевом крови … лечение антибиотиками проводится в течение 7 дней» (SEP-010). Какой срок протокольный — решает эксперт; до решения правило может показать «расхождение» при любом сроке 7–9 дней.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": "В тексте PDF «продолжается10» без пробела — цитата сохранена как есть.",
+   "conflicts_with": [
+    "SEP-010"
+   ]
+  },
+  {
+   "rule_id": "SEP-010",
+   "protocol": "sepsis",
+   "doc_id": "КП-ДЛ:bakterial-nyj-sepsis-novorojdennogo:2023-07-28",
+   "source": {
+    "section": "5.3 → «Продолжительность лечения неонатального сепсиса без менингита»",
+    "quotes": [
+     {
+      "page": 15,
+      "text": "Детям с положительным посевом крови и детям с отрицательным результатом посева крови, но с наличием факторов риска, свидетельствующих о высоком риске реализации неонатального сепсиса, лечение антибиотиками проводится в течение 7 дней.",
+      "sha256": "b3f31e74bb6f170774448daeaec9ae864e684d1c585123905b7388143e8e6d14"
+     },
+     {
+      "page": 15,
+      "text": "Продолжение лечения антибиотиками более 7 дней может быть рассмотрено, если:",
+      "sha256": "31e6353457915c03ace6930831dd2bcff2c623172123040d1491c24bbbe61f6e"
+     }
+    ]
+   },
+   "kind": "требование",
+   "applicability": {
+    "description": "сепсис без менингита: посев положительный или отрицательный с факторами высокого риска",
+    "condition": {
+     "all": [
+      {
+       "field": "antibiotics_started",
+       "op": "is_true"
+      },
+      {
+       "any": [
+        {
+         "field": "blood_culture_result",
+         "op": "eq",
+         "value": "положительный"
+        },
+        {
+         "all": [
+          {
+           "field": "blood_culture_result",
+           "op": "eq",
+           "value": "отрицательный"
+          },
+          {
+           "field": "high_risk_factors",
+           "op": "is_true"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   },
+   "requirement": {
+    "description": "длительность 7 суток",
+    "check": {
+     "field": "antibiotic_days",
+     "op": "eq",
+     "value": 7
+    }
+   },
+   "normativity": "рекомендуется",
+   "normativity_marker": "без модального слова («проводится»)",
+   "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
+   "exceptions_and_caveats": [
+    "Продолжение более 7 дней «может быть рассмотрено» (ребёнок не выздоровел; возбудитель; сопутствующие НЭК, остеомиелит, катетер-ассоциированная инфекция) — стр. 15."
+   ],
+   "required_data": [
+    {
+     "field": "antibiotics_started",
+     "description": "Начата антибактериальная терапия",
+     "unit": "да/нет"
+    },
+    {
+     "field": "blood_culture_result",
+     "description": "Результат посева крови",
+     "unit": "положительный/отрицательный"
+    },
+    {
+     "field": "high_risk_factors",
+     "description": "Факторы риска, указывающие на высокий риск реализации сепсиса",
+     "unit": "да/нет"
+    },
+    {
+     "field": "antibiotic_days",
+     "description": "Длительность антибактериальной терапии",
+     "unit": "сутки"
+    }
+   ],
+   "evidence_level": {
+    "value": null,
+    "note": "в тексте рекомендации уровень доказательности не указан"
+   },
+   "ambiguities": [
+    {
+     "id": "SEP-010-A1",
+     "text": "См. SEP-009 (10 дней при положительном посеве).",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    },
+    {
+     "id": "SEP-010-A2",
+     "text": "«В течение 7 дней» — ровно 7 или не более 7; машинно — ровно 7.",
+     "decision_by": "врач-эксперт",
+     "decision": null
+    }
+   ],
+   "status": "кандидат, ожидает экспертного подтверждения",
+   "expert_confirmation": null,
+   "notes": null,
+   "conflicts_with": [
+    "SEP-008",
+    "SEP-009"
+   ]
+  }
+ ]
+}
