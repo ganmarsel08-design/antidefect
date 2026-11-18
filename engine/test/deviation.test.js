@@ -31,7 +31,9 @@ function base() {
     signals: [], conflicts: [], evidence: []
   };
 }
-const regAtt = E.attestRegistryCompleteness({ confirmed_by: 'эксперт-1', total: 29, registry_version: 'синтетический' }).attestation;
+const regAtt = E.attestRegistryCompleteness({ confirmed_by: 'эксперт-1', total: 29, registry_version: 'синтетический v1', checked_protocols: ['4', '185', '231'], basis: 'синтетическая сверка' }).attestation;
+// Отклонение по дозе (вне диапазона протокола): реестр полноты не требуется
+function diffDev() { const d = base(); d.order.params.dose_mg_per_kg = 20; return d; }
 // Отклонение «не урегулировано»: лечебный курс противогрибкового препарата
 function deviation() {
   const d = base();
@@ -46,10 +48,12 @@ function deviation() {
 }
 // Подтверждения создаются только через attest* (с проверяющим)
 const bib = (o) => E.attestBibliographic(Object.assign({ found: true, metadata_match: true, method: 'manual', checked_by: 'эксперт-1', checked_at: '2026-11-18' }, o || {})).attestation;
-const ea = (o) => E.attestExpertAssessment(Object.assign({ applicability: 'совпадает', regimen_match: 'совпадает', assessed_by: 'эксперт-1', at: '2026-11-18' }, o || {})).attestation;
-const goodEvidence = (o) => Object.assign({
-  citation: 'Синтетическая публикация А', presented: true,
-  bibliographic: bib(), expert_assessment: ea(),
+// Экспертная оценка привязана к клиническому контексту d и к источнику
+const SRC = 'Синтетическая публикация А';
+const ea = (d, o) => E.attestExpertAssessment(Object.assign({ applicability: 'совпадает', regimen_match: 'совпадает', assessed_by: 'эксперт-1', at: '2026-11-18', context: d, source_key: SRC + '||' }, o || {})).attestation;
+const goodEvidence = (d, o) => Object.assign({
+  citation: SRC, presented: true,
+  bibliographic: bib(), expert_assessment: ea(d),
   transfer_rationale_documented: false, year: 2022
 }, o || {});
 const signal = (o) => Object.assign({
@@ -80,7 +84,7 @@ const CASES = [
     build: () => { const d = base(); d.signals = [signal({ kind: 'возможное_несоответствие_интервала', severity: 'средняя', confidence: 'низкая', confirmed: false })]; return d; },
     expect: { status: S.EXPERT, urgent: false } },
   { n: 7, title: 'Противоречие: разные результаты одного посева',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence()]; d.conflicts = [{ a: 'посев от 12.01: рост грибов (запись врача)', b: 'посев от 12.01: роста нет (лаборатория)' }]; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence(d)]; d.conflicts = [{ a: 'посев от 12.01: рост грибов (запись врача)', b: 'посев от 12.01: роста нет (лаборатория)' }]; return d; },
     expect: { status: S.EXPERT, conflict: true } },
   { n: 8, title: 'Противоречие при недостатке данных — не «недостаточно данных», а эксперт',
     build: () => { const d = base(); d.indications.value = 'недостаточно_данных'; d.conflicts = [{ a: 'масса 700 г (эпикриз)', b: 'масса 1700 г (дневник)' }]; return d; },
@@ -95,19 +99,19 @@ const CASES = [
     build: () => { const d = base(); d.protocol_check.searched[0].valid_on_care_date = 'не_определено'; return d; },
     expect: { status: S.INSUFFICIENT, relation: 'невозможно_проверить' } },
   { n: 12, title: 'Отклонение, запись врача не найдена во фрагменте',
-    build: () => { const d = asFragment(deviation()); d.evidence = [goodEvidence()]; d.documentation.physician_note = 'не_найдено_во_фрагменте'; return d; },
+    build: () => { const d = asFragment(deviation()); d.evidence = [goodEvidence(d)]; d.documentation.physician_note = 'не_найдено_во_фрагменте'; return d; },
     expect: { status: S.INSUFFICIENT, doc: 'не_определена' } },
   { n: 13, title: '«Не урегулировано» без сведений о полноте реестра',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence()]; delete d.protocol_check.registry_coverage; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence(d)]; delete d.protocol_check.registry_coverage; return d; },
     expect: { status: S.INSUFFICIENT, relation: 'невозможно_проверить' } },
-  { n: 14, title: 'Противогрибковая терапия: показания, проверенный источник, запись врача',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence()]; return d; },
-    expect: { status: S.JUSTIFIED, relation: 'не_урегулировано', statement: E.NOT_REG_STATEMENT } },
-  { n: 15, title: 'Частичная применимость с записью врача о причине переноса',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence({ expert_assessment: ea({ applicability: 'частично' }), transfer_rationale_documented: true })]; return d; },
+  { n: 14, title: 'Противогрибковая терапия обоснована, но реестр не сверен с официальными источниками — вывод заблокирован',
+    build: () => { const d = deviation(); d.evidence = [goodEvidence(d)]; return d; },
+    expect: { status: S.EXPERT, relation: 'не_урегулировано', statement: E.NOT_REG_STATEMENT, blocked: true } },
+  { n: 15, title: 'Доза вне диапазона: частичная применимость с записью врача о причине переноса',
+    build: () => { const d = diffDev(); d.evidence = [goodEvidence(d, { expert_assessment: ea(d, { applicability: 'частично' }), transfer_rationale_documented: true })]; return d; },
     expect: { status: S.JUSTIFIED } },
-  { n: 16, title: 'Вне инструкции, консилиум не обязателен — рекомендация консилиума',
-    build: () => { const d = deviation(); d.order.off_label = true; d.evidence = [goodEvidence()]; return d; },
+  { n: 16, title: 'Доза вне диапазона, вне инструкции, полное обоснование — рекомендация консилиума',
+    build: () => { const d = diffDev(); d.order.off_label = true; d.evidence = [goodEvidence(d)]; return d; },
     expect: { status: S.JUSTIFIED, recommendation: 'консилиум' } },
   { n: 17, title: 'Противогрибковая терапия без источника и без записи врача',
     build: () => { const d = deviation(); d.documentation.physician_note = 'не_найдено_в_полной_истории'; return d; },
@@ -116,20 +120,20 @@ const CASES = [
     build: () => { const d = base(); d.order.params.dose_mg_per_kg = 20; d.indications.value = 'не_подтверждены'; return d; },
     expect: { status: S.INCOMPLETE, relation: 'отличается', missing: ['показания у пациента не подтверждены'] } },
   { n: 19, title: 'Источник о взрослых для недоношенного 700 г: эксперт — не совпадает',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence({ population: 'взрослые', expert_assessment: ea({ applicability: 'не_совпадает', regimen_match: 'частично' }) })]; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence(d, { population: 'взрослые', expert_assessment: ea(d, { applicability: 'не_совпадает', regimen_match: 'частично' }) })]; return d; },
     expect: { status: S.INCOMPLETE, missing: ['не применим'] } },
   { n: 20, title: 'Источник не найден в PubMed',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence({ bibliographic: bib({ found: false }) })]; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence(d, { bibliographic: bib({ found: false }) })]; return d; },
     expect: { status: S.INCOMPLETE, missing: ['библиографическую проверку'] } },
   { n: 21, title: 'Консилиум обязателен по положению центра, но не найден',
     cfg: { consilium_mandatory: true, consilium_basis: 'синтетическое положение центра' },
-    build: () => { const d = deviation(); d.evidence = [goodEvidence()]; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence(d)]; return d; },
     expect: { status: S.INCOMPLETE, missing: ['консилиум'] } },
   { n: 22, title: 'Источник найден в PubMed, экспертная оценка ещё не проведена',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence({ expert_assessment: null })]; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence(d, { expert_assessment: null })]; return d; },
     expect: { status: S.EXPERT } },
   { n: 23, title: 'Частичная применимость без записи о причине переноса',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence({ expert_assessment: ea({ applicability: 'частично', regimen_match: 'частично' }) })]; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence(d, { expert_assessment: ea(d, { applicability: 'частично', regimen_match: 'частично' }) })]; return d; },
     expect: { status: S.EXPERT } },
   { n: 24, title: 'Назначение по протоколу, но показания не подтверждены (полная история)',
     build: () => { const d = base(); d.indications.value = 'не_подтверждены'; return d; },
@@ -144,22 +148,22 @@ const CASES = [
     build: () => { const d = base(); d.signals = [signal({ severity: 'низкая', confidence: 'низкая', confirmed: false })]; return d; },
     expect: { status: S.COMPLIANT, warning: 'предупреждение' } },
   { n: 28, title: 'Реестр неполный: «не урегулировано» уверенно установить нельзя',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence()]; d.protocol_check.registry_coverage.missing_applicable = ['протокол по кандидозу (не внесён)']; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence(d)]; d.protocol_check.registry_coverage.missing_applicable = ['протокол по кандидозу (не внесён)']; return d; },
     expect: { status: S.INSUFFICIENT, relation: 'невозможно_проверить' } },
   { n: 29, title: 'Протокол «не проверен» в реестре — положительный вывод заблокирован',
     build: () => { const d = base(); d.protocol_check.searched[0].registry_status = 'не проверен'; return d; },
     expect: { status: S.EXPERT, blocked: true } },
   { n: 30, title: 'Обоснованное отклонение, но редакция одного из просмотренных протоколов не подтверждена',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence()]; d.protocol_check.searched[1].valid_on_care_date = 'не_определено'; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence(d)]; d.protocol_check.searched[1].valid_on_care_date = 'не_определено'; return d; },
     expect: { status: S.EXPERT, blocked: true } },
   { n: 31, title: 'Протокол сейчас заменён, но действовал на дату помощи',
     build: () => { const d = base(); d.protocol_check.searched[0].registry_status = 'заменён'; return d; },
     expect: { status: S.COMPLIANT, blocked: false } },
   { n: 32, title: 'Экспертная оценка пришла во входных данных без подтверждения',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence({ expert_assessment: { applicability: 'совпадает', regimen_match: 'совпадает', assessed_by: 'кто-то' } })]; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence(d, { expert_assessment: { applicability: 'совпадает', regimen_match: 'совпадает', assessed_by: 'кто-то' } })]; return d; },
     expect: { status: S.EXPERT, warning: 'не подтверждена и не учитывается' } },
   { n: 33, title: 'Результат PubMed во входных данных без подтверждения проверяющего',
-    build: () => { const d = deviation(); d.evidence = [goodEvidence({ bibliographic: { method: 'pubmed_api', found: true, metadata_match: true } })]; return d; },
+    build: () => { const d = deviation(); d.evidence = [goodEvidence(d, { bibliographic: { method: 'pubmed_api', found: true, metadata_match: true } })]; return d; },
     expect: { status: S.EXPERT, warning: 'не подтверждён проверяющим' } },
   { n: 34, title: 'Протокол «не проверен», доза вне диапазона без обоснования — проблемы всё равно видны',
     build: () => { const d = base(); d.protocol_check.searched[0].registry_status = 'не проверен'; d.order.params.dose_mg_per_kg = 20; d.documentation.physician_note = 'не_найдено_в_полной_истории'; return d; },
@@ -229,7 +233,7 @@ test('проверка входных данных', () => {
 });
 
 test('подтверждение теряет силу после сериализации (импорт JSON не подтверждает)', () => {
-  const d = deviation(); d.evidence = [goodEvidence()];
+  const d = diffDev(); d.evidence = [goodEvidence(d)];
   assert.equal(E.evaluate(d).status, S.JUSTIFIED);
   const copy = JSON.parse(JSON.stringify(d));
   assert.equal(E.evaluate(copy).status, S.EXPERT);
@@ -240,7 +244,8 @@ test('attest* требуют проверяющего и допустимые з
   assert.equal(E.attestBibliographic({ found: true, metadata_match: true, method: 'на глаз', checked_by: 'э' }).ok, false);
   assert.equal(E.attestExpertAssessment({ applicability: 'да', regimen_match: 'совпадает', assessed_by: 'э' }).ok, false);
   assert.equal(E.attestExpertAssessment({ applicability: 'совпадает', regimen_match: 'совпадает' }).ok, false);
-  const a = E.attestExpertAssessment({ applicability: 'совпадает', regimen_match: 'совпадает', assessed_by: 'э' }).attestation;
+  assert.equal(E.attestExpertAssessment({ applicability: 'совпадает', regimen_match: 'совпадает', assessed_by: 'э', source_key: 'x' }).ok, false, 'без контекста');
+  const a = E.attestExpertAssessment({ applicability: 'совпадает', regimen_match: 'совпадает', assessed_by: 'э', context: base(), source_key: 'x' }).attestation;
   assert.ok(Object.isFrozen(a) && E.isAttested(a, 'expert_assessment'));
 });
 
@@ -257,7 +262,7 @@ test('пороги сигналов', () => {
 /* ---------- Замечания проверки PR #5 ---------- */
 
 test('замечание 3: полнота реестра только заявлена — положительный вывод заблокирован', () => {
-  const d = deviation(); d.evidence = [goodEvidence()];
+  const d = deviation(); d.evidence = [goodEvidence(d)];
   d.protocol_check.registry_coverage = { total: 29, missing_applicable: [] };   // выбор пользователя без подтверждения
   const r = E.evaluate(d);
   assert.equal(r.clinical.relation, 'не_урегулировано');
@@ -265,14 +270,14 @@ test('замечание 3: полнота реестра только заяв�
   assert.equal(r.positive_blocked, true);
   assert.ok(r.clinical.statement.includes('заявлена, но не подтверждена'));
   // подтверждение на другое число протоколов не принимается
-  d.protocol_check.registry_coverage.completeness_attestation = E.attestRegistryCompleteness({ confirmed_by: 'э', total: 30 }).attestation;
+  d.protocol_check.registry_coverage.completeness_attestation = E.attestRegistryCompleteness({ confirmed_by: 'э', total: 30, registry_version: 'v', checked_protocols: ['4', '185', '231'], basis: 'b' }).attestation;
   assert.equal(E.evaluate(d).positive_blocked, true);
   assert.equal(E.attestRegistryCompleteness({ total: 29 }).ok, false);
 });
 
 test('замечание 1: черновик по результату движка, а не по выбору пользователя', () => {
   // пользователь выбрал «не урегулировано», но перечня протоколов нет — движок: невозможно проверить
-  const d = deviation(); d.evidence = [goodEvidence()]; d.protocol_check.searched = [];
+  const d = deviation(); d.evidence = [goodEvidence(d)]; d.protocol_check.searched = [];
   const r = E.evaluate(d);
   assert.equal(r.clinical.relation, 'невозможно_проверить');
   const t = E.buildJustificationDraft(d, r);
@@ -290,7 +295,7 @@ test('замечание 1: диапазон дозы переопределяе
 });
 
 test('замечание 1: осторожные формулировки при неполной проверке, полная — без слова «доказанно правильное» как утверждения', () => {
-  const ok = deviation(); ok.evidence = [goodEvidence()];
+  const ok = diffDev(); ok.evidence = [goodEvidence(ok)];
   const tj = E.buildJustificationDraft(ok, E.evaluate(ok));
   assert.equal(tj.cautious, false);
   assert.ok(tj.text.includes('не означает, что назначение доказанно правильное'));
@@ -298,12 +303,12 @@ test('замечание 1: осторожные формулировки при
   const tb = E.buildJustificationDraft(bad, E.evaluate(bad));
   assert.equal(tb.cautious, true);
   assert.ok(tb.text.includes('Не хватает:'));
-  const blk = deviation(); blk.evidence = [goodEvidence()]; blk.protocol_check.searched[0].registry_status = 'не проверен';
+  const blk = deviation(); blk.evidence = [goodEvidence(blk)]; blk.protocol_check.searched[0].registry_status = 'не проверен';
   assert.ok(E.buildJustificationDraft(blk, E.evaluate(blk)).text.includes('Вывод предварительный'));
 });
 
 test('замечание 2: результат и черновик указывают, что анализируются введённые вручную сведения', () => {
-  const d = deviation(); d.evidence = [goodEvidence()];
+  const d = deviation(); d.evidence = [goodEvidence(d)];
   const r = E.evaluate(d);
   assert.equal(r.analysis_basis, E.ANALYSIS_BASIS);
   assert.ok(E.ANALYSIS_BASIS.includes('вручную'));
@@ -311,8 +316,8 @@ test('замечание 2: результат и черновик указыв�
 });
 
 test('замечание 4: все подтверждения и решения в браузере помечены как тестовые', () => {
-  for (const a of [bib(), ea(), regAtt]) { assert.equal(a.test_only, true); assert.equal(a.assurance, E.TEST_ASSURANCE); }
-  const d = deviation(); d.evidence = [goodEvidence()];
+  for (const a of [bib(), ea(base()), regAtt]) { assert.equal(a.test_only, true); assert.equal(a.assurance, E.TEST_ASSURANCE); }
+  const d = deviation(); d.evidence = [goodEvidence(d)];
   const r = E.evaluate(d);
   assert.equal(r.test_confirmations_used, true);
   assert.equal(E.evaluate(base()).test_confirmations_used, false);
@@ -322,10 +327,10 @@ test('замечание 4: все подтверждения и решения 
 });
 
 test('замечание 5: изменение данных делает результат устаревшим; решение по устаревшему отклоняется', () => {
-  const d = deviation(); d.evidence = [goodEvidence()];
+  const d = deviation(); d.evidence = [goodEvidence(d)];
   const r = E.evaluate(d);
   assert.equal(E.isStale(r, d), false);
-  const d2 = deviation(); d2.evidence = [goodEvidence()]; d2.order.text += ' (изменено)';
+  const d2 = deviation(); d2.evidence = [goodEvidence(d2)]; d2.order.text += ' (изменено)';
   assert.equal(E.isStale(r, d2), true);
   assert.equal(E.applyExpertOverride(r, { who: 'э', status: S.EXPERT, reason: 'x', source: 'y', current_input: d2 }).ok, false);
   assert.equal(E.applyExpertOverride(r, { who: 'э', status: S.EXPERT, reason: 'x', source: 'y', current_input: d }).ok, true);
@@ -333,7 +338,7 @@ test('замечание 5: изменение данных делает рез�
 });
 
 test('замечание 5: повторная проверка сохраняет историю решений и прежние результаты', () => {
-  const d = deviation(); d.evidence = [goodEvidence()];
+  const d = deviation(); d.evidence = [goodEvidence(d)];
   const r0 = E.evaluate(d);
   const r1 = E.applyExpertOverride(r0, { who: 'эксперт-1', status: S.POTENTIAL_DEFECT, reason: 'x', source: 'протокол №1' });
   const d2 = deviation(); d2.documentation.physician_note = 'не_найдено_в_полной_истории';
@@ -346,4 +351,55 @@ test('замечание 5: повторная проверка сохраняе
   assert.equal(r2.prior_results.length, 1);
   assert.equal(r2.prior_results[0].status, S.POTENTIAL_DEFECT);
   assert.equal(E.isStale(r2, d2), false);
+});
+
+/* ---------- Риски финальной проверки этапа 3 ---------- */
+
+test('риск 1: подтверждение полноты реестра кнопкой не снимает блокировку до реальной сверки', () => {
+  const d = deviation(); d.evidence = [goodEvidence(d)];
+  const r = E.evaluate(d);
+  assert.equal(r.status, S.EXPERT);
+  assert.equal(r.positive_blocked, true);
+  assert.ok(r.blocked_by.some(x => x.includes('не сверен с официальными источниками')));
+  assert.ok(r.clinical.statement.includes('сверка с официальными источниками не проведена'));
+  assert.equal(regAtt.verification, 'заявлено_экспертом');
+});
+
+test('риск 1: подтверждение полноты хранит перечень протоколов, версию реестра и основание', () => {
+  assert.deepEqual(Array.from(regAtt.checked_protocols), ['4', '185', '231']);
+  assert.equal(regAtt.registry_version, 'синтетический v1');
+  assert.equal(regAtt.basis, 'синтетическая сверка');
+  const miss = (o) => E.attestRegistryCompleteness(Object.assign({ confirmed_by: 'э', total: 29, registry_version: 'v', checked_protocols: ['4'], basis: 'b' }, o)).ok;
+  assert.equal(miss({ checked_protocols: [] }), false);
+  assert.equal(miss({ registry_version: '' }), false);
+  assert.equal(miss({ basis: '' }), false);
+  // просмотрен протокол, которого нет в перечне подтверждения — полнота не подтверждена
+  const d = deviation(); d.evidence = [goodEvidence(d)];
+  d.protocol_check.searched.push({ protocol_no: '10', registry_status: 'действует', valid_on_care_date: 'да' });
+  const r = E.evaluate(d);
+  assert.ok(r.blocked_by.some(x => x.includes('заявлена, но не подтверждена')));
+});
+
+test('риск 2: изменение схемы назначения требует повторной экспертной оценки, библиография сохраняется', () => {
+  const d = diffDev(); d.evidence = [goodEvidence(d)];
+  assert.equal(E.evaluate(d).status, S.JUSTIFIED);
+  const d2 = diffDev(); d2.evidence = d.evidence; d2.order.params.dose_mg_per_kg = 25;   // та же оценка, другая схема
+  const r = E.evaluate(d2);
+  assert.equal(r.status, S.EXPERT);
+  assert.ok(r.reasons.some(x => x.includes('нужна повторная экспертная оценка')), r.reasons.join(' | '));
+  assert.ok(r.warnings.some(x => x.includes('оценка не учитывается')));
+  assert.equal(r.evidence.items[0].verdict, 'нужна повторная экспертная оценка');   // библиография принята, оценка нет
+  d2.evidence = [Object.assign({}, d.evidence[0], { expert_assessment: ea(d2) })];   // повторная оценка
+  assert.equal(E.evaluate(d2).status, S.JUSTIFIED);
+});
+
+test('риск 2: изменение показаний (клинического контекста) требует повторной оценки', () => {
+  const d = diffDev(); d.evidence = [goodEvidence(d)];
+  const d2 = diffDev(); d2.evidence = d.evidence; d2.indications = { value: 'подтверждены', facts: [{ text: 'другой синтетический факт', source: 'x' }] };
+  assert.equal(E.evaluate(d2).status, S.EXPERT);
+});
+
+test('риск 2: оценка другого источника не переносится', () => {
+  const d = diffDev(); d.evidence = [goodEvidence(d, { citation: 'Синтетическая публикация Б' })];   // оценка выдана для А
+  assert.equal(E.evaluate(d).status, S.EXPERT);
 });

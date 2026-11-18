@@ -14,9 +14,16 @@ const { chromium } = require(process.env.PLAYWRIGHT || 'playwright');
   await p.selectOption('[data-xsrc="0"] [data-k=appl]', 'совпадает'); await p.selectOption('[data-xsrc="0"] [data-k=reg]', 'совпадает');
   await p.click('[data-act=attEA]');
   console.log('2 before registry confirm:', await pill(), '| reg btn:', await p.locator('[data-act=attReg]').count(), '| tags:', await p.locator(C+' .tag').count());
+  await p.fill('[data-k=regbasis]', 'синтетическая сверка для теста');
   await p.click('[data-act=attReg]');
+  console.log('2b after registry confirm (still blocked):', await pill());
   await p.click(C+' [data-tab=edit]'); await p.selectOption(C+' [data-f=preg]', 'действует'); await p.click('[data-act=save]');
   console.log('3', await pill());
+  await p.click(C+' [data-tab=just]');
+  // риск 2: смена схемы после экспертной оценки — нужна повторная оценка
+  await p.click(C+' [data-tab=edit]'); await p.fill(C+' [data-f=order]', 'Лечебный курс препарата Y, другая доза'); await p.click('[data-act=save]');
+  await p.click(C+' [data-tab=expert]');
+  console.log('3b after order change:', await pill(), '|', (await p.locator('[data-xsrc="0"] .hint').textContent()).replace(/\s+/g,' ').slice(-60));
   await p.click(C+' [data-tab=just]');
   console.log('4 draft:', (await p.locator('[data-draft]').textContent()).slice(0,200).replace(/\n/g,' / '));
   // устаревание: правка без сохранения

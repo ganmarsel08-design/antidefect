@@ -319,7 +319,8 @@ function renderExpert(it){
   if(it.f.sources.length){
     h+='<h3>Подтверждение источников</h3>';
     it.f.sources.forEach((s,i)=>{
-      h+='<div class="sub" data-xsrc="'+i+'"><b>'+esc(s.citation||s.ref)+'</b><div class="hint">'+srcState(s)+'</div>';
+      const vi=r&&r.evidence?(r.evidence.items||[]).find(x=>x.source===(s.citation||s.ref)):null;
+      h+='<div class="sub" data-xsrc="'+i+'"><b>'+esc(s.citation||s.ref)+'</b><div class="hint">'+srcState(s)+(vi?'<br>Итог: '+esc(vi.verdict):'')+'</div>';
       h+='<div class="row"><div><label class="f">Источник найден (PubMed, журнал, DOI)?</label><select data-k="found">'+opt('yes','yes','Да')+opt('no','','Нет')+'</select></div>';
       h+='<div><label class="f">Авторы, название, год совпадают?</label><select data-k="meta">'+opt('yes','yes','Да')+opt('no','','Нет')+'</select></div></div>';
       h+='<button class="btn small" data-act="attBib" data-i="'+i+'">Подтвердить библиографию</button>';
@@ -330,8 +331,13 @@ function renderExpert(it){
     });
   }
   if(r && r.clinical && it.f.rel==='не_урегулировано' && it.f.complete==='yes'){
-    h+='<h3>Полнота реестра</h3><div class="hint">'+(it.f.regAtt?'Подтверждена: '+esc(it.f.regAtt.confirmed_by)+', '+fmt(it.f.regAtt.at)+' <span class="tag">ТЕСТ</span>':'Заявлена пользователем, не подтверждена')+'</div>';
-    if(!it.f.regAtt) h+='<button class="btn small" data-act="attReg">Подтвердить: все применимые протоколы есть в реестре (29)</button>';
+    h+='<h3>Полнота реестра</h3><div class="hint">'+(it.f.regAtt?'Подтверждена экспертом: '+esc(it.f.regAtt.confirmed_by)+', '+fmt(it.f.regAtt.at)+'; протоколы: '+esc(it.f.regAtt.checked_protocols.join(', '))+'; версия: '+esc(it.f.regAtt.registry_version)+'; основание: '+esc(it.f.regAtt.basis)+' <span class="tag">ТЕСТ</span>':'Заявлена пользователем, не подтверждена')+'</div>';
+    h+='<div class="warn" style="margin-top:6px">Сверка реестра с официальными источниками ещё не проведена (этап 4). До неё положительный вывод по «прямой рекомендации нет» остаётся заблокированным, даже после подтверждения.</div>';
+    if(!it.f.regAtt){
+      h+='<label class="f">Версия реестра</label><input type="text" data-k="regver" value="neo-pro data/protocols.json, 29 протоколов">';
+      h+='<label class="f">Основание сверки (что и по какому источнику проверено)</label><input type="text" data-k="regbasis" placeholder="Например: сверено с перечнем протоколов МЗ РК на дату …">';
+      h+='<button class="btn small" data-act="attReg">Подтвердить полноту для протоколов: '+esc(it.f.plist||'—')+'</button>';
+    }
   }
   if(r && !isStale(it)){
     h+='<h3>Решение по статусу</h3><div class="row"><div><label class="f">Новый статус</label><select data-k="xstatus">'+E.ALL_STATUSES.map(x=>opt(x,r.status)).join('')+'</select></div></div>';
@@ -466,15 +472,19 @@ $('#items').addEventListener('click', e=>{
       log(it,who,'библиография «'+(s.citation||s.ref)+'»: '+(found?(meta?'найден, данные совпадают':'найден, данные не совпадают'):'не найден')+' (ручная проверка)');
       if(it.result) run(it,'Повторная проверка'); rerender(it); break; }
     case 'attEA': { if(!needExpert()) break; const row=$('[data-xsrc="'+i+'"]',el), s=it.f.sources[i];
-      const res=E.attestExpertAssessment({applicability:$('[data-k=appl]',row).value, regimen_match:$('[data-k=reg]',row).value, assessed_by:who, comment:$('[data-k=comm]',row).value});
+      const inp=toInput(it);
+      const res=E.attestExpertAssessment({applicability:$('[data-k=appl]',row).value, regimen_match:$('[data-k=reg]',row).value, assessed_by:who, comment:$('[data-k=comm]',row).value,
+        context:inp, source_key:E.sourceKey(inp.evidence[i])});
       if(!res.ok){ it.errors=res.errors; rerender(it); break; }
       s.ea=res.attestation;
       log(it,who,'оценка «'+(s.citation||s.ref)+'»: применимость '+s.ea.applicability.replace(/_/g,' ')+', схема '+s.ea.regimen_match.replace(/_/g,' ')+(s.ea.comment?' — '+s.ea.comment:''));
       if(it.result) run(it,'Повторная проверка'); rerender(it); break; }
     case 'attReg': { if(!needExpert()) break;
-      const res=E.attestRegistryCompleteness({confirmed_by:who, total:29, registry_version:'neo-pro data/protocols.json (29)'});
+      const ver=$('[data-k=regver]',el).value.trim(), basis=$('[data-k=regbasis]',el).value.trim();
+      const res=E.attestRegistryCompleteness({confirmed_by:who, total:29, registry_version:ver, basis,
+        checked_protocols:it.f.plist.split(/[,;\s]+/).map(x=>x.replace(/^№/,'')).filter(Boolean)});
       if(!res.ok){ it.errors=res.errors; rerender(it); break; }
-      it.f.regAtt=res.attestation; log(it,who,'подтверждена полнота реестра применимых протоколов (29)');
+      it.f.regAtt=res.attestation; log(it,who,'заявлена полнота реестра (29), проверены протоколы: '+res.attestation.checked_protocols.join(', ')+'; версия: '+ver+'; основание: '+basis+'. Сверка с официальными источниками не проведена');
       run(it,'Повторная проверка'); rerender(it); break; }
     case 'override': { if(!needExpert()) break;
       const st=$('[data-k=xstatus]',el).value, reason=$('[data-k=xreason]',el).value.trim(), src=$('[data-k=xsource]',el).value.trim();

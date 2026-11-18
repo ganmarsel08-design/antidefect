@@ -12,7 +12,7 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.5.0-stage3';
+  const VERSION = '0.6.0-stage3';
   const TEST_ASSURANCE = 'тестовое подтверждение в браузере (без авторизации и защищённого журнала)';
   const ANALYSIS_BASIS = 'анализируются только сведения, введённые в карточку вручную; текст истории болезни программа не разбирает';
 
@@ -77,6 +77,17 @@
    * серверная подпись и учётные записи (вне этапа 3). */
   const ATTESTED = new WeakSet();
   function seal(kind, o) { const a = Object.freeze(Object.assign({ kind, test_only: true, assurance: TEST_ASSURANCE }, o)); ATTESTED.add(a); return a; }
+  // Клинический контекст, к которому привязана экспертная оценка применимости исследования
+  function contextFingerprint(d) {
+    return stableStr({ patient_ref: d.patient_ref, order: d.order || null,
+      indications: d.indications ? { value: d.indications.value, facts: (d.indications.facts || []).map(f => f.text) } : null });
+  }
+  function sourceKey(v) { return String(v.citation || '').trim() + '|' + String(v.pmid || '').trim() + '|' + String(v.doi || '').trim(); }
+  function stableStr(x) {
+    if (Array.isArray(x)) return '[' + x.map(stableStr).join(',') + ']';
+    if (x && typeof x === 'object') return '{' + Object.keys(x).sort().map(k => JSON.stringify(k) + ':' + stableStr(x[k])).join(',') + '}';
+    return JSON.stringify(x === undefined ? null : x);
+  }
   function isAttested(x, kind) { return !!x && typeof x === 'object' && ATTESTED.has(x) && x.kind === kind; }
 
   function attestBibliographic(o) {
@@ -99,8 +110,11 @@
     if (!APPLICABILITY.includes(o.applicability)) e.push('применимость: недопустимое значение');
     if (!REGIMEN.includes(o.regimen_match)) e.push('соответствие схемы: недопустимое значение');
     if (!isStr(o.assessed_by)) e.push('не указано, кто оценил');
+    if (!o.context || !o.context.order) e.push('не передан клинический контекст назначения (данные проверки)');
+    if (!isStr(o.source_key)) e.push('не указан оцениваемый источник');
     if (e.length) return { ok: false, errors: e };
     return { ok: true, attestation: seal('expert_assessment', {
+      context_fingerprint: contextFingerprint(o.context), source_key: o.source_key.trim(),
       applicability: o.applicability, regimen_match: o.regimen_match,
       assessed_by: o.assessed_by.trim(), role: isStr(o.role) ? o.role.trim() : '',
       at: o.at || new Date().toISOString(), comment: isStr(o.comment) ? o.comment.trim() : '' }) };
@@ -111,10 +125,17 @@
     o = o || {};
     if (!isStr(o.confirmed_by)) e.push('не указано, кто подтвердил полноту реестра');
     if (typeof o.total !== 'number') e.push('не указано число протоколов в реестре');
+    if (!Array.isArray(o.checked_protocols) || !o.checked_protocols.filter(isStr).length) e.push('не указан перечень проверенных протоколов');
+    if (!isStr(o.registry_version)) e.push('не указана версия реестра');
+    if (!isStr(o.basis)) e.push('не указано основание сверки');
     if (e.length) return { ok: false, errors: e };
+    // В тестовой версии подтверждение эксперта — только заявление о полноте.
+    // Уровень «сверено с официальными источниками» появится с верифицированным реестром (этап 4).
     return { ok: true, attestation: seal('registry_completeness', {
       confirmed_by: o.confirmed_by.trim(), total: o.total,
-      registry_version: isStr(o.registry_version) ? o.registry_version.trim() : '',
+      checked_protocols: Object.freeze(o.checked_protocols.filter(isStr).map(x => x.trim())),
+      registry_version: o.registry_version.trim(), basis: o.basis.trim(),
+      verification: 'заявлено_экспертом',
       at: o.at || new Date().toISOString() }) };
   }
 
@@ -241,9 +262,14 @@
       } else {
         statement = NOT_REG_STATEMENT + ' (просмотрены: ' + pc.searched.map(s => '№' + s.protocol_no).join(', ') + ')';
         const ca = cov.completeness_attestation;
-        if (!(isAttested(ca, 'registry_completeness') && ca.total === cov.total)) {
+        const covers = isAttested(ca, 'registry_completeness') && ca.total === cov.total &&
+          pc.searched.every(sp => ca.checked_protocols.includes(sp.protocol_no));
+        if (!covers) {
           statement += '; полнота реестра заявлена, но не подтверждена';
-          unconfirmed.push('полнота реестра применимых протоколов заявлена, но не подтверждена экспертом');
+          unconfirmed.push('полнота реестра применимых протоколов заявлена, но не подтверждена экспертом (с перечнем проверенных протоколов)');
+        } else if (ca.verification !== 'сверено_с_официальными_источниками') {
+          statement += '; полнота реестра подтверждена экспертом, сверка с официальными источниками не проведена';
+          unconfirmed.push('реестр применимых протоколов не сверен с официальными источниками (этап 4)');
         }
         pc.searched.forEach(s => { const pr = editionProblem(s); if (pr) unconfirmed.push(pr); });
       }
@@ -254,7 +280,8 @@
 
   /* ---------- Научное обоснование ---------- */
 
-  function assessEvidence(list) {
+  function assessEvidence(list, d) {
+    const ctx = contextFingerprint(d);
     const out = { qualifies: false, needs_expert: [], gaps: [], items: [], warnings: [] };
     const presented = (list || []).filter(v => v.presented);
     if (!presented.length) { out.gaps.push('источник не предъявлен'); return out; }
@@ -265,15 +292,19 @@
       if (b && !isAttested(b, 'bibliographic')) out.warnings.push('источник ' + name + ': результат библиографической проверки во входных данных не подтверждён проверяющим и не учитывается');
       if (ea && !isAttested(ea, 'expert_assessment')) out.warnings.push('источник ' + name + ': экспертная оценка во входных данных не подтверждена и не учитывается');
 
+      const eaValid = isAttested(ea, 'expert_assessment') && ea.context_fingerprint === ctx && ea.source_key === sourceKey(v);
+      if (isAttested(ea, 'expert_assessment') && !eaValid) out.warnings.push('источник ' + name + ': после экспертной оценки изменились клинический контекст, схема назначения или источник — оценка не учитывается');
       if (!isAttested(b, 'bibliographic')) {
         verdict = 'библиография не подтверждена';
         out.needs_expert.push('источник ' + name + ': нужна библиографическая проверка с указанием проверяющего');
       } else if (!(b.found === true && b.metadata_match === true)) {
         verdict = 'не прошёл библиографическую проверку';
         out.gaps.push('источник ' + name + ' не прошёл библиографическую проверку');
-      } else if (!isAttested(ea, 'expert_assessment')) {
-        verdict = 'ждёт экспертной оценки';
-        out.needs_expert.push('источник ' + name + ' найден, но применимость и схема не оценены экспертом');
+      } else if (!eaValid) {
+        verdict = isAttested(ea, 'expert_assessment') ? 'нужна повторная экспертная оценка' : 'ждёт экспертной оценки';
+        out.needs_expert.push(isAttested(ea, 'expert_assessment')
+          ? 'источник ' + name + ': клинический контекст или схема назначения изменились после оценки — нужна повторная экспертная оценка'
+          : 'источник ' + name + ' найден, но применимость и схема не оценены экспертом');
       } else {
         const a = ea.applicability, r = ea.regimen_match;
         if (a === 'не_совпадает' || r === 'нет') {
@@ -309,7 +340,7 @@
 
   function composeHeadline(status, documentation, positiveBlocked) {
     let h = status;
-    if (positiveBlocked) h += ' (положительный вывод заблокирован: редакция или актуальность протокола не подтверждена)';
+    if (positiveBlocked) h += ' (положительный вывод заблокирован: протокол или реестр не подтверждены)';
     if (documentation.state === 'неполная') h += '; документация неполная: ' + documentation.missing_items.join(', ');
     else if (documentation.state === 'не_определена') h += '; полнота документации не определена (предоставлен фрагмент)';
     return h;
@@ -366,7 +397,7 @@
       .forEach(s => warnings.push('предупреждение (низкая серьёзность): ' + s.kind + ' — ' + s.fact));
     const conflicts = (d.conflicts || []).slice();
     const conflict_detected = conflicts.length > 0;
-    const evidence = isDeviation ? assessEvidence(d.evidence) : null;
+    const evidence = isDeviation ? assessEvidence(d.evidence, d) : null;
     if (evidence) warnings.push.apply(warnings, evidence.warnings);
 
     let status;
@@ -499,6 +530,6 @@
     DEFAULT_CONFIG, NOT_REG_STATEMENT, IIN_LIKE,
     validate, evaluate, applyExpertOverride, signalLevel,
     attestBibliographic, attestExpertAssessment, attestRegistryCompleteness, isAttested,
-    fingerprint, isStale, reevaluate, buildJustificationDraft, TEST_ASSURANCE, ANALYSIS_BASIS
+    fingerprint, isStale, reevaluate, contextFingerprint, sourceKey, buildJustificationDraft, TEST_ASSURANCE, ANALYSIS_BASIS
   };
 });
