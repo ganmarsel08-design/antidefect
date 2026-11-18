@@ -45,7 +45,9 @@ class RegistryRules(unittest.TestCase):
         self.assertTrue(all(p['registry_status'] == 'не проверен' for p in REG['protocols'] if p['official_check']['url']))
 
     def test_active_not_allowed_for_secondary_or_missing(self):
-        for res in ('только_вторичный_источник', 'на_официальном_сайте_не_найдено', 'документ_найден_шапка_не_прочитана'):
+        present = {p['official_check']['result'] for p in REG['protocols']} - V.OFFICIAL
+        self.assertIn('официальный_источник_найден_файл_не_верифицирован', present)
+        for res in sorted(present):
             r = copy.deepcopy(REG)
             p = first(r, res)
             p['registry_status'] = 'действует'
@@ -119,17 +121,39 @@ class Stage4Requirements(unittest.TestCase):
         self.assertEqual([e['approved'] for e in after], ['2023-07-28', '2021-12-23'])
         self.assertTrue(all(not e['replaced'] and not e['history_verified'] for e in after))
 
-    def test_reviewer_claims_without_url_stay_unconfirmed(self):
+    def test_reviewer_claims_resolved_by_url_check(self):
+        # 9 заявлений проверяющего: 6 подтверждены по URL (файл не верифицирован), 3 URL — 404
         claims = [p for p in REG['protocols'] if p.get('reviewer_claim')]
         self.assertEqual(len(claims), 9)
+        ok = [p for p in claims if p['reviewer_claim']['status'].startswith('подтверждено')]
+        bad = [p for p in claims if p['reviewer_claim']['status'].startswith('не подтверждено')]
+        self.assertEqual((len(ok), len(bad)), (6, 3))
         for p in claims:
-            self.assertIsNone(p['reviewer_claim']['url'])
-            self.assertTrue(p['reviewer_claim']['status'].startswith('не подтверждено'))
+            self.assertTrue(p['reviewer_claim']['url'].startswith('https://nrchd.kz/'), p['id'])
             self.assertNotIn(p['official_check']['result'], V.OFFICIAL, p['id'])
+            self.assertIsNone(p['file_checksum']['value'], p['id'])
+            self.assertEqual(p['registry_status'], 'не проверен')
+        for p in ok:
+            oc = p['official_check']
+            self.assertEqual(oc['result'], 'официальный_источник_найден_файл_не_верифицирован')
+            self.assertEqual(oc['url'], p['reviewer_claim']['url'])
+            self.assertTrue(oc['no_matches'])
+            self.assertIn(f"№{oc['official_no']}".replace('№', ''), oc['quote'])
+            self.assertNotEqual(p['protocol_type'], 'не_установлен')
+            self.assertTrue(p['doc_id'].startswith(('КП-ДЛ:', 'КП-МВ:')))
+            self.assertTrue(p['patient_category'])
+        for p in bad:
+            self.assertIn('404', p['reviewer_claim']['status'])
+            self.assertEqual(p['official_check']['result'], 'на_официальном_сайте_не_найдено')
+
+    def test_nek_154_not_marked_cancelled(self):
+        p = next(x for x in REG['protocols'] if x['id'] == 'nek-pediatriya')
+        self.assertNotIn(p['registry_status'], ('отменён', 'заменён'))
+        self.assertIsNone(p['replaced_by'])
 
     def test_unconfirmed_claim_with_official_result_rejected(self):
         r = copy.deepcopy(REG)
-        p = next(x for x in r['protocols'] if x.get('reviewer_claim'))
+        p = next(x for x in r['protocols'] if x.get('reviewer_claim', {}).get('status', '').startswith('не подтверждено'))
         p['official_check']['result'] = 'подтверждено_официальным_PDF'
         self.assertTrue(any('заявление проверяющего не подтверждено' in e for e in V.check(r)[0]))
 
