@@ -1,5 +1,5 @@
 {
- "version": "0.2-candidate",
+ "version": "0.3-candidate",
  "created": "2026-11-18",
  "source_text": "neo-pro/data/protocols.json (только чтение)",
  "official_sources": {
@@ -7,7 +7,7 @@
   "okk_minutes": "https://nrchd.kz/quality-commission"
  },
  "verification_level": "заявлено_экспертом не присвоено; сверка не завершена",
- "note": "Кандидат версии реестра. Статус «действует» ставит только эксперт после проверки официального документа. Автоматический сбор доказательств — не подтверждение. Сверка 18.11.2026 по 9 URL проверяющего: 6 документов найдены (шапки совпадают, файлы не верифицированы), 3 URL — 404.",
+ "note": "Кандидат версии реестра. Статус «действует» ставит только эксперт после проверки официального документа. Автоматический сбор доказательств — не подтверждение. Сверка 18.11.2026 по 9 URL проверяющего: 6 документов найдены (шапки совпадают, файлы не верифицированы), 3 URL — 404. 2026-11-18: привязаны 29 локальных PDF пользователя (27 совпадают с записями, 2 — новые редакции ГИЭ №257 и ГрБН №262).",
  "completeness": {
   "state": "неполный",
   "applicable_not_in_registry": [
@@ -75,7 +75,7 @@
    "text_sha256": "890da176ed047f299eb89d53cd3fe1e14fd4e33c8acc01932bc85025f6788602",
    "note": "",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:asfiksia-pri-rojdenii:2023-03-17",
    "okk_meeting_no": "180",
    "topic": "asfiksiya-pri-rozhdenii",
@@ -90,7 +90,28 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "новорожденные дети",
+   "local_pdf": {
+    "file_name": "АСФИКСИЯ ПРИ РОЖДЕНИИ.pdf",
+    "byte_size": 385477,
+    "pages": 17,
+    "sha256": "d6658274b8e4b2c40231c66e9f103e4704ed69f9b7588e1e303c0f42c455f979",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "180",
+     "approval_date": "2023-03-17",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные дети",
+     "title": "АСФИКСИЯ ПРИ РОЖДЕНИИ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "gipotermiya-cepochka",
@@ -99,7 +120,7 @@
    "approval": {
     "no": "10",
     "date": "4 июля 2014",
-    "body": "Экспертная комиссия МЗ РК",
+    "body": "Экспертная комиссия по вопросам развития здравоохранения МЗ РК",
     "date_iso": "2014-07-04"
    },
    "icd": [
@@ -134,7 +155,7 @@
    "text_sha256": "b506020a65061f689d371fec0ef60d7aa382309bc500422bc2ba74f2e25a74a8",
    "note": "Сопоставлено по номеру, дате и коду Р80; в базе — «Гипотермия цепочка».",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:gipotermia-novorojdennyh-teplovaa-zasita-novorojdennogo:2014-07-04",
    "okk_meeting_no": "10",
    "topic": "gipotermiya-cepochka",
@@ -149,7 +170,28 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "новорожденные, дети раннего возраста от 0 до 2-х месяцев",
+   "local_pdf": {
+    "file_name": "ГИПОТЕРМИЯ НОВОРОЖДЕННЫХ.pdf",
+    "byte_size": 165223,
+    "pages": 6,
+    "sha256": "bc52b00a3de515b8543db38f3a675e2514cd8889d287d7fc105ed971cc74572d",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "10",
+     "approval_date": "2014-07-04",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные, дети раннего возраста от 0 до 2-х месяцев",
+     "title": "ГИПОТЕРМИЯ НОВОРОЖДЕННЫХ (ТЕПЛОВАЯ ЗАЩИТА НОВОРОЖДЕННОГО)"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "nek-pediatriya",
@@ -189,7 +231,7 @@
    "text_sha256": "20b2d5bbbf0081caca424248dafd3cc132911858ae4b12c623c18d4bbcd090de",
    "note": "Официальное название — «Язвенно-некротический энтероколит», категория — новорожденные. Отношение к №185 (2023) — по истории редакций, она не проверена; №154 не помечается заменённым.",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:azvenno-nekroticeskij-enterokolit:2021-12-23",
    "okk_meeting_no": "154",
    "topic": "nek",
@@ -205,7 +247,28 @@
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
    "patient_category": "новорожденные",
-   "base_metadata_error": "В базе НеоДневника подписан «педиатрия, дети старше периода н/р»; по официальному документу №154 категория пациентов — новорожденные. Исправлено в реестре; neo-pro не изменён."
+   "base_metadata_error": "В базе НеоДневника подписан «педиатрия, дети старше периода н/р»; по официальному документу №154 категория пациентов — новорожденные. Исправлено в реестре; neo-pro не изменён.",
+   "local_pdf": {
+    "file_name": "ЯЗВЕННО-НЕКРОТИЧЕСКИЙ ЭНТЕРОКОЛИТ.pdf",
+    "byte_size": 477658,
+    "pages": 22,
+    "sha256": "006776e11fa37c0a211bffb71c08077a7df052051565c9281ec445360617d8a3",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "154",
+     "approval_date": "2021-12-23",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные",
+     "title": "ЯЗВЕННО-НЕКРОТИЧЕСКИЙ ЭНТЕРОКОЛИТ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "reanimaciya-novorozhdennyh",
@@ -247,7 +310,7 @@
    "text_sha256": "86b8f84a464bcbd549b97c6658e378e8bc64b611a9684666594ac8fcce921702",
    "note": "",
    "protocol_type": "медицинское_вмешательство",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-МВ:reanimacia-novorojdennyh:2023-03-17",
    "okk_meeting_no": "180",
    "topic": "reanimaciya-novorozhdennyh",
@@ -262,7 +325,28 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "новорожденные дети",
+   "local_pdf": {
+    "file_name": "Реанимация новорожденных.pdf",
+    "byte_size": 263074,
+    "pages": 23,
+    "sha256": "567f9367f812dcd9919dd388100f95cc5d9e10c0c5a498b4528a7b4d2e110691",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "180",
+     "approval_date": "2023-03-17",
+     "protocol_type": "медицинское_вмешательство",
+     "patient_category": "новорожденные дети",
+     "title": "РЕАНИМАЦИЯ НОВОРОЖДЕННЫХ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "retinopatiya",
@@ -303,7 +387,7 @@
    "text_sha256": "cd826d9bd581ce1ae1fd25ac1106484bab1f8cf34775dc94389856b9412f990b",
    "note": "Строка «пересмотр 2019 г.» в официальном PDF расходится с датой одобрения 2022 — так в первоисточнике.",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:aktivnaa-retinopatia-nedonosennyh:2022-08-05",
    "okk_meeting_no": "166",
    "topic": "retinopatiya",
@@ -318,7 +402,28 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "дети",
+   "local_pdf": {
+    "file_name": "АКТИВНАЯ РЕТИНОПАТИЯ НЕДОНОШЕННЫХ.pdf",
+    "byte_size": 511549,
+    "pages": 21,
+    "sha256": "3be3323dde277a09ecb920818bb87c96ea3d69d160cfdb761484badd99114bad",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "166",
+     "approval_date": "2022-08-05",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "дети",
+     "title": "АКТИВНАЯ РЕТИНОПАТИЯ НЕДОНОШЕННЫХ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "uhod-za-rebenkom",
@@ -327,7 +432,7 @@
    "approval": {
     "no": "10",
     "date": "4 июля 2014",
-    "body": "Экспертная комиссия МЗ РК",
+    "body": "Экспертная комиссия по вопросам развития здравоохранения МЗ РК",
     "date_iso": "2014-07-04"
    },
    "icd": [
@@ -358,7 +463,7 @@
    "text_sha256": "4d1d30775cbbfe547bd8a02302efbcbeafe761f1e0cde53ea4cd5cb2ba31ac92",
    "note": "Сопоставлено по номеру, дате и коду Z76.2; официальное название — «Уход за здоровым новорожденным».",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:uhod-za-zdorovym-novorojdennym:2014-07-04",
    "okk_meeting_no": "10",
    "topic": "uhod-za-rebenkom",
@@ -373,7 +478,28 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "новорожденные (включая доношенных, переношенных и недоношенных), дети раннего возраста от 0 до 2-хмесяцев",
+   "local_pdf": {
+    "file_name": "УХОД ЗА ЗДОРОВЫМ НОВОРОЖДЕННЫМ.pdf",
+    "byte_size": 155158,
+    "pages": 11,
+    "sha256": "0513e0b0c48a3b21ba58c9b78f91aaea0f811a050667996c708b315f8ce28878",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "10",
+     "approval_date": "2014-07-04",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные (включая доношенных, переношенных и недоношенных), дети раннего возраста от 0 до 2-хмесяцев",
+     "title": "УХОД ЗА ЗДОРОВЫМ НОВОРОЖДЕННЫМ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "vrozhdennaya-pnevmoniya",
@@ -382,7 +508,7 @@
    "approval": {
     "no": "10",
     "date": "4 июля 2014",
-    "body": "Экспертная комиссия МЗ РК",
+    "body": "Экспертная комиссия по вопросам развития здравоохранения МЗ РК",
     "date_iso": "2014-07-04"
    },
    "icd": [
@@ -420,7 +546,7 @@
    "text_sha256": "f391cd92b9f371e852d3fa463997db6f8eeb5747aa6a1d20eb777214e4e2700f",
    "note": "",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:vrojdennaa-pnevmonia:2014-07-04",
    "okk_meeting_no": "10",
    "topic": "vrozhdennaya-pnevmoniya",
@@ -435,7 +561,28 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "новорожденные",
+   "local_pdf": {
+    "file_name": "ВРОЖДЕННАЯ ПНЕВМОНИЯ.pdf",
+    "byte_size": 164225,
+    "pages": 9,
+    "sha256": "b08488ca9d5ac66986ed93fdd85fb47922fa3da11d4cdb7db262acfc4a9d3e80",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "10",
+     "approval_date": "2014-07-04",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные",
+     "title": "ВРОЖДЕННАЯ ПНЕВМОНИЯ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "cmv",
@@ -476,7 +623,7 @@
    "text_sha256": "d768b76a3ac0da93f7a0efda5ad214c61478d898a24f80906546b12f627eec24",
    "note": "",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:vrojdennaa-i-perinatal-naa-citomegalovirusnaa-infekcia:2023-07-28",
    "okk_meeting_no": "185",
    "topic": "cmv",
@@ -491,7 +638,28 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "новорожденные, недоношенные дети",
+   "local_pdf": {
+    "file_name": "04834de9451a2ee374f7397c30785481.pdf",
+    "byte_size": 768855,
+    "pages": 26,
+    "sha256": "7e581f5fd8c9102bf8c5561ce4ca2efb76e8d0a6c946c310af6a4d429c1d2bff",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "185",
+     "approval_date": "2023-07-28",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные, недоношенные дети",
+     "title": "ВРОЖДЕННАЯ И ПЕРИНАТАЛЬНАЯ ЦИТОМЕГАЛОВИРУСНАЯ ИНФЕКЦИЯ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "gbn",
@@ -538,7 +706,7 @@
    "text_sha256": "72ec6dfb869980e4f5fbfb5e747ebedc5d4d97eb6cc0b836b4a4cbb4cb2e6131",
    "note": "В выдержке виден номер, дата одобрения не прочитана.",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:gemoliticeskaa-bolezn-ploda-i-novorojdennogo:2020-04-30",
    "okk_meeting_no": "92",
    "topic": "gbn",
@@ -553,7 +721,28 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "новорожденные",
+   "local_pdf": {
+    "file_name": "ГЕМОЛИТИЧЕСКАЯ БОЛЕЗНЬ ПЛОДА И НОВОРОЖДЕННОГО.pdf",
+    "byte_size": 646010,
+    "pages": 18,
+    "sha256": "af7c305395ec3699fb682f667c99c0bc648d8a7b32d54acadc665435e6571884",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "92",
+     "approval_date": "2020-04-30",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные",
+     "title": "ГЕМОЛИТИЧЕСКАЯ БОЛЕЗНЬ ПЛОДА И НОВОРОЖДЕННОГО"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "ispolzovanie-preparatov-donorskoy-krovi",
@@ -591,7 +780,7 @@
    "text_sha256": "35414698ed3f9113ebad3aac0b9e7cb7b5f09011983c5c9d96dd4381acd0f177",
    "note": "В выдержке виден номер, дата одобрения не прочитана.",
    "protocol_type": "медицинское_вмешательство",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-МВ:ispol-zovanie-preparatov-donorskoj-krovi-u-novorojdennyh:2023-07-28",
    "okk_meeting_no": "185",
    "topic": "ispolzovanie-preparatov-donorskoy-krovi",
@@ -606,7 +795,28 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "новорожденные, нуждающиеся в переливании препаратов донорской крови (ЭМ, ЭВ, ТМ, СЗП, криопрецепитата)",
+   "local_pdf": {
+    "file_name": "ИСПОЛЬЗОВАНИЕ ПРЕПАРАТОВ ДОНОРСКОЙ КРОВИ.pdf",
+    "byte_size": 672689,
+    "pages": 16,
+    "sha256": "dbeb2df504f6824afca33b23c01f2a52da8de998b966d3b0c8064d324599e245",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "185",
+     "approval_date": "2023-07-28",
+     "protocol_type": "медицинское_вмешательство",
+     "patient_category": "новорожденные, нуждающиеся в переливании препаратов донорской крови (ЭМ, ЭВ, ТМ, СЗП, криопрецепитата)",
+     "title": "ИСПОЛЬЗОВАНИЕ ПРЕПАРАТОВ ДОНОРСКОЙ КРОВИ У НОВОРОЖДЕННЫХ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "policitemiya",
@@ -646,7 +856,7 @@
    "text_sha256": "5193a6922e24b427fb9434a23ce226f9b9d81cd0dbe5ef350f9ac358e9e58af6",
    "note": "В выдержке виден номер, дата одобрения не прочитана.",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:policitemia-novorojdennogo:2017-09-15",
    "okk_meeting_no": "27",
    "topic": "policitemiya",
@@ -661,7 +871,28 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "новорожденные дети",
+   "local_pdf": {
+    "file_name": "Полицитемия.pdf",
+    "byte_size": 598279,
+    "pages": 8,
+    "sha256": "3b04ca4887c7bb96859678d143842e5f49611faf107c79961c914c24680ba264",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "27",
+     "approval_date": "2017-09-15",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные дети",
+     "title": "ПОЛИЦИТЕМИЯ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "poroki-razvitiya-diafragmy",
@@ -702,7 +933,7 @@
    "text_sha256": "0ed896a563cd3508995cf72db3ccb0057819f82911895721ba92e0ce4becffc3",
    "note": "В выдержке виден номер, дата одобрения не прочитана.",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:poroki-razvitia-diafragmy-u-novorojdennyh:2025-05-28",
    "okk_meeting_no": "231",
    "topic": "poroki-razvitiya-diafragmy",
@@ -717,7 +948,28 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "новорожденные",
+   "local_pdf": {
+    "file_name": "Пороки развития диафрагмы у новорожденных.pdf",
+    "byte_size": 1029004,
+    "pages": 35,
+    "sha256": "5dc713647ab2de2b0cc0e2b8efab6b96f7b33167381332e8bfaee07d5f8be99b",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "231",
+     "approval_date": "2025-05-28",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные",
+     "title": "ПОРОКИ РАЗВИТИЯ ДИАФРАГМЫ У НОВОРОЖДЕННЫХ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "sepsis",
@@ -764,7 +1016,7 @@
    "text_sha256": "8af99bde4c85fd7547489da3fc7abdd7885cd4f826e2da6b75916c8f3a17401a",
    "note": "",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:bakterial-nyj-sepsis-novorojdennogo:2023-07-28",
    "okk_meeting_no": "185",
    "topic": "sepsis",
@@ -779,7 +1031,28 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "новорожденные дети",
+   "local_pdf": {
+    "file_name": "БАКТЕРИАЛЬНЫЙ СЕПСИС НОВОРОЖДЕННОГО.pdf",
+    "byte_size": 706360,
+    "pages": 31,
+    "sha256": "cbcd8b8e686d4b8a9aba19feb442669814e5c1d13f17f36498fea1deb59451c6",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "185",
+     "approval_date": "2023-07-28",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные дети",
+     "title": "БАКТЕРИАЛЬНЫЙ СЕПСИС НОВОРОЖДЕННОГО"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "uhod-za-malovesnymi",
@@ -820,7 +1093,7 @@
    "text_sha256": "3cdd11a942d291e2dc3e6ab1dc9ec157be343f95653181a312a45ce8554ba22a",
    "note": "",
    "protocol_type": "медицинское_вмешательство",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-МВ:uhod-za-malovesnymi-novorojdennymi:2023-01-13",
    "okk_meeting_no": "177",
    "topic": "uhod-za-malovesnymi",
@@ -835,7 +1108,28 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "маловесные новорожденные, недоношенные дети, экстремально низкой массой тела при рождении",
+   "local_pdf": {
+    "file_name": "УХОД ЗА МАЛОВЕСНЫМИ НОВОРОЖДЕННЫМИ.pdf",
+    "byte_size": 1253467,
+    "pages": 20,
+    "sha256": "80530bd0f38d746de50de0221fef53a47905260f58f73d7501e0a598db514f33",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "177",
+     "approval_date": "2023-01-13",
+     "protocol_type": "медицинское_вмешательство",
+     "patient_category": "маловесные новорожденные, недоношенные дети, экстремально низкой массой тела при рождении",
+     "title": "УХОД ЗА МАЛОВЕСНЫМИ НОВОРОЖДЕННЫМИ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "bld",
@@ -881,7 +1175,7 @@
    "text_sha256": "a00876e1b62b1a9fa805d50936d89866890b72537961dc3df0d815d236299849",
    "note": "Одобрение подтверждено официальным протоколом заседания ОКК №210 от 28.06.2024; PDF самого протокола на сайте не найден в этой сверке.",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:bronholegocnaa-displazia-vozniksaa-v-perinatal-nom-periode:2024-06-28",
    "okk_meeting_no": "210",
    "topic": "bld",
@@ -896,7 +1190,28 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "новорожденные, дети раннего возраста до 3-х лет",
+   "local_pdf": {
+    "file_name": "БРОНХОЛЕГОЧНАЯ ДИСПЛАЗИЯ, ВОЗНИКШАЯ.pdf",
+    "byte_size": 661583,
+    "pages": 22,
+    "sha256": "ae9d5ba4bc24b2e33a48fe1d32cb1227a497acbe967b40874765597f1e5df293",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "210",
+     "approval_date": "2024-06-28",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные, дети раннего возраста до 3-х лет",
+     "title": "БРОНХОЛЕГОЧНАЯ ДИСПЛАЗИЯ, ВОЗНИКШАЯ В ПЕРИНАТАЛЬНОМ ПЕРИОДЕ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "giperammoniemiya",
@@ -938,7 +1253,7 @@
    "text_sha256": "1a3bde0664059149ad5142cf092d5b49d5bb9f7e0c237ef0de4de64bf9edf676",
    "note": "Документ есть на официальном сайте; номер и дата одобрения не прочитаны.",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:giperammoniemia-narusenie-cikla-moceviny:2024-11-28",
    "okk_meeting_no": "220",
    "topic": "giperammoniemiya",
@@ -953,7 +1268,28 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "дети",
+   "local_pdf": {
+    "file_name": "ГИПЕРАММОНИЕМИЯ. НАРУШЕНИЕ ЦИКЛА МОЧЕВИНЫ.pdf",
+    "byte_size": 664487,
+    "pages": 18,
+    "sha256": "a51b54eb62275896e2c3abd619509fdfb18d1b3abf68c36c3c29cd83fe0023a9",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "220",
+     "approval_date": "2024-11-28",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "дети",
+     "title": "ГИПЕРАММОНИЕМИЯ. НАРУШЕНИЕ ЦИКЛА МОЧЕВИНЫ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "nek",
@@ -1001,7 +1337,7 @@
    "text_sha256": "1e50782ffb4be865b4d8e9eb2682b7f839fadf23e5552c32dee2a4bc3d28fc13",
    "note": "Официальный PDF получен по URL от проверяющего; прочитаны 2 первые страницы. МКБ-10 в шапке: P77. Окончательная верификация файла (SHA-256 байтов PDF), проверка актуальности и подтверждение эксперта не выполнены.",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:nekrotiziruusij-enterokolit-novorojdennyh:2023-07-28",
    "okk_meeting_no": "185",
    "topic": "nek",
@@ -1020,9 +1356,31 @@
     "by": "ChatGPT (независимая проверка PR #6)",
     "claim": "официальный PDF найден на nrchd.kz",
     "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9D%D0%B5%D0%BA%D1%80%D0%BE%D1%82%D0%B8%D0%B7%D0%B8%D1%80%D1%83%D1%8E%D1%89%D0%B8%D0%B9%20%D1%8D%D0%BD%D1%82%D0%B5%D1%80%D0%BE%D0%BA%D0%BE%D0%BB%D0%B8%D1%82%20%D0%BD%D0%BE%D0%B2%D0%BE%D1%80%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%BD%D1%8B%D1%85.pdf",
-    "status": "подтверждено по URL 2026-11-18: документ получен, шапка совпадает (название, номер, дата, категория, тип); файл не верифицирован — байты PDF не получены"
+    "status": "предоставлен локальный документ (SHA-256 a5b96a67bc17a8a9…), реквизиты шапки сверены 2026-11-18; побайтовое тождество официальному PDF не проверено",
+    "local_document_sha256": "a5b96a67bc17a8a9ddd9183aacbc5ad9be4e64e6d69efe50f2726b0491e39c4c"
    },
-   "patient_category": "новорожденные"
+   "patient_category": "новорожденные",
+   "local_pdf": {
+    "file_name": "Некротизирующий энтероколит новорожденных.pdf",
+    "byte_size": 854137,
+    "pages": 18,
+    "sha256": "a5b96a67bc17a8a9ddd9183aacbc5ad9be4e64e6d69efe50f2726b0491e39c4c",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "185",
+     "approval_date": "2023-07-28",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные",
+     "title": "НЕКРОТИЗИРУЮЩИЙ ЭНТЕРОКОЛИТ НОВОРОЖДЕННЫХ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "parenteralnoe-pitanie",
@@ -1068,7 +1426,7 @@
    "text_sha256": "3310a7ec0887a03f1eb73d1c65a4b6b6f0a6ef7aa0ece64c47cfc0b8b8eeec7a",
    "note": "Официальный PDF получен по URL от проверяющего; прочитаны 2 первые страницы. МКБ-10: нет. Окончательная верификация файла (SHA-256 байтов PDF), проверка актуальности и подтверждение эксперта не выполнены.",
    "protocol_type": "медицинское_вмешательство",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-МВ:parenteral-noe-pitanie-novorojdennyh:2023-07-28",
    "okk_meeting_no": "185",
    "topic": "parenteralnoe-pitanie",
@@ -1087,14 +1445,36 @@
     "by": "ChatGPT (независимая проверка PR #6)",
     "claim": "официальный PDF найден на nrchd.kz",
     "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%B0%D1%80%D0%B5%D0%BD%D1%82%D0%B5%D1%80%D0%B0%D0%BB%D1%8C%D0%BD%D0%BE%D0%B5%20%D0%BF%D0%B8%D1%82%D0%B0%D0%BD%D0%B8%D0%B5%20%D0%BD%D0%BE%D0%B2%D0%BE%D1%80%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%BD%D1%8B%D1%85.pdf",
-    "status": "подтверждено по URL 2026-11-18: документ получен, шапка совпадает (название, номер, дата, категория, тип); файл не верифицирован — байты PDF не получены"
+    "status": "предоставлен локальный документ (SHA-256 84d01af64e36c2c9…), реквизиты шапки сверены 2026-11-18; побайтовое тождество официальному PDF не проверено",
+    "local_document_sha256": "84d01af64e36c2c9c09c96dd863920c01e5e16c6bc632c29ff01556b9da87cb3"
    },
-   "patient_category": "новорожденные дети"
+   "patient_category": "новорожденные дети",
+   "local_pdf": {
+    "file_name": "Парентеральное питание новорожденных.pdf",
+    "byte_size": 972242,
+    "pages": 26,
+    "sha256": "84d01af64e36c2c9c09c96dd863920c01e5e16c6bc632c29ff01556b9da87cb3",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "185",
+     "approval_date": "2023-07-28",
+     "protocol_type": "медицинское_вмешательство",
+     "patient_category": "новорожденные дети",
+     "title": "ПАРЕНТЕРАЛЬНОЕ ПИТАНИЕ НОВОРОЖДЕННЫХ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "diabeticheskaya-fetopatiya",
    "name_in_base": "Диабетическая фетопатия",
-   "official_title": null,
+   "official_title": "Диабетическая фетопатия",
    "approval": {
     "no": "27",
     "date": "15 сентября 2017",
@@ -1129,9 +1509,9 @@
    "expert_confirmation": null,
    "text_sha256": "c6dee15866a3fa2f3638317ed6debc1523b7eb11a181294a2060dc8460da839e",
    "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен).",
-   "protocol_type": "не_установлен",
-   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
-   "doc_id": "КП:diabeticeskaa-fetopatia:2017-09-15",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
+   "doc_id": "КП-ДЛ:diabeticeskaa-fetopatia:2017-09-15",
    "okk_meeting_no": "27",
    "topic": "diabeticheskaya-fetopatiya",
    "currency_check": {
@@ -1145,7 +1525,30 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "новорожденные дети",
+   "local_pdf": {
+    "file_name": "ДИАБЕТИЧЕСКАЯ ФЕТОПАТИЯ.pdf",
+    "byte_size": 297216,
+    "pages": 10,
+    "sha256": "1af554db37e5813777f1f607f447ba0657db760e3b3e6829385fdf48641e36db",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "27",
+     "approval_date": "2017-09-15",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные дети",
+     "title": "ДИАБЕТИЧЕСКАЯ ФЕТОПАТИЯ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   },
+   "protocol_type_previous": "не_установлен",
+   "doc_id_previous": "КП:diabeticeskaa-fetopatia:2017-09-15"
   },
   {
    "id": "enteralnoe-pitanie",
@@ -1191,7 +1594,7 @@
    "text_sha256": "aaefeab1a90b0c045cb904b0d18edd3113e337f361b4d1d1b464a62257b96b8a",
    "note": "Официальный PDF получен по URL от проверяющего; прочитаны 2 первые страницы. МКБ-10: нет. Текстовый слой PDF частично повреждён (обрезаны первые буквы строк), шапка читается полностью. Окончательная верификация файла (SHA-256 байтов PDF), проверка актуальности и подтверждение эксперта не выполнены.",
    "protocol_type": "медицинское_вмешательство",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-МВ:enteral-noe-pitanie-donosennyh-i-nedonosennyh-detej:2023-01-13",
    "okk_meeting_no": "177",
    "topic": "enteralnoe-pitanie",
@@ -1210,9 +1613,31 @@
     "by": "ChatGPT (независимая проверка PR #6)",
     "claim": "официальный PDF найден на nrchd.kz",
     "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%AD%D0%9D%D0%A2%D0%95%D0%A0%D0%90%D0%9B%D0%AC%D0%9D%D0%9E%D0%95%20%D0%9F%D0%98%D0%A2%D0%90%D0%9D%D0%98%D0%95%20%D0%94%D0%9E%D0%9D%D0%9E%D0%A8%D0%95%D0%9D%D0%9D%D0%AB%D0%A5%20%D0%98%20%D0%9D%D0%95%D0%94%D0%9E%D0%9D%D0%9E%D0%A8%D0%95%D0%9D%D0%9D%D0%AB%D0%A5.pdf",
-    "status": "подтверждено по URL 2026-11-18: документ получен, шапка совпадает (название, номер, дата, категория, тип); файл не верифицирован — байты PDF не получены"
+    "status": "предоставлен локальный документ (SHA-256 3f1e2fcda147646e…), реквизиты шапки сверены 2026-11-18; побайтовое тождество официальному PDF не проверено",
+    "local_document_sha256": "3f1e2fcda147646e5e53ea0b2a79de0073ed69bf88206ee187d70450cd129222"
    },
-   "patient_category": "новорожденные"
+   "patient_category": "новорожденные",
+   "local_pdf": {
+    "file_name": "ЭНТЕРАЛЬНОЕ ПИТАНИЕ ДОНОШЕННЫХ И НЕДОНОШЕННЫХ.pdf",
+    "byte_size": 953010,
+    "pages": 20,
+    "sha256": "3f1e2fcda147646e5e53ea0b2a79de0073ed69bf88206ee187d70450cd129222",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "177",
+     "approval_date": "2023-01-13",
+     "protocol_type": "медицинское_вмешательство",
+     "patient_category": "новорожденные",
+     "title": "ЭНТЕРАЛЬНОЕ ПИТАНИЕ ДОНОШЕННЫХ И НЕДОНОШЕННЫХ ДЕТЕЙ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "gemorragicheskaya-bolezn",
@@ -1254,7 +1679,7 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "cb453024538dc15d48d1a5c84bf0f18c2880bc95e142e45c89a096e1d7065938",
-   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен). URL проверяющего (2026-11-18) возвращает 404; документ по нему не получен.",
+   "note": "Историческая неподтверждённая запись: документ №1 (2014) не найден (URL проверяющего — 404) и файлом не предоставлен; вместо него предоставлена редакция №262 от 02.10.2026 (отдельная запись gemorragicheskaya-bolezn-2026). Отменённой или заменённой не считается.",
    "protocol_type": "не_установлен",
    "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
    "doc_id": "КП:gemorragiceskaa-bolezn:2014-01-21",
@@ -1275,9 +1700,23 @@
     "by": "ChatGPT (независимая проверка PR #6)",
     "claim": "официальный PDF найден на nrchd.kz",
     "url": "https://nrchd.kz/docs/clinic_protocol/2014/%D0%9F%D0%B5%D0%B4%D0%B8%D0%B0%D1%82%D1%80%D0%B8%D1%8F/%D0%9D%D0%B5%D0%BE%D0%BD%D0%B0%D1%82%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%8F/%D0%93%D0%B5%D0%BC%D0%BE%D1%80%D1%80%D0%B0%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F%20%D0%B1%D0%BE%D0%BB%D0%B5%D0%B7%D0%BD%D1%8C%20%D0%BD%D0%BE%D0%B2%D0%BE%D1%80%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%BD%D1%8B%D1%85.pdf",
-    "status": "не подтверждено: по указанному URL сервер nrchd.kz возвращает 404 «Страница не найдена» (проверено 2026-11-18)"
+    "status": "не подтверждено: по URL сервер возвращает 404 (18.11.2026); локальный файл этой редакции не предоставлен (предоставлена другая редакция — №262 от 02.10.2026)"
    },
-   "patient_category": null
+   "patient_category": null,
+   "edition_history_verified": false,
+   "related_editions": [
+    "КП-ДЛ:gemorragiceskaa-bolezn-novorojdennyh:2026-10-02"
+   ],
+   "historical_unconfirmed": true,
+   "open_questions": [
+    {
+     "field": "approval.date_iso",
+     "registry_value": "2014-01-21",
+     "secondary_value": "2014-01-20",
+     "secondary_source": "https://prg.kz/document/?doc_id=31683401 (вторичный правовой ресурс, сообщено проверяющим)",
+     "decision": "не исправлять без оригинального документа"
+    }
+   ]
   },
   {
    "id": "gie",
@@ -1315,7 +1754,7 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "41147e8f91bf82ec4d329391d232b0759bb421aadc51369f2301f5b7b58136cb",
-   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен).",
+   "note": "Историческая неподтверждённая запись: официальный документ №74 (2019) не найден и файлом не предоставлен. Пользователь предоставил новую редакцию №257 от 01.07.2026 (отдельная запись gie-2026). Отменённой или заменённой не считается.",
    "protocol_type": "не_установлен",
    "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
    "doc_id": "КП:gie-gipoksiceski-isemiceskaa-encefalopatia:2019-10-03",
@@ -1332,7 +1771,12 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": null,
+   "edition_history_verified": false,
+   "related_editions": [
+    "КП-ДЛ:gipoksiceski-isemiceskaa-encefalopatia:2026-07-01"
+   ],
+   "historical_unconfirmed": true
   },
   {
    "id": "gipotermiya-lechebnaya",
@@ -1382,7 +1826,7 @@
    "text_sha256": "36d199e30d72aa2b4b75ef63a2cf4bd099417f05f148561e3048e3ea1884ee79",
    "note": "Официальный PDF получен по URL от проверяющего; прочитаны 2 первые страницы. МКБ-10 в шапке: P81.0, P81.8, P81.9 (совпадают с базой). Окончательная верификация файла (SHA-256 байтов PDF), проверка актуальности и подтверждение эксперта не выполнены.",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:gipotermia-lecebnaa-novorojdennogo:2014-07-04",
    "okk_meeting_no": "10",
    "topic": "gipotermiya-lechebnaya",
@@ -1401,9 +1845,31 @@
     "by": "ChatGPT (независимая проверка PR #6)",
     "claim": "официальный PDF найден на nrchd.kz",
     "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%93%D0%98%D0%9F%D0%9E%D0%A2%D0%95%D0%A0%D0%9C%D0%98%D0%AF%20%28%D0%9B%D0%95%D0%A7%D0%95%D0%91%D0%9D%D0%90%D0%AF%29%20%D0%9D%D0%9E%D0%92%D0%9E%D0%A0%D0%9E%D0%96%D0%94%D0%95%D0%9D%D0%9D%D0%9E%D0%93%D0%9E.pdf",
-    "status": "подтверждено по URL 2026-11-18: документ получен, шапка совпадает (название, номер, дата, категория, тип); файл не верифицирован — байты PDF не получены"
+    "status": "предоставлен локальный документ (SHA-256 de2a335c14b62a7b…), реквизиты шапки сверены 2026-11-18; побайтовое тождество официальному PDF не проверено",
+    "local_document_sha256": "de2a335c14b62a7b1ed880822b0bfd952c80e247c635a93466e869fe5069ad41"
    },
-   "patient_category": "новорожденные (включая доношенных, переношенных и недоношенных)"
+   "patient_category": "новорожденные (включая доношенных, переношенных и недоношенных)",
+   "local_pdf": {
+    "file_name": "ГИПОТЕРМИЯ (ЛЕЧЕБНАЯ) НОВОРОЖДЕННОГО.pdf",
+    "byte_size": 1257820,
+    "pages": 10,
+    "sha256": "de2a335c14b62a7b1ed880822b0bfd952c80e247c635a93466e869fe5069ad41",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "10",
+     "approval_date": "2014-07-04",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные (включая доношенных, переношенных и недоношенных)",
+     "title": "ГИПОТЕРМИЯ (ЛЕЧЕБНАЯ) НОВОРОЖДЕННОГО"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "krestcovookopchikovaya-teratoma",
@@ -1453,7 +1919,7 @@
    "text_sha256": "60ff50bb894de844294e4e85d704b1f85c7e582ab4a3d86a1cf849607154e5cf",
    "note": "Официальный PDF получен по URL от проверяющего; прочитаны 2 первые страницы. Расхождение: в названии «у новорожденных», а в п. 1.5 категория пациентов — «дети». МКБ-10: Q89.8, D21.5, C45.9. Окончательная верификация файла (SHA-256 байтов PDF), проверка актуальности и подтверждение эксперта не выполнены.",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:krestcovo-kopcikovaa-teratoma-u-novorojdennyh:2025-08-28",
    "okk_meeting_no": "238",
    "topic": "krestcovookopchikovaya-teratoma",
@@ -1472,14 +1938,36 @@
     "by": "ChatGPT (независимая проверка PR #6)",
     "claim": "официальный PDF найден на nrchd.kz",
     "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9A%D1%80%D0%B5%D1%81%D1%82%D1%86%D0%BE%D0%B2%D0%BE-%D0%BA%D0%BE%D0%BF%D1%87%D0%B8%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F%20%D1%82%D0%B5%D1%80%D0%B0%D1%82%D0%BE%D0%BC%D0%B0%20%D1%83%20%D0%BD%D0%BE%D0%B2%D0%BE%D1%80%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%BD%D1%8B%D1%85.pdf",
-    "status": "подтверждено по URL 2026-11-18: документ получен, шапка совпадает (название, номер, дата, категория, тип); файл не верифицирован — байты PDF не получены"
+    "status": "предоставлен локальный документ (SHA-256 7c2f1f97c3674b29…), реквизиты шапки сверены 2026-11-18; побайтовое тождество официальному PDF не проверено",
+    "local_document_sha256": "7c2f1f97c3674b297b216c2e3db54453913d10adeedeccbe2c86e0456691148b"
    },
-   "patient_category": "дети"
+   "patient_category": "дети",
+   "local_pdf": {
+    "file_name": "Крестцово-копчиковая тератома у новорожденных.pdf",
+    "byte_size": 533839,
+    "pages": 18,
+    "sha256": "7c2f1f97c3674b297b216c2e3db54453913d10adeedeccbe2c86e0456691148b",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "238",
+     "approval_date": "2025-08-28",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "дети",
+     "title": "КРЕСТЦОВО-КОПЧИКОВАЯ ТЕРАТОМА У НОВОРОЖДЕННЫХ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
   },
   {
    "id": "neonatalnaya-zheltuha",
    "name_in_base": "Неонатальная желтуха",
-   "official_title": null,
+   "official_title": "Неонатальная желтуха",
    "approval": {
     "no": "171",
     "date": "06 октября 2022",
@@ -1520,9 +2008,9 @@
    "expert_confirmation": null,
    "text_sha256": "b3110432dc9b7ecb665bf92f146b6d3011f91fbcf9cf71cf8107ab96b07792e9",
    "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен).",
-   "protocol_type": "не_установлен",
-   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
-   "doc_id": "КП:neonatal-naa-jeltuha:2022-10-06",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
+   "doc_id": "КП-ДЛ:neonatal-naa-jeltuha:2022-10-06",
    "okk_meeting_no": "171",
    "topic": "neonatalnaya-zheltuha",
    "currency_check": {
@@ -1536,12 +2024,35 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "новорожденные дети",
+   "local_pdf": {
+    "file_name": "Неонатальная желтуха.pdf",
+    "byte_size": 460292,
+    "pages": 18,
+    "sha256": "95ca1713d7b3899740f3c023daf2fd0447c4fed2ef00f11a68a590f15b214b03",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "171",
+     "approval_date": "2022-10-06",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные дети",
+     "title": "НЕОНАТАЛЬНАЯ ЖЕЛТУХА"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   },
+   "protocol_type_previous": "не_установлен",
+   "doc_id_previous": "КП:neonatal-naa-jeltuha:2022-10-06"
   },
   {
    "id": "rds",
    "name_in_base": "РДС (респираторный дистресс-синдром)",
-   "official_title": null,
+   "official_title": "Респираторный дистресс синдром (рдс)",
    "approval": {
     "no": "4",
     "date": "9 июня 2016",
@@ -1575,9 +2086,9 @@
    "expert_confirmation": null,
    "text_sha256": "8b8d6d867e569d5ce889f1633a3d5c5325ecf82a50ba8a908687bb90e622e13f",
    "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен). URL проверяющего (2026-11-18) возвращает 404; документ по нему не получен.",
-   "protocol_type": "не_установлен",
-   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
-   "doc_id": "КП:rds-respiratornyj-distress-sindrom:2016-06-09",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
+   "doc_id": "КП-ДЛ:rds-respiratornyj-distress-sindrom:2016-06-09",
    "okk_meeting_no": "4",
    "topic": "rds",
    "currency_check": {
@@ -1595,18 +2106,45 @@
     "by": "ChatGPT (независимая проверка PR #6)",
     "claim": "официальный PDF найден на nrchd.kz",
     "url": "https://nrchd.kz/docs/clinic_protocol/2016/%D0%9F%D0%B5%D0%B4%D0%B8%D0%B0%D1%82%D1%80%D0%B8%D1%8F/%D0%9D%D0%B5%D0%BE%D0%BD%D0%B0%D1%82%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%8F/%D0%A0%D0%B5%D1%81%D0%BF%D0%B8%D1%80%D0%B0%D1%82%D0%BE%D1%80%D0%BD%D1%8B%D0%B9%20%D0%B4%D0%B8%D1%81%D1%82%D1%80%D0%B5%D1%81%D1%81%20%D1%81%D0%B8%D0%BD%D0%B4%D1%80%D0%BE%D0%BC.pdf",
-    "status": "не подтверждено: по указанному URL сервер nrchd.kz возвращает 404 «Страница не найдена» (проверено 2026-11-18)"
+    "status": "предоставлен локальный документ (SHA-256 473fd83f0e9ad761…), реквизиты шапки сверены 2026-11-18; побайтовое тождество официальному PDF не проверено",
+    "local_document_sha256": "473fd83f0e9ad7611904b7f36209ff50ae5d78a06d3cb946a14d2c0f2d431abd"
    },
-   "patient_category": null
+   "patient_category": "новорожденные",
+   "local_pdf": {
+    "file_name": "Респираторный дистресс-синдром (неонатология) (1).pdf",
+    "byte_size": 476282,
+    "pages": 18,
+    "sha256": "473fd83f0e9ad7611904b7f36209ff50ae5d78a06d3cb946a14d2c0f2d431abd",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [
+     "Респираторный дистресс-синдром (неонатология)(1).pdf",
+     "Респираторный дистресс-синдром (неонатология).pdf"
+    ],
+    "verified_header": true,
+    "header": {
+     "approval_no": "4",
+     "approval_date": "2016-06-09",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные",
+     "title": "РЕСПИРАТОРНЫЙ ДИСТРЕСС СИНДРОМ (РДС)"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   },
+   "protocol_type_previous": "не_установлен",
+   "doc_id_previous": "КП:rds-respiratornyj-distress-sindrom:2016-06-09"
   },
   {
    "id": "reanimaciya-nedonoshennyh-detey",
    "name_in_base": "Реанимация недоношенных детей",
-   "official_title": null,
+   "official_title": "Реанимация недоношенных детей",
    "approval": {
     "no": "10",
     "date": "30 сентября 2015",
-    "body": "Экспертный совет РЦРЗ",
+    "body": "Экспертный совет РГП на ПХВ «РЦРЗ» МЗ и СР РК (рекомендовано)",
     "date_iso": "2015-09-30"
    },
    "icd": [
@@ -1637,10 +2175,10 @@
    "replaced_by": null,
    "expert_confirmation": null,
    "text_sha256": "397ea7dbf64c325783f73ef6d460f35d9c794f6fed9854583fa0b0070537ad61",
-   "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен). URL проверяющего (2026-11-18) возвращает 404; документ по нему не получен.",
-   "protocol_type": "не_установлен",
-   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
-   "doc_id": "КП:reanimacia-nedonosennyh-detej:2015-09-30",
+   "note": "В шапке — клинический протокол МЕДИЦИНСКОЙ РЕАБИЛИТАЦИИ (рекомендован Экспертным советом РЦРЗ, №10 от 30.09.2015). Не смешивать с протоколом медицинского вмешательства «Реанимация новорожденных» №180 (2023); для правил острой реанимационной помощи по одному названию не использовать.",
+   "protocol_type": "реабилитация",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
+   "doc_id": "КП-МР:reanimacia-nedonosennyh-detej:2015-09-30",
    "okk_meeting_no": "10",
    "topic": "reanimaciya-nedonoshennyh-detey",
    "currency_check": {
@@ -1658,14 +2196,38 @@
     "by": "ChatGPT (независимая проверка PR #6)",
     "claim": "официальный PDF найден на nrchd.kz",
     "url": "https://nrchd.kz/docs/clinic_protocol/2015/%D0%9F%D0%B5%D0%B4%D0%B8%D0%B0%D1%82%D1%80%D0%B8%D1%8F/%D0%9D%D0%B5%D0%BE%D0%BD%D0%B0%D1%82%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%8F/%D0%A0%D0%B5%D0%B0%D0%BD%D0%B8%D0%BC%D0%B0%D1%86%D0%B8%D1%8F%20%D0%BD%D0%B5%D0%B4%D0%BE%D0%BD%D0%BE%D1%88%D0%B5%D0%BD%D0%BD%D1%8B%D1%85%20%D0%B4%D0%B5%D1%82%D0%B5%D0%B9.pdf",
-    "status": "не подтверждено: по указанному URL сервер nrchd.kz возвращает 404 «Страница не найдена» (проверено 2026-11-18)"
+    "status": "предоставлен локальный документ (SHA-256 243387f05e2bf4d0…), реквизиты шапки сверены 2026-11-18; побайтовое тождество официальному PDF не проверено",
+    "local_document_sha256": "243387f05e2bf4d0ad6ea23175472cbefe6b2d067466c9f0f61dc65546fb8434"
    },
-   "patient_category": null
+   "patient_category": "недоношенные новорожденные дети, проведения реанимационных мероприятий",
+   "local_pdf": {
+    "file_name": "Реанимация недоношенных детей.pdf",
+    "byte_size": 861222,
+    "pages": 21,
+    "sha256": "243387f05e2bf4d0ad6ea23175472cbefe6b2d067466c9f0f61dc65546fb8434",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "10",
+     "approval_date": "2015-09-30",
+     "protocol_type": "реабилитация",
+     "patient_category": "недоношенные новорожденные дети, проведения реанимационных мероприятий",
+     "title": "РЕАНИМАЦИЯ НЕДОНОШЕННЫХ ДЕТЕЙ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   },
+   "protocol_type_previous": "не_установлен",
+   "doc_id_previous": "КП:reanimacia-nedonosennyh-detej:2015-09-30"
   },
   {
    "id": "rodovaya-travma",
    "name_in_base": "Родовая травма",
-   "official_title": null,
+   "official_title": "Родовая травма (кефалогематома у новорожденных)",
    "approval": {
     "no": "35",
     "date": "14 декабря 2017",
@@ -1699,9 +2261,9 @@
    "expert_confirmation": null,
    "text_sha256": "942015abcc18ab941b309ca570b3959b674f7d44156f0c6642c34c81aa0d5c95",
    "note": "В этой сверке официальный документ не найден (поиск по сайту nrchd.kz; прямой доступ к каталогу ограничен).",
-   "protocol_type": "не_установлен",
-   "protocol_type_source": "не установлен: в базе заголовок обрезан, официальный документ не прочитан",
-   "doc_id": "КП:rodovaa-travma:2017-12-14",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
+   "doc_id": "КП-ДЛ:rodovaa-travma:2017-12-14",
    "okk_meeting_no": "35",
    "topic": "rodovaya-travma",
    "currency_check": {
@@ -1715,7 +2277,30 @@
     "value": null,
     "note": "Файл PDF не скачан: из рабочей среды nrchd.kz недоступен напрямую, Firecrawl отдаёт текст, а не байты файла."
    },
-   "patient_category": null
+   "patient_category": "новорожденные, дети",
+   "local_pdf": {
+    "file_name": "Родовая травма (кефалогематома у новорожденных).pdf",
+    "byte_size": 385556,
+    "pages": 8,
+    "sha256": "1bcbb2a12e901a15705d49d3872bd0288b94852c7134a1533be7242fc12d36e2",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "35",
+     "approval_date": "2017-12-14",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные, дети",
+     "title": "РОДОВАЯ ТРАВМА (КЕФАЛОГЕМАТОМА У НОВОРОЖДЕННЫХ)"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   },
+   "protocol_type_previous": "не_установлен",
+   "doc_id_previous": "КП:rodovaa-travma:2017-12-14"
   },
   {
    "id": "stoykoe-fetalnoe-kroobraschenie",
@@ -1763,7 +2348,7 @@
    "text_sha256": "9e9a536dcf14c92c092e88e3ad6473d6cc90aae4dd38e7acce3e7cc02710325f",
    "note": "Официальный PDF получен по URL от проверяющего; прочитаны 2 первые страницы. МКБ-10 в шапке: P29.3. Окончательная верификация файла (SHA-256 байтов PDF), проверка актуальности и подтверждение эксперта не выполнены.",
    "protocol_type": "диагностика_и_лечение",
-   "protocol_type_source": "шапка официального документа",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
    "doc_id": "КП-ДЛ:stojkoe-fetal-noe-krovoobrasenie-persistiruusaa-legocnaa-gipertenzia-u-novorojdennogo:2016-06-09",
    "okk_meeting_no": "4",
    "topic": "stoykoe-fetalnoe-kroobraschenie",
@@ -1782,11 +2367,228 @@
     "by": "ChatGPT (независимая проверка PR #6)",
     "claim": "официальный PDF найден на nrchd.kz",
     "url": "https://nrchd.kz/storage/documents/%D0%9A%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%9F%D0%BE%D1%82%D0%BE%D0%BA%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D1%8B/%D0%A1%D1%82%D0%BE%D0%B9%D0%BA%D0%BE%D0%B5%20%D1%84%D0%B5%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%BE%D0%B5%20%D0%BA%D1%80%D0%BE%D0%B2%D0%BE%D0%BE%D0%B1%D1%80%D0%B0%D1%89%D0%B5%D0%BD%D0%B8%D0%B5%20%20%D0%9F%D0%B5%D1%80%D1%81%D0%B8%D1%81%D1%82%D0%B8%D1%80%D1%83%D1%8E%D1%89%D0%B0%D1%8F%20%D0%BB%D0%B5%D0%B3%D0%BE%D1%87%D0%BD%D0%B0%D1%8F%20%D0%B3%D0%B8%D0%BF%D0%B5%D1%80%D1%82%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F%20%D1%83%20%D0%BD%D0%BE%D0%B2%D0%BE%D1%80%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%BD%D0%BE%D0%B3%D0%BE.pdf",
-    "status": "подтверждено по URL 2026-11-18: документ получен, шапка совпадает (название, номер, дата, категория, тип); файл не верифицирован — байты PDF не получены"
+    "status": "предоставлен локальный документ (SHA-256 de58611fbdad8af1…), реквизиты шапки сверены 2026-11-18; побайтовое тождество официальному PDF не проверено",
+    "local_document_sha256": "de58611fbdad8af1c4b8f2c406d5fc6e716ade7f9832a63ad95e76adf8a2d5b5"
    },
-   "patient_category": "новорожденные"
+   "patient_category": "новорожденные",
+   "local_pdf": {
+    "file_name": "Стойкое фетальное кровообращение  Персистирующая легочная гипертензия у новорожденного.pdf",
+    "byte_size": 538403,
+    "pages": 20,
+    "sha256": "de58611fbdad8af1c4b8f2c406d5fc6e716ade7f9832a63ad95e76adf8a2d5b5",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "4",
+     "approval_date": "2016-06-09",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные",
+     "title": "СТОЙКОЕ ФЕТАЛЬНОЕ КРОВООБРАЩЕНИЕ / ПЕРСИСТИРУЮЩАЯ ЛЕГОЧНАЯ ГИПЕРТЕНЗИЯ У НОВОРОЖДЕННОГО"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   }
+  },
+  {
+   "id": "gemorragicheskaya-bolezn-2026",
+   "name_in_base": "Геморрагическая болезнь (редакция 2026, нет в базе neo-pro)",
+   "official_title": "Геморрагическая болезнь новорожденных",
+   "approval": {
+    "no": "262",
+    "date": "2 октября 2026",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2026-10-02"
+   },
+   "icd": [
+    "P53",
+    "P54.0",
+    "P54.1",
+    "P54.3"
+   ],
+   "internal_check": {
+    "header_no_in_text": null,
+    "matches_metadata": true,
+    "note": "текста этой редакции нет в базе neo-pro; сверка выполнена по локальному PDF"
+   },
+   "official_check": {
+    "result": "на_официальном_сайте_не_найдено",
+    "url": null,
+    "quote": "",
+    "official_no": null,
+    "no_matches": null,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "на официальном сайте не проверялась (Firecrawl не использовался)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": null
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": null,
+   "note": "Новая редакция по локальному PDF пользователя. Старая запись №1 (2014) не помечена заменённой: история редакций не проверена.",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
+   "doc_id": "КП-ДЛ:gemorragiceskaa-bolezn-novorojdennyh:2026-10-02",
+   "okk_meeting_no": "262",
+   "topic": "gemorragicheskaya-bolezn",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл с официального сайта не скачан; хэш локального PDF хранится в local_pdf."
+   },
+   "patient_category": "новорожденные дети",
+   "local_pdf": {
+    "file_name": "Геморрагическая болезнь новорожденных.pdf",
+    "byte_size": 555593,
+    "pages": 19,
+    "sha256": "771bd6ada4da58fd69cf19ad52ad8fc319fa630b2655ba10f04851c7d0af13ad",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "262",
+     "approval_date": "2026-10-02",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "новорожденные дети",
+     "title": "ГЕМОРРАГИЧЕСКАЯ БОЛЕЗНЬ НОВОРОЖДЕННЫХ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   },
+   "edition_history_verified": false,
+   "related_editions": [
+    "КП:gemorragiceskaa-bolezn:2014-01-21"
+   ],
+   "in_neo_pro_base": false,
+   "icd_note": "Коды МКБ-10 по PDF (в документе кириллическая «Р», приведено к латинской P); указаны также коды МКБ-11. В старой записи №1 есть Р54.2 — в редакции 2026 его нет.",
+   "revision_line": "1.2. Дата разработки и пересмотра клинического протокола: 2013 год (пересмотр 2026 год)"
+  },
+  {
+   "id": "gie-2026",
+   "name_in_base": "ГИЭ (гипоксически-ишемическая энцефалопатия) (редакция 2026, нет в базе neo-pro)",
+   "official_title": "Гипоксически-ишемическая энцефалопатия",
+   "approval": {
+    "no": "257",
+    "date": "1 июля 2026",
+    "body": "Объединенная комиссия по качеству медицинских услуг МЗ РК",
+    "date_iso": "2026-07-01"
+   },
+   "icd": [
+    "P01",
+    "P02",
+    "P20",
+    "P20.9",
+    "P21",
+    "P90",
+    "P91",
+    "P91.0",
+    "P91.5",
+    "P91.6",
+    "P91.8",
+    "P91.9"
+   ],
+   "internal_check": {
+    "header_no_in_text": null,
+    "matches_metadata": true,
+    "note": "текста этой редакции нет в базе neo-pro; сверка выполнена по локальному PDF"
+   },
+   "official_check": {
+    "result": "на_официальном_сайте_не_найдено",
+    "url": null,
+    "quote": "",
+    "official_no": null,
+    "no_matches": null,
+    "revision_line": null,
+    "checked_at": "2026-11-18",
+    "method": "на официальном сайте не проверялась (Firecrawl не использовался)",
+    "checked_by": "автоматический сбор (Claude) — требует подтверждения эксперта",
+    "quote_sha256": null
+   },
+   "registry_status": "не проверен",
+   "status_basis": "",
+   "valid_from": null,
+   "valid_to": null,
+   "replaced_by": null,
+   "expert_confirmation": null,
+   "text_sha256": null,
+   "note": "Новая редакция по локальному PDF пользователя. В строке пересмотра упомянут 2024 год — возможна промежуточная редакция между №74 (2019) и №257 (2026); история редакций не проверена. Категория пациентов в п. 1.5 — «дети». Применимость на дату помощи — решение эксперта.",
+   "protocol_type": "диагностика_и_лечение",
+   "protocol_type_source": "шапка официального документа (локальный PDF пользователя)",
+   "doc_id": "КП-ДЛ:gipoksiceski-isemiceskaa-encefalopatia:2026-07-01",
+   "okk_meeting_no": "257",
+   "topic": "gie",
+   "currency_check": {
+    "result": "не_проверена",
+    "basis": null,
+    "checked_at": null,
+    "note": "Проверка, что более новой редакции нет: перечень пересмотров и архив каталога nrchd.kz."
+   },
+   "file_checksum": {
+    "algorithm": "sha256",
+    "value": null,
+    "note": "Файл с официального сайта не скачан; хэш локального PDF хранится в local_pdf."
+   },
+   "patient_category": "дети",
+   "local_pdf": {
+    "file_name": "Гипоксически-ишемическая энцефалопатия.pdf",
+    "byte_size": 788724,
+    "pages": 58,
+    "sha256": "e26adb58592867cea12afd813fb4d854e5c2bda96af2283b88be3f91151095ed",
+    "sha256_source": "байты локального PDF-файла",
+    "origin": "user_upload",
+    "provided_via": "архив antidefect_stage4_29_pdfs_with_manifest.zip от пользователя (сверка ChatGPT, manifest на 31 файл)",
+    "duplicates": [],
+    "verified_header": true,
+    "header": {
+     "approval_no": "257",
+     "approval_date": "2026-07-01",
+     "protocol_type": "диагностика_и_лечение",
+     "patient_category": "дети",
+     "title": "ГИПОКСИЧЕСКИ-ИШЕМИЧЕСКАЯ ЭНЦЕФАЛОПАТИЯ"
+    },
+    "checked_at": "2026-11-18",
+    "checked_by": "Claude: SHA-256 и размер пересчитаны по байтам, шапка прочитана локально (pdftotext) — требует подтверждения эксперта",
+    "identity_with_official_file": "не установлено"
+   },
+   "edition_history_verified": false,
+   "related_editions": [
+    "КП:gie-gipoksiceski-isemiceskaa-encefalopatia:2019-10-03"
+   ],
+   "in_neo_pro_base": false,
+   "icd_primary": "P91.6",
+   "icd_note": "В PDF коды записаны смешанно: кириллическая «Р» (Р01, Р02, Р20, Р21, Р91, Р91.0, Р91.5) и латинская «P» (P20.9, P90, P91.6, P91.8, P91.9); здесь все коды приведены к латинской P. Основной код ГИЭ по редакции 2026 — P91.6 (в базе neo-pro для №74 указан только Р91.0). Редакция 2026 охватывает и коды асфиксии (P21) — пересечение с протоколом «Асфиксия при рождении» №180 требует решения эксперта. Указаны также коды МКБ-11.",
+   "revision_line": "1.2 Дата разработки и пересмотра клинического протокола: 2014 год/2019 год, (пересмотр 2024/2026 год)"
   }
  ],
  "id_policy": "Документ идентифицируется doc_id (тип:название:дата одобрения). Номер заседания ОКК (okk_meeting_no) общий для многих протоколов и идентификатором не является.",
- "active_status_policy": "«действует» требует: официального подтверждения документа, проверки актуальности (currency_check) и подтверждения эксперта. Ни ссылка, ни экспертное подтверждение по отдельности недостаточны."
+ "active_status_policy": "«действует» требует: официального подтверждения документа, проверки актуальности (currency_check) и подтверждения эксперта. Ни ссылка, ни экспертное подтверждение по отдельности недостаточны.",
+ "local_evidence": {
+  "manifest": "registry/local-pdfs/antidefect_pdf_manifest_31.json",
+  "sha256sums": "registry/local-pdfs/SHA256SUMS.txt",
+  "files_total": 31,
+  "unique": 29,
+  "duplicates": {
+   "Респираторный дистресс-синдром (неонатология)(1).pdf": "Респираторный дистресс-синдром (неонатология) (1).pdf",
+   "Респираторный дистресс-синдром (неонатология).pdf": "Респираторный дистресс-синдром (неонатология) (1).pdf"
+  },
+  "pdf_storage": "PDF в репозиторий не загружаются (репозиторий публичный; решение владельца). Проверка: verify_registry.py --pdf-dir <папка с PDF>.",
+  "meaning": "Локальный PDF подтверждает содержание шапки этого экземпляра. Он не доказывает тождество файлу на nrchd.kz, действующий статус редакции или полноту реестра."
+ }
 }

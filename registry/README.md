@@ -9,9 +9,13 @@
 Правила в код Антидефекта пока не подключены.
 
 ## Реестр протоколов (этап 4)
-`protocols-registry.json` — кандидат реестра 29 протоколов: одобрение, результат сверки с официальными источниками (ссылка, цитата шапки), статус («не проверен» до подтверждения эксперта), хэш текста, полнота для ОРИТН. Отчёт — `docs/stage4-verification-report.md`.
+`protocols-registry.json` — кандидат реестра (0.3): 29 протоколов базы и 2 новые редакции (ГИЭ №257, ГрБН №262), всего 31 запись: одобрение, результат сверки с официальными источниками (ссылка, цитата шапки), статус («не проверен» до подтверждения эксперта), хэш текста, полнота для ОРИТН. Отчёт — `docs/stage4-verification-report.md`.
 
 - `python3 registry/verify_registry.py registry/protocols-registry.json <neo-pro>/data/protocols.json`
 - `python3 -m unittest registry/test_registry.py`
+- проверка локальных PDF пользователя (в репозиторий не загружаются, репозиторий публичный):
+  `python3 registry/verify_registry.py registry/protocols-registry.json --pdf-dir <папка с PDF>`
+  или `ANTIDEFECT_PDF_DIR=<папка> python3 -m unittest registry/test_registry.py`
+- `local-pdfs/` — manifest на 31 файл и SHA256SUMS (без самих PDF).
 
 Статус «действует» или «заменён» правила принимают только с подтверждением эксперта (кто, когда, основание) и только для официально подтверждённого документа.

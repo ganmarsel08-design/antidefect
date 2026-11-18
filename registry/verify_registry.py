@@ -16,9 +16,15 @@ python3 registry/verify_registry.py registry/protocols-registry.json [путь/�
   9. Тип протокола: диагностика_и_лечение / медицинское_вмешательство / реабилитация / не_установлен.
  10. «действует» дополнительно требует проверки актуальности (currency_check) с основанием:
      ни ссылка, ни подтверждение эксперта по отдельности недостаточны.
+ 11. local_pdf (локальный PDF пользователя): SHA-256 по байтам (64 hex), origin=user_upload,
+     шапка совпадает с номером, датой и типом записи; хэш не совпадает с хэшами текста;
+     один файл не привязан к двум записям; тождество официальному файлу не заявляется,
+     пока не совпал file_checksum официального файла. Локальный PDF не делает статус «действует».
+ 12. --pdf-dir ПАПКА: пересчитать SHA-256 и размер каждого local_pdf; нет файла — ошибка.
+ 13. Коды МКБ с кириллической «Р» — предупреждение (сопоставление по коду может не сработать).
 Возвращает 0, если ошибок нет.
 """
-import hashlib, json, sys
+import hashlib, json, os, re, sys
 
 OFFICIAL = {'подтверждено_официальным_PDF', 'подтверждено_выдержкой_официального_сайта', 'подтверждено_протоколом_ОКК'}
 ALL_RESULTS = OFFICIAL | {'официальный_источник_найден_файл_не_верифицирован', 'документ_найден_шапка_не_прочитана', 'только_вторичный_источник', 'на_официальном_сайте_не_найдено'}
@@ -28,9 +34,51 @@ TYPES = {'диагностика_и_лечение', 'медицинское_в�
 CURRENCY_OK = 'новее_редакции_не_найдено'
 
 
-def check(reg, texts=None):
+SHA_RE = re.compile(r'^[0-9a-f]{64}$')
+
+
+def check_local_pdf(p, seen_sha, pdf_dir=None):
+    pid, lp, errors = p.get('id', '?'), p.get('local_pdf'), []
+    if not lp:
+        return errors
+    sha = lp.get('sha256') or ''
+    if not SHA_RE.match(sha):
+        errors.append(f'{pid}: local_pdf.sha256 — не SHA-256 байтов файла')
+    if lp.get('sha256_source') != 'байты локального PDF-файла':
+        errors.append(f'{pid}: local_pdf.sha256 должен быть вычислен по байтам PDF')
+    if lp.get('origin') != 'user_upload':
+        errors.append(f'{pid}: local_pdf.origin должен быть user_upload')
+    oc = p.get('official_check') or {}
+    if sha and sha in (p.get('text_sha256'), oc.get('quote_sha256')):
+        errors.append(f'{pid}: хэш локального PDF совпадает с хэшем текста — подмена недопустима')
+    if sha in seen_sha:
+        errors.append(f'{pid}: один и тот же PDF ({sha[:12]}…) привязан к нескольким записям ({seen_sha[sha]})')
+    seen_sha.setdefault(sha, pid)
+    h = lp.get('header') or {}
+    if lp.get('verified_header'):
+        if str(h.get('approval_no')) != str(p['approval']['no']) or h.get('approval_date') != p['approval'].get('date_iso'):
+            errors.append(f'{pid}: шапка локального PDF (№{h.get("approval_no")} от {h.get("approval_date")}) не совпадает с записью')
+        if h.get('protocol_type') != p.get('protocol_type'):
+            errors.append(f'{pid}: тип в шапке PDF «{h.get("protocol_type")}» ≠ тип записи «{p.get("protocol_type")}»')
+    fc = p.get('file_checksum') or {}
+    if lp.get('identity_with_official_file') != 'не установлено' and fc.get('value') != sha:
+        errors.append(f'{pid}: тождество официальному файлу заявлено без совпадения SHA-256 официального файла')
+    if pdf_dir is not None:
+        f = os.path.join(pdf_dir, lp.get('file_name') or '')
+        if not os.path.isfile(f):
+            errors.append(f'{pid}: оригинал локального PDF отсутствует: {lp.get("file_name")}')
+        else:
+            b = open(f, 'rb').read()
+            if hashlib.sha256(b).hexdigest() != sha:
+                errors.append(f'{pid}: SHA-256 файла {lp.get("file_name")} не совпадает с реестром')
+            if len(b) != lp.get('byte_size'):
+                errors.append(f'{pid}: размер файла {lp.get("file_name")} не совпадает с реестром')
+    return errors
+
+
+def check(reg, texts=None, pdf_dir=None):
     errors, warnings = [], []
-    seen, seen_doc = set(), set()
+    seen, seen_doc, seen_sha = set(), set(), {}
     for p in reg.get('protocols', []):
         pid = p.get('id', '?')
         if p.get('doc_id') in seen_doc:
@@ -71,18 +119,29 @@ def check(reg, texts=None):
         rc = p.get('reviewer_claim')
         if rc and str(rc.get('status', '')).startswith('не подтверждено') and oc.get('result') in OFFICIAL:
             errors.append(f'{pid}: заявление проверяющего не подтверждено, а результат сверки официальный')
+        if rc and rc.get('local_document_sha256') and rc['local_document_sha256'] != (p.get('local_pdf') or {}).get('sha256'):
+            errors.append(f'{pid}: заявление проверяющего ссылается на локальный документ, которого нет в local_pdf')
+        if rc and 'побайтово совпадает' in str(rc.get('status', '')) and not (p.get('file_checksum') or {}).get('value'):
+            errors.append(f'{pid}: заявлено побайтовое совпадение с официальным PDF без хэша официального файла')
         fc = p.get('file_checksum') or {}
         if fc.get('value'):
             if fc.get('source') != 'байты PDF-файла' or not fc.get('downloaded_from'):
                 errors.append(f'{pid}: хэш файла должен быть вычислен по байтам скачанного PDF (source, downloaded_from)')
             if fc['value'] in (oc.get('quote_sha256'), p.get('text_sha256')):
                 errors.append(f'{pid}: хэш файла совпадает с хэшем текста — подмена недопустима')
+        errors.extend(check_local_pdf(p, seen_sha, pdf_dir))
+        if any('Р' in str(c) for c in p.get('icd') or []):
+            warnings.append(f'{pid}: в кодах МКБ кириллическая «Р» вместо латинской P')
         if oc.get('result') == 'только_вторичный_источник':
             warnings.append(f'{pid}: подтверждён только вторичным источником')
         if texts is not None:
             t = texts.get(pid)
-            if t is None:
+            if t is None and p.get('in_neo_pro_base') is False:
+                pass  # новая редакция, текста которой нет в базе neo-pro
+            elif t is None:
                 errors.append(f'{pid}: нет текста протокола в базе')
+            elif p.get('text_sha256') is None and p.get('in_neo_pro_base') is False:
+                pass  # новая редакция, текста которой нет в базе
             elif hashlib.sha256(t.encode()).hexdigest() != p.get('text_sha256'):
                 errors.append(f'{pid}: текст протокола изменился после сверки (хэш не совпадает)')
     comp = reg.get('completeness', {})
@@ -126,9 +185,13 @@ def load_texts(path):
 
 
 if __name__ == '__main__':
-    reg = json.load(open(sys.argv[1], encoding='utf-8'))
-    texts = load_texts(sys.argv[2]) if len(sys.argv) > 2 else None
-    errs, warns = check(reg, texts)
+    args = sys.argv[1:]
+    pdf_dir = None
+    if '--pdf-dir' in args:
+        i = args.index('--pdf-dir'); pdf_dir = args[i + 1]; del args[i:i + 2]
+    reg = json.load(open(args[0], encoding='utf-8'))
+    texts = load_texts(args[1]) if len(args) > 1 else None
+    errs, warns = check(reg, texts, pdf_dir)
     from collections import Counter
     c = Counter(p['official_check']['result'] for p in reg['protocols'])
     s = Counter(p['registry_status'] for p in reg['protocols'])
@@ -136,6 +199,9 @@ if __name__ == '__main__':
     for k, v in c.most_common():
         print(f'  {k}: {v}')
     print('Статусы:', dict(s))
+    print('Типы:', dict(Counter(p['protocol_type'] for p in reg['protocols'])))
+    lp = [p for p in reg['protocols'] if p.get('local_pdf')]
+    print('Локальных PDF:', len(lp), '| проверка файлов:', 'да, ' + pdf_dir if pdf_dir else 'нет (--pdf-dir не указан)')
     print('Полнота:', reg['completeness']['state'], '| для модуля:', coverage(reg))
     for w in warns:
         print('предупреждение:', w)

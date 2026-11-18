@@ -26,6 +26,11 @@ function synDoc(o) {
   registry_status: k === 'unverified' ? 'не проверен' : 'действует'
 })));
 const REGH = E.loadRegistry(SYN_REG).registry;
+// Реестр не подписан: положительные выводы всегда блокируются. Логику решения проверяем
+// по предварительному исходу (provisional_status), итоговый статус — «Требуется оценка эксперта».
+const outcome = (r) => r.provisional_status || r.status;
+const AUTH = E.REGISTRY_UNAUTHENTICATED;
+const POSITIVE = [S.COMPLIANT, S.JUSTIFIED];
 const CARE = '2026-01-10';
 const searched = (o) => {
   o = o || {};
@@ -196,7 +201,12 @@ for (const c of CASES) {
     const r = E.evaluate(input, c.cfg);
     assert.equal(r.ok, true, JSON.stringify(r.errors));
     const x = c.expect;
-    assert.equal(r.status, x.status, r.reasons.concat(r.missing).join(' | '));
+    if (POSITIVE.includes(x.status)) {
+      assert.equal(r.status, S.EXPERT, 'положительный вывод при неподписанном реестре должен быть заблокирован');
+      assert.equal(r.provisional_status, x.status, r.reasons.concat(r.missing).join(' | '));
+      assert.equal(r.positive_blocked, true);
+      assert.ok(r.blocked_by.includes(AUTH), r.blocked_by.join(' | '));
+    } else assert.equal(r.status, x.status, r.reasons.concat(r.missing).join(' | '));
     if (x.relation) assert.equal(r.clinical.relation, x.relation);
     if (x.relation_source) assert.equal(r.clinical.relation_source, x.relation_source);
     if (x.doc) assert.equal(r.documentation.state, x.doc);
@@ -204,7 +214,9 @@ for (const c of CASES) {
     if (x.statement) assert.ok(r.clinical.statement.startsWith(x.statement), r.clinical.statement);
     if (x.conflict !== undefined) assert.equal(r.conflict_detected, x.conflict);
     if (x.urgent !== undefined) assert.equal(r.safety.urgent, x.urgent);
-    if (x.blocked !== undefined) { assert.equal(r.positive_blocked, x.blocked); assert.equal(r.blocked_by.length > 0, x.blocked); }
+    // blocked:false — кроме отсутствия подписи реестра других причин блокировки нет
+    if (x.blocked === false) assert.deepEqual(r.blocked_by, [AUTH]);
+    if (x.blocked === true) { assert.equal(r.positive_blocked, true); assert.ok(r.blocked_by.some(t => t !== AUTH), r.blocked_by.join(' | ')); }
     if (x.warning) assert.ok(r.warnings.some(t => t.includes(x.warning)), r.warnings.join(' | '));
     if (x.recommendation) assert.ok(r.recommendations.some(t => t.includes(x.recommendation)), r.recommendations.join(' | '));
     (x.missing || []).forEach(m => assert.ok(r.missing.some(t => t.includes(m)), `нет «${m}» в: ${r.missing.join(' | ')}`));
@@ -225,12 +237,13 @@ test('решение эксперта сохраняет исходный рез
   const r1 = E.applyExpertOverride(r, { who: 'эксперт-1', status: S.POTENTIAL_DEFECT, reason: 'синтетическая причина', source: 'протокол заседания №1', at: '2026-11-18T10:00' });
   assert.equal(r1.status, S.POTENTIAL_DEFECT);
   assert.equal(r1.status_set_by, 'expert');
-  assert.equal(r1.original.status, S.COMPLIANT);
+  assert.equal(r1.original.status, S.EXPERT);
+  assert.equal(r1.original.provisional_status, S.COMPLIANT);
   const r2 = E.applyExpertOverride(r1, { who: 'комиссия', status: S.COMPLIANT, reason: 'пересмотр', source: 'протокол заседания №2', at: '2026-11-19T10:00' });
-  assert.equal(r2.original.status, S.COMPLIANT);           // первоначальный автоматический результат
+  assert.equal(r2.original.status, S.EXPERT);              // первоначальный автоматический результат
   assert.equal(r2.history.length, 2);
   assert.equal(r2.history[0].to, S.POTENTIAL_DEFECT);
-  assert.equal(r.status, S.COMPLIANT);                     // исходный объект не изменён
+  assert.equal(r.status, S.EXPERT);                        // исходный объект не изменён
 });
 
 test('решение эксперта без причины или источника отклоняется', () => {
@@ -254,9 +267,11 @@ test('проверка входных данных', () => {
 
 test('подтверждение теряет силу после сериализации (импорт JSON не подтверждает)', () => {
   const d = diffDev(); d.evidence = [goodEvidence(d)];
-  assert.equal(E.evaluate(d).status, S.JUSTIFIED);
+  assert.equal(outcome(E.evaluate(d)), S.JUSTIFIED);
   const copy = JSON.parse(JSON.stringify(d));
-  assert.equal(E.evaluate(copy).status, S.EXPERT);
+  const rc = E.evaluate(copy);
+  assert.equal(rc.status, S.EXPERT);
+  assert.equal(rc.provisional_status, null);   // без подтверждений не получается даже предварительного положительного исхода
 });
 
 test('attest* требуют проверяющего и допустимые значения', () => {
@@ -317,8 +332,10 @@ test('замечание 1: диапазон дозы переопределяе
 test('замечание 1: осторожные формулировки при неполной проверке, полная — без слова «доказанно правильное» как утверждения', () => {
   const ok = diffDev(); ok.evidence = [goodEvidence(ok)];
   const tj = E.buildJustificationDraft(ok, E.evaluate(ok));
-  assert.equal(tj.cautious, false);
-  assert.ok(tj.text.includes('не означает, что назначение доказанно правильное'));
+  assert.equal(tj.cautious, true);                       // реестр не подписан — вывод предварительный
+  assert.ok(tj.text.includes('Вывод предварительный'));
+  assert.ok(tj.text.includes('не подписан'));
+  assert.ok(!/назначение доказанно правильное(?! )/.test(tj.text.replace('не означает, что назначение доказанно правильное', '')));
   const bad = deviation(); bad.documentation.physician_note = 'не_найдено_в_полной_истории';
   const tb = E.buildJustificationDraft(bad, E.evaluate(bad));
   assert.equal(tb.cautious, true);
@@ -402,7 +419,7 @@ test('риск 1: подтверждение полноты хранит пер�
 
 test('риск 2: изменение схемы назначения требует повторной экспертной оценки, библиография сохраняется', () => {
   const d = diffDev(); d.evidence = [goodEvidence(d)];
-  assert.equal(E.evaluate(d).status, S.JUSTIFIED);
+  assert.equal(outcome(E.evaluate(d)), S.JUSTIFIED);
   const d2 = diffDev(); d2.evidence = d.evidence; d2.order.params.dose_mg_per_kg = 25;   // та же оценка, другая схема
   const r = E.evaluate(d2);
   assert.equal(r.status, S.EXPERT);
@@ -410,7 +427,7 @@ test('риск 2: изменение схемы назначения требу�
   assert.ok(r.warnings.some(x => x.includes('оценка не учитывается')));
   assert.equal(r.evidence.items[0].verdict, 'нужна повторная экспертная оценка');   // библиография принята, оценка нет
   d2.evidence = [Object.assign({}, d.evidence[0], { expert_assessment: ea(d2) })];   // повторная оценка
-  assert.equal(E.evaluate(d2).status, S.JUSTIFIED);
+  assert.equal(outcome(E.evaluate(d2)), S.JUSTIFIED);
 });
 
 test('риск 2: изменение показаний (клинического контекста) требует повторной оценки', () => {
@@ -473,7 +490,7 @@ test('номер заседания ОКК не идентифицирует д�
   d2.protocol_check.searched = d.protocol_check.searched;
   d2.protocol_check.match = Object.assign({}, d.protocol_check.match, { doc_id: 'КП-ДЛ:nek-a:2020-01-01' });
   const r2 = E.evaluate(d2);
-  assert.equal(r2.status, S.COMPLIANT);
+  assert.equal(outcome(r2), S.COMPLIANT);
   assert.ok(r2.clinical.statement.includes('КП-ДЛ:nek-a:2020-01-01'));
 });
 
@@ -495,4 +512,75 @@ test('блокировка из-за неполноты реестра сохр�
   const r = E.evaluate(d);
   assert.equal(r.clinical.relation, 'невозможно_проверить');
   assert.notEqual(r.status, S.JUSTIFIED);
+});
+
+/* ---------- Этап 4, ред. 0.3: неподписанный реестр, редакции, локальные PDF ---------- */
+
+test('п. 8: реестр без подписи не даёт положительного вывода даже при «действует» + официальное подтверждение + актуальность', () => {
+  const r = E.evaluate(base());
+  assert.equal(r.status, S.EXPERT);
+  assert.equal(r.provisional_status, S.COMPLIANT);
+  assert.deepEqual(r.blocked_by, [AUTH]);
+  assert.ok(r.headline.includes('положительный вывод заблокирован'));
+});
+
+test('п. 8: поля signature/authenticated в самом реестре не включают аутентификацию', () => {
+  const h = E.loadRegistry({ version: 'v', signature: 'поддельная', authenticated: true, protocols: [synDoc({ authenticated: true })] }).registry;
+  assert.equal(h.authenticated, false);
+  const e = E.registryEntry(h, 'КП-ДЛ:t-1:2020-01-01', CARE, { registry_authenticated: true }).entry;
+  assert.equal(e.registry_authenticated, false);   // extra не перекрывает
+  const d = base(); d.protocol_check.searched = [Object.assign({}, e, { sections: ['раздел 1'] })];
+  assert.equal(E.evaluate(d).status, S.EXPERT);
+});
+
+test('п. 8: ручные флаги official_evidence / currency_verified / registry_authenticated во входе не учитываются', () => {
+  const d = base();
+  d.protocol_check.searched = [{ doc_id: 'КП-ДЛ:t-1:2020-01-01', protocol_no: 'T-1', protocol_type: 'диагностика_и_лечение', registry_status: 'действует',
+    official_evidence: 'подтверждено_официальным_PDF', currency_verified: true, registry_authenticated: true, valid_on_care_date: 'да', sections: ['раздел 1'] }];
+  const r = E.evaluate(d);
+  assert.equal(r.status, S.EXPERT);
+  assert.ok(r.blocked_by.some(t => t.includes('не из загруженного реестра')), r.blocked_by.join(' | '));
+});
+
+test('п. 8: копия запечатанной записи с подменой флага теряет подтверждение', () => {
+  const forged = Object.assign({}, searched(), { registry_authenticated: true });
+  assert.equal(E.isAttested(forged, 'registry_entry'), false);
+  const d = base(); d.protocol_check.searched = [forged];
+  assert.ok(E.evaluate(d).blocked_by.some(t => t.includes('не из загруженного реестра')));
+});
+
+test('п. 10: старая и новая редакции хранятся отдельно; новая не применима до даты её одобрения', () => {
+  const reg = { version: 'v', protocols: [
+    synDoc({ doc_id: 'КП:old:2019-10-03', approval: { no: '74', date_iso: '2019-10-03' }, registry_status: 'не проверен', official_check: { result: 'на_официальном_сайте_не_найдено' }, currency_check: { result: 'не_проверена' } }),
+    synDoc({ doc_id: 'КП-ДЛ:new:2026-07-01', approval: { no: '257', date_iso: '2026-07-01' } })] };
+  const h = E.loadRegistry(reg).registry;
+  assert.equal(h.size, 2);
+  assert.equal(E.registryEntry(h, 'КП-ДЛ:new:2026-07-01', '2025-05-01').entry.valid_on_care_date, 'не_определено');
+  assert.equal(E.registryEntry(h, 'КП-ДЛ:new:2026-07-01', '2026-08-01').entry.valid_on_care_date, 'да');
+  assert.equal(E.registryEntry(h, 'КП:old:2019-10-03', '2025-05-01').entry.valid_on_care_date, 'не_определено');   // старая: актуальность не проверена
+});
+
+test('п. 10: одноимённые / однономерные протоколы различаются только по doc_id', () => {
+  const reg = { version: 'v', protocols: [
+    synDoc({ doc_id: 'КП-ДЛ:a:2014-07-04', approval: { no: '10', date_iso: '2014-07-04' } }),
+    synDoc({ doc_id: 'КП-МР:b:2015-09-30', approval: { no: '10', date_iso: '2015-09-30' }, protocol_type: 'реабилитация' })] };
+  const h = E.loadRegistry(reg).registry;
+  const d = base();
+  d.protocol_check.searched = [E.registryEntry(h, 'КП-ДЛ:a:2014-07-04', CARE, { sections: ['раздел 1'] }).entry, E.registryEntry(h, 'КП-МР:b:2015-09-30', CARE, { sections: ['раздел 1'] }).entry];
+  d.protocol_check.match.protocol_no = '10';
+  assert.ok(E.evaluate(d).reasons.some(x => x.includes('не идентифицирует документ однозначно')));
+  assert.equal(E.registryEntry(h, 'КП-МР:b:2015-09-30', CARE).entry.protocol_type, 'реабилитация');
+});
+
+test('кандидат реестра 0.3 (31 запись): ни по одному документу нет положительного вывода', () => {
+  const reg = require('../../registry/protocols-registry.json');
+  const lr = E.loadRegistry(reg);
+  assert.equal(lr.ok, true, (lr.errors || []).join('; '));
+  assert.equal(lr.registry.size, 31);
+  for (const p of reg.protocols) {
+    const e = E.registryEntry(lr.registry, p.doc_id, CARE, { sections: ['раздел 1'] }).entry;
+    const d = base(); d.protocol_check.searched = [e]; d.protocol_check.match.protocol_no = undefined; d.protocol_check.match.doc_id = p.doc_id;
+    const r = E.evaluate(d);
+    assert.ok(![S.COMPLIANT, S.JUSTIFIED].includes(r.status), p.doc_id);
+  }
 });

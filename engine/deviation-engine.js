@@ -12,7 +12,7 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.8.0-stage4';
+  const VERSION = '0.9.0-stage4';
   const OFFICIAL_EVIDENCE = Object.freeze(['подтверждено_официальным_PDF', 'подтверждено_выдержкой_официального_сайта', 'подтверждено_протоколом_ОКК']);
   const PROTOCOL_TYPES = Object.freeze(['диагностика_и_лечение', 'медицинское_вмешательство', 'реабилитация', 'не_установлен']);
   const TEST_ASSURANCE = 'тестовое подтверждение в браузере (без авторизации и защищённого журнала)';
@@ -146,7 +146,12 @@
    * функцией registryEntry из реестра, загруженного loadRegistry. Те же поля во входных
    * данных игнорируются. Применимость редакции на дату помощи вычисляется здесь,
    * а не принимается со входа. Ограничение тестовой версии — как у attest*: для реальной
-   * работы реестр должен приходить с сервера с подписью. */
+   * работы реестр должен приходить с сервера с подписью.
+   * Проверки подписи реестра пока нет, поэтому любой загруженный реестр имеет
+   * authenticated:false, и положительные выводы («Соответствует протоколу»,
+   * «Обоснованное отклонение») блокируются до реализации серверной подписи. Флаг
+   * authenticated снаружи не задаётся: ни поля реестра, ни аргументы его не включают. */
+  const REGISTRY_UNAUTHENTICATED = 'реестр не подписан и не аутентифицирован сервером — положительный вывод заблокирован до реализации подписанного версионированного реестра';
   const REGISTRIES = new WeakSet();
   function loadRegistry(reg) {
     const e = [];
@@ -165,7 +170,9 @@
       }));
     });
     if (e.length) return { ok: false, errors: e };
-    const h = Object.freeze({ version: reg.version, size: byId.size, _map: byId });
+    // Проверки подписи нет: authenticated всегда false (поля reg.signature / reg.authenticated игнорируются)
+    const h = Object.freeze({ version: reg.version, size: byId.size, authenticated: false,
+      authentication: 'подпись реестра не проверяется в этой версии', _map: byId });
     REGISTRIES.add(h);
     return { ok: true, registry: h };
   }
@@ -178,7 +185,8 @@
     return { ok: true, entry: seal('registry_entry', Object.assign({}, extra || {}, {
       doc_id: p.doc_id, protocol_no: p.protocol_no, protocol_type: p.protocol_type, registry_status: p.registry_status,
       official_evidence: p.official_evidence, currency_verified: p.currency_verified,
-      valid_on_care_date: valid, care_date: careDate, registry_version: h.version })) };
+      valid_on_care_date: valid, care_date: careDate, registry_version: h.version,
+      registry_authenticated: h.authenticated === true })) };
   }
 
   /* ---------- Проверка структуры ---------- */
@@ -261,6 +269,7 @@
     if (!isAttested(s, 'registry_entry')) return 'сведения о протоколе ' + docName(s) + ' получены не из загруженного реестра (входным данным не доверяем)';
     if (!OFFICIAL_EVIDENCE.includes(s.official_evidence)) return 'протокол ' + docName(s) + ' не подтверждён официальным документом в реестре (ручной отметки недостаточно)';
     if (s.currency_verified !== true) return 'актуальность редакции протокола ' + docName(s) + ' не проверена по официальным данным (ручной отметки недостаточно)';
+    if (s.registry_authenticated !== true) return REGISTRY_UNAUTHENTICATED;
     return '';
   }
   function findSearched(pc, match) {
@@ -491,9 +500,10 @@
     }
 
     // Неподтверждённая редакция или актуальность протокола блокирует положительный вывод
-    let positive_blocked = false;
+    let positive_blocked = false, provisional_status = null;
+    rel.unconfirmed = uniq(rel.unconfirmed);
     if ((status === STATUS.COMPLIANT || status === STATUS.JUSTIFIED) && rel.unconfirmed.length) {
-      positive_blocked = true;
+      positive_blocked = true; provisional_status = status;
       reasons.push('предварительный вывод «' + status + '» не может быть окончательным: ' + rel.unconfirmed.join('; '));
       status = STATUS.EXPERT;
     } else if (rel.unconfirmed.length) warnings.push.apply(warnings, rel.unconfirmed);
@@ -510,7 +520,7 @@
       ok: true, engine_version: VERSION, id: d.id,
       analysis_basis: ANALYSIS_BASIS, evaluated_at: new Date().toISOString(), input_fingerprint: fingerprint(d),
       test_confirmations_used: usesAttestation(d),
-      status, status_set_by: 'auto', positive_blocked, blocked_by: positive_blocked ? rel.unconfirmed.slice() : [],
+      status, status_set_by: 'auto', positive_blocked, provisional_status, blocked_by: positive_blocked ? rel.unconfirmed.slice() : [],
       headline: composeHeadline(status, documentation, positive_blocked),
       clinical: { relation, relation_source: rel.source, indications: ind, statement: rel.statement },
       documentation,
@@ -532,7 +542,7 @@
     if (result && result.ok && o && o.current_input !== undefined && isStale(result, o.current_input))
       errs.push('исходные данные изменены после проверки — результат устарел, сначала выполните повторную проверку');
     if (errs.length) return { ok: false, errors: errs };
-    const original = result.original || { status: result.status, status_set_by: result.status_set_by, headline: result.headline, reasons: result.reasons.slice() };
+    const original = result.original || { status: result.status, status_set_by: result.status_set_by, provisional_status: result.provisional_status || null, blocked_by: (result.blocked_by || []).slice(), headline: result.headline, reasons: result.reasons.slice() };
     const entry = { at: o.at || new Date().toISOString(), who: o.who, event: 'решение эксперта', from: result.status, to: o.status,
       reason: o.reason, source: o.source, test_only: true, assurance: TEST_ASSURANCE };
     return Object.assign({}, result, {
@@ -587,7 +597,7 @@
 
   return {
     VERSION, STATUS, AUTO_STATUSES, ALL_STATUSES, RELATION, INDICATIONS, DOC, DOC_LABEL, REGISTRY_STATUS,
-    SIGNAL_KINDS, SEVERITY, CONFIDENCE, OFFICIAL_EVIDENCE, PROTOCOL_TYPES, APPLICABILITY, REGIMEN, BIB_METHODS, SIGNAL_LEVEL,
+    SIGNAL_KINDS, SEVERITY, CONFIDENCE, OFFICIAL_EVIDENCE, PROTOCOL_TYPES, REGISTRY_UNAUTHENTICATED, APPLICABILITY, REGIMEN, BIB_METHODS, SIGNAL_LEVEL,
     DEFAULT_CONFIG, NOT_REG_STATEMENT, IIN_LIKE,
     validate, evaluate, applyExpertOverride, signalLevel,
     attestBibliographic, attestExpertAssessment, attestRegistryCompleteness, isAttested, loadRegistry, registryEntry,
