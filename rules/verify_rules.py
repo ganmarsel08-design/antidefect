@@ -16,6 +16,8 @@ BLOCKING = {'no', 'always', 'when'}
 SCOPES = {'applicability', 'requirement'}
 CONFLICT_TYPES = {'противоречие', 'неоднозначность_маршрутизации'}
 OPS = {'eq', 'gt', 'gte', 'lt', 'lte', 'in', 'is_true', 'is_false', 'present'}
+FIELD_TYPES = {'tri', 'enum', 'number', 'text', 'datetime', 'date', 'list', 'object', 'derived'}
+SCHEMAS = {'rules-0.1', 'rules-0.2'}
 RULE_ID = re.compile(r'^(RDS|NEC|SEP)-\d{3}$')
 PREFIX = {'rds': 'RDS', 'nek': 'NEC', 'sepsis': 'SEP'}
 _BULLETS = re.compile('[-•●▪‣⁃]')
@@ -68,8 +70,58 @@ def check_node(node, where, errs):
         errs.append(f'{where}: операция {node["op"]} без value')
 
 
+def derived_names(root):
+    """Имена вычисляемых полей из engine/derive.js (DERIVED_FIELDS) — для сверки со словарём данных."""
+    path = os.path.join(root, 'engine', 'derive.js')
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding='utf-8') as f:
+        txt = f.read()
+    m = re.search(r'DERIVED_FIELDS = Object\.freeze\(\[(.*?)\]\)', txt, re.S)
+    return set(re.findall(r"'([a-z0-9_]+)'", m.group(1))) if m else None
+
+
+def check_quote(q, pr, pages, w, errs):
+    if not isinstance(q.get('page'), int) or not (1 <= q['page'] <= pr['pdf']['pages']):
+        errs.append(f'{w}: страница вне документа')
+        return
+    if q.get('sha256') != sha(q['text']):
+        errs.append(f'{w}: хэш цитаты не совпадает с текстом (цитата изменена?)')
+    if pages is not None:
+        pg = pages[q['page'] - 1]
+        if norm_text(q['text']) not in pg:
+            other = [n + 1 for n, p in enumerate(pages) if norm_text(q['text']) in p]
+            errs.append(f'{w}: текст не найден на стр. {q["page"]}' + (f' (найден на стр. {other})' if other else ' (нет в документе)'))
+
+
 def check(db, registry=None, pdf_dir=None):
     errs, warns = [], []
+    if db.get('schema_version') not in SCHEMAS:
+        errs.append(f'неизвестная версия схемы {db.get("schema_version")}')
+    v2 = db.get('schema_version') == 'rules-0.2'
+    ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if v2:
+        dd0 = db.get('data_dictionary', {})
+        for k, e in dd0.items():
+            if e.get('type') not in FIELD_TYPES:
+                errs.append(f'словарь: поле {k} — неизвестный тип {e.get("type")}')
+            if e.get('type') == 'enum' and not e.get('values'):
+                errs.append(f'словарь: поле {k} — enum без списка значений')
+            if e.get('type') == 'derived':
+                for src in e.get('derived_from') or []:
+                    if src not in dd0:
+                        errs.append(f'словарь: {k} вычисляется из неизвестного поля {src}')
+                if not e.get('derived_from'):
+                    errs.append(f'словарь: {k} — вычисляемое поле без derived_from')
+            if e.get('type') == 'tri' and not e.get('false_means'):
+                errs.append(f'словарь: поле {k} — не сказано, что значит «нет»')
+        dn = derived_names(ROOT)
+        if dn is not None:
+            declared = {k for k, e in dd0.items() if e.get('type') == 'derived'}
+            for k in sorted(declared - dn):
+                errs.append(f'словарь: {k} объявлено вычисляемым, но engine/derive.js его не вычисляет')
+            for k in sorted(dn - declared):
+                errs.append(f'engine/derive.js вычисляет {k}, которого нет в словаре как derived')
     if db.get('authenticated') is not False:
         errs.append('база не может быть помечена authenticated: подпись не реализована')
     pol = db.get('policy', {})
@@ -137,26 +189,55 @@ def check(db, registry=None, pdf_dir=None):
         if not r['source']['quotes']:
             errs.append(f'{rid}: нет цитаты')
         for i, q in enumerate(r['source']['quotes']):
-            w = f'{rid} цитата {i + 1}'
-            if not isinstance(q.get('page'), int) or not (1 <= q['page'] <= pr['pdf']['pages']):
-                errs.append(f'{w}: страница вне документа')
-                continue
-            if q.get('sha256') != sha(q['text']):
-                errs.append(f'{w}: хэш цитаты не совпадает с текстом (цитата изменена?)')
-            if r['protocol'] in pages_cache:
-                pg = pages_cache[r['protocol']][q['page'] - 1]
-                if norm_text(q['text']) not in pg:
-                    other = [n + 1 for n, p in enumerate(pages_cache[r['protocol']]) if norm_text(q['text']) in p]
-                    errs.append(f'{w}: текст не найден на стр. {q["page"]}' + (f' (найден на стр. {other})' if other else ' (нет в документе)'))
-        for k in ('applicability', 'requirement'):
-            node = r[k].get('condition' if k == 'applicability' else 'check')
+            check_quote(q, pr, pages_cache.get(r['protocol']), f'{rid} цитата {i + 1}', errs)
+        req_fields = {d['field'] for d in r['required_data']}
+        nodes = [('applicability', r['applicability'].get('condition'))]
+        parts = r['requirement'].get('parts')
+        part_ids = set()
+        if parts is not None:
+            if not v2:
+                errs.append(f'{rid}: части проверки (requirement.parts) — только в схеме rules-0.2')
+            if 'check' in r['requirement']:
+                errs.append(f'{rid}: одновременно requirement.check и requirement.parts')
+            if not parts:
+                errs.append(f'{rid}: пустой список частей')
+            for p in parts:
+                pid = p.get('part_id')
+                if not pid or pid in part_ids:
+                    errs.append(f'{rid}: часть без идентификатора или повтор {pid}')
+                part_ids.add(pid)
+                if not p.get('description'):
+                    errs.append(f'{rid}.{pid}: часть без описания')
+                nodes.append((f'parts.{pid}.check', p.get('check')))
+                if 'applicability' in p:
+                    nodes.append((f'parts.{pid}.applicability', (p['applicability'] or {}).get('condition')))
+        else:
+            nodes.append(('requirement', r['requirement'].get('check')))
+        for k, node in nodes:
             if not node:
                 errs.append(f'{rid}: нет машинного условия в {k}')
                 continue
             check_node(node, f'{rid}.{k}', errs)
-            missing = fields_of(node) - {d['field'] for d in r['required_data']}
+            missing = fields_of(node) - req_fields
             if missing:
-                errs.append(f'{rid}: поля {sorted(missing)} не перечислены в required_data')
+                errs.append(f'{rid}: поля {sorted(missing)} из {k} не перечислены в required_data')
+        for f in r.get('display_fields', []):
+            if f not in dd:
+                errs.append(f'{rid}: поле карточки {f} нет в словаре данных')
+        for cl in r.get('card_labels', []):
+            w = f'{rid} подпись {cl.get("id")}'
+            if not cl.get('id') or not cl.get('label'):
+                errs.append(f'{w}: подпись без id или текста')
+            if cl.get('when'):
+                check_node(cl['when'], w, errs)
+                for fld in fields_of(cl['when']) - set(dd):
+                    errs.append(f'{w}: поле {fld} нет в словаре данных')
+            for i, q in enumerate(cl.get('quotes', [])):
+                qp = db['protocols'].get(q.get('protocol'))
+                if not qp:
+                    errs.append(f'{w} цитата {i + 1}: неизвестный протокол')
+                    continue
+                check_quote(q, qp, pages_cache.get(q['protocol']), f'{w} цитата {i + 1}', errs)
         for d in r['required_data']:
             if d['field'] not in dd:
                 errs.append(f'{rid}: поле {d["field"]} нет в словаре данных')
@@ -174,12 +255,31 @@ def check(db, registry=None, pdf_dir=None):
                 errs.append(f'{a["id"]}: не указано, блокирует ли неоднозначность оценку')
             if a.get('scope') not in SCOPES:
                 errs.append(f'{a["id"]}: неверная область неоднозначности')
+            ap = a.get('parts') if isinstance(a.get('parts'), list) else ([a['part']] if isinstance(a.get('part'), str) else None)
+            if ap is not None:
+                if parts is None:
+                    errs.append(f'{a["id"]}: отнесена к части, но у правила нет частей')
+                for x in ap:
+                    if x not in part_ids:
+                        errs.append(f'{a["id"]}: неизвестная часть {x}')
+            conds = []
+            if a.get('blocks_when'):
+                conds.append(a['blocks_when'])
+            if a.get('blocks_when_by_part'):
+                if ap is None:
+                    errs.append(f'{a["id"]}: blocks_when_by_part без частей')
+                for x, c in a['blocks_when_by_part'].items():
+                    if ap is not None and x not in ap:
+                        errs.append(f'{a["id"]}: условие для части {x}, к которой неоднозначность не отнесена')
+                    conds.append(c)
+                if ap is not None and set(ap) - set(a['blocks_when_by_part']) and not a.get('blocks_when'):
+                    errs.append(f'{a["id"]}: нет условия для частей {sorted(set(ap) - set(a["blocks_when_by_part"]))}')
             if a.get('blocking') == 'when':
-                if not a.get('blocks_when'):
+                if not conds:
                     errs.append(f'{a["id"]}: blocking=when без условия blocks_when')
-                else:
-                    check_node(a['blocks_when'], a['id'], errs)
-                    for fld in fields_of(a['blocks_when']) - set(dd):
+                for c in conds:
+                    check_node(c, a['id'], errs)
+                    for fld in fields_of(c) - set(dd):
                         errs.append(f'{a["id"]}: поле {fld} нет в словаре данных')
     rule_ids = {r['rule_id'] for r in db['rules']}
     cf_ids = set()

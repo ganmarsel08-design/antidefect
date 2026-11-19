@@ -112,14 +112,16 @@ test('РДС-010: порог гипокапнии в протоколе не з�
 
 // --- НЭК ---
 test('НЭК: подозрение — кормление прекращено, зонд, пупочный катетер удалён — совпадает', () => {
-  const out = run({ nec_suspected: true, enteral_feeding_stopped: true, ng_tube_decompression: true, umbilical_catheter_present: true, umbilical_catheter_removed: true }, {}, { protocols: ['nek'] });
+  // rules-0.2: статус питания на момент подозрения (NEC-001, §3.1 ТЗ) и раздельные ПВК/ПАК (NEC-002)
+  const out = run({ nec_suspected: true, feeding_at_nec_suspicion: 'active', enteral_feeding_stopped: true, ng_tube_placed: true, uvc_present: true, uvc_removed: true, uac_present: false }, {}, { protocols: ['nek'] });
   assert.equal(res(out, 'NEC-001').observation, E.OBS.CONSISTENT);
   assert.equal(res(out, 'NEC-002').observation, E.OBS.CONSISTENT);
   assertNotFinal(out);
 });
 
 test('НЭК II: без метронидазола — отличие; сроки кормления и антибиотиков — неоднозначность, без утверждения о нарушении', () => {
-  const out = run({ nec_stage: '2б', enteral_feeding_resumed_day: 5, antibiotics_started: true, antibiotic_days: 8, metronidazole_given: false });
+  const out = run({ nec_stage: '2б', enteral_feeding_resumed_at: '2026-01-05T10:00+05:00', nec_onset_at: '2026-01-01T10:00+05:00', antibiotics_started: true,
+    course_completed: true, abx_course_started_at: '2026-01-01T12:00+05:00', abx_course_ended_at: '2026-01-08T12:00+05:00', metronidazole_given: false });
   assert.equal(res(out, 'NEC-007').observation, E.OBS.DIFFERS);
   assert.equal(res(out, 'NEC-004').observation, E.OBS.AMBIGUOUS_PENDING);
   assert.equal(res(out, 'NEC-008').observation, E.OBS.AMBIGUOUS_PENDING);
@@ -132,7 +134,7 @@ test('НЭК 1а: метронидазол не введён — неодноз�
 });
 
 test('НЭК 2а: противоречие п. 5.1 показано как свойство протокола, NEC-010 — неоднозначность', () => {
-  const out = run({ nec_stage: '2а', facility_level: 2, surgeon_consulted: true, transferred_to_surgery: false });
+  const out = run({ nec_stage: '2а', facility_level: 2, surgeon_consult_status: 'done', surgeon_consult_format: 'in_person', transferred_to_surgery: false });
   assert.equal(res(out, 'NEC-009').observation, E.OBS.CONSISTENT);
   assert.equal(res(out, 'NEC-010').observation, E.OBS.AMBIGUOUS_PENDING);
   const cf = out.conflicts.find(c => c.id === 'CF-001');
@@ -142,26 +144,31 @@ test('НЭК 2а: противоречие п. 5.1 показано как св�
 
 test('противоречие не выводится из разных результатов двух правил (п. 4 замечаний)', () => {
   // NEC-001 совпадает, NEC-002 отличается — это не противоречие протокола
-  const out = run({ nec_suspected: true, enteral_feeding_stopped: true, ng_tube_decompression: true, umbilical_catheter_present: true, umbilical_catheter_removed: false }, {}, { protocols: ['nek'] });
+  const out = run({ nec_suspected: true, feeding_at_nec_suspicion: 'active', enteral_feeding_stopped: true, ng_tube_placed: true, uvc_present: true, uvc_removed: false, uac_present: false }, {}, { protocols: ['nek'] });
   assert.equal(res(out, 'NEC-001').observation, E.OBS.CONSISTENT);
   assert.equal(res(out, 'NEC-002').observation, E.OBS.DIFFERS);
   assert.deepEqual(out.conflicts, []);
   // НЭК 2б: NEC-010 отличается, NEC-009 неприменимо — объявленное противоречие для 2а не показывается
-  const b = run({ nec_stage: '2б', facility_level: 2, surgeon_consulted: true, transferred_to_surgery: false });
+  const b = run({ nec_stage: '2б', facility_level: 2, surgeon_consult_status: 'done', surgical_department_available: false, current_department: 'nicu', transferred_to_surgery: false });
   assert.equal(res(b, 'NEC-010').observation, E.OBS.DIFFERS);
   assert.ok(!b.conflicts.some(c => c.id === 'CF-001'));
 });
 
 test('противоречие 2а показывается и тогда, когда оба правила выполнены', () => {
-  const out = run({ nec_stage: '2а', facility_level: 2, surgeon_consulted: true, transferred_to_surgery: true });
+  const out = run({ nec_stage: '2а', facility_level: 2, surgeon_consult_status: 'done', transferred_to_surgery: true });
   assert.ok(out.conflicts.some(c => c.id === 'CF-001'));
 });
 
-test('НЭК: при ухудшении снимок не вертикально — отличие; без ухудшения горизонтальный допустим', () => {
-  const bad = res(run({ nec_stage: '2а', xray_48h_after_diagnosis: true, clinical_deterioration: true, xray_vertical_or_lateral_at_deterioration: false }), 'NEC-006');
-  const ok = res(run({ nec_stage: '2а', xray_48h_after_diagnosis: true, clinical_deterioration: false }), 'NEC-006');
-  assert.equal(bad.observation, E.OBS.DIFFERS);
-  assert.equal(ok.observation, E.OBS.CONSISTENT);
+test('НЭК: при ухудшении снимок не вертикально — часть «ухудшение» отличается; без ухудшения горизонтальный допустим', () => {
+  // rules-0.2: три части (NEC-006); часть «48 ч» ждёт эксперта (NEC-006-A2), поэтому итог правила — неоднозначность
+  const base = { nec_stage: '2а', nec_diagnosed_at: '2026-01-01T10:00+05:00' };
+  const bad = res(run({ ...base, clinical_deterioration: true, deterioration_at: '2026-01-03T08:00+05:00', xrays: [{ at: '2026-01-03T10:00+05:00', position: 'horizontal', reason: 'planned' }] }), 'NEC-006');
+  const ok = res(run({ ...base, clinical_deterioration: false, xrays: [{ at: '2026-01-03T10:00+05:00', position: 'horizontal', reason: 'planned' }] }), 'NEC-006');
+  const part = (r, id) => r.parts.find(p => p.part_id === id);
+  assert.equal(part(bad, 'deterioration').observation, E.OBS.DIFFERS);
+  assert.equal(bad.observation, E.OBS.AMBIGUOUS_PENDING);
+  assert.equal(part(ok, 'deterioration').observation, E.OBS.NOT_APPLICABLE);
+  assert.ok(!ok.parts.some(p => p.observation === E.OBS.DIFFERS));
 });
 
 // --- Сепсис ---
@@ -209,7 +216,8 @@ test('Сепсис-010: при менингите правило неприме�
 });
 
 test('Сепсис-008: ампициллин + гентамицин, улучшение, посев отрицательный, 4 суток — совпадает', () => {
-  const out = run({ antibiotics_started: true, empirical_regimen: 'ampicillin+gentamicin', improving: true, blood_culture_result: 'отрицательный', high_risk_factors: false, antibiotic_days: 4 });
+  const out = run({ antibiotics_started: true, empirical_regimen: 'ampicillin+gentamicin', improving: true, blood_culture_result: 'отрицательный', high_risk_factors: false,
+    course_completed: true, abx_course_started_at: '2026-01-01T10:00+05:00', abx_course_ended_at: '2026-01-04T10:00+05:00' });
   assert.equal(res(out, 'SEP-008').observation, E.OBS.CONSISTENT);
   assert.equal(res(out, 'SEP-010').applicability, 'неприменимо');
 });
@@ -227,20 +235,25 @@ test('Сепсис-008/009: другая схема — правило не пе
 });
 
 test('Сепсис: иммуноглобулин без отдельного показания — «не рекомендуется», отличие', () => {
-  const r = res(run({ sepsis_suspected: true, immunoglobulin_given: true, immunoglobulin_indication_documented: false }), 'SEP-003');
+  // rules-0.2 (§3.4 ТЗ): рутинное применение для лечения/профилактики сепсиса — отличие
+  const r = res(run({ sepsis_suspected: true, immunoglobulin_given: true, immunoglobulin_purpose: 'sepsis_treatment_or_prophylaxis', immunoglobulin_use_type: 'routine' }), 'SEP-003');
   assert.equal(r.observation, E.OBS.DIFFERS);
   assert.equal(r.kind, 'ограничение');
   assert.match(r.observation_weight, /не рекомендует/);
 });
 
 test('Сепсис: бензилпенициллин 25 мг/кг каждые 8 ч при очень тяжёлом состоянии — допускается оговоркой', () => {
-  const r = res(run({ early_onset_sepsis_suspected: true, benzylpenicillin_given: true, benzylpenicillin_dose_mg_kg: 25, benzylpenicillin_interval_h: 8, very_severe_condition: true }), 'SEP-005');
+  const r = res(run({ early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg_kg: 25, benzylpenicillin_interval_h: 8, very_severe_condition: true }), 'SEP-005');
   assert.equal(r.observation, E.OBS.CONSISTENT);
 });
 
-test('Сепсис: доза гентамицина 4 мг/кг без НЭК — отличие; при НЭК — неоднозначность доз и противоречие протоколов', () => {
-  const r = res(run({ early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_initial_dose_mg_kg: 4 }), 'SEP-006');
-  assert.equal(r.observation, E.OBS.DIFFERS);
+test('Сепсис: доза гентамицина 4 мг/кг без НЭК — неоднозначность п. 7a/7b (SEP-006-A3), 3 мг/кг — отличие; при НЭК — неоднозначность доз и противоречие протоколов', () => {
+  // rules-0.2 (план, SEP-006 «Утвердить»): 4–7 мг/кг, кроме 5, — SEP-006-A3, а не отличие и не одобрение
+  const r = res(run({ early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_initial_dose_mg_kg: 4, gentamicin_interval_h: 36 }), 'SEP-006');
+  assert.equal(r.observation, E.OBS.AMBIGUOUS_PENDING);
+  assert.deepEqual(r.active_ambiguities, ['SEP-006-A3']);
+  const low = res(run({ early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_initial_dose_mg_kg: 3, gentamicin_interval_h: 36 }), 'SEP-006');
+  assert.equal(low.observation, E.OBS.DIFFERS);
   const out = run({ early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_initial_dose_mg_kg: 4, nec_stage: '2а' });
   assert.equal(res(out, 'SEP-006').observation, E.OBS.AMBIGUOUS_PENDING);
   assert.ok(out.conflicts.some(c => c.id === 'CF-005'));
@@ -316,7 +329,8 @@ test('CF-002: без улучшения или при отрицательном
 test('CF-004: РДС с исключённой инфекцией — не показывается', () => {
   const out = run({ rds_diagnosed: true, serious_bacterial_infection_excluded: true, red_flag_count: 0, risk_factor_or_sign_count: 0 });
   assert.ok(!cfIds(out).includes('CF-004'));
-  assert.equal(res(out, 'RDS-007').applicability, 'неприменимо');
+  // rules-0.2: правило применимо к РДС; часть «начало АБТ» неприменима, когда ТБИ исключена
+  assert.equal(res(out, 'RDS-007').parts.find(p => p.part_id === 'start').observation, E.OBS.NOT_APPLICABLE);
 });
 
 test('CF-004: РДС с признаками/факторами риска инфекции — не показывается (антибиотики показаны по обоим протоколам)', () => {
@@ -397,7 +411,8 @@ test('неоднозначность: «решение», вписанное в 
   const db = clone(DB);
   const rule = db.rules.find(x => x.rule_id === 'SEP-009');
   rule.ambiguities[0].decision = 'принять 10 дней';
-  const out = E.evaluate(db, { synthetic: true, data: { antibiotics_started: true, empirical_regimen: 'ampicillin+gentamicin', improving: true, blood_culture_result: 'положительный', antibiotic_days: 7 } });
+  const out = E.evaluate(db, { synthetic: true, data: { antibiotics_started: true, empirical_regimen: 'ampicillin+gentamicin', improving: true, blood_culture_result: 'положительный', meningitis: false,
+    course_completed: true, abx_course_started_at: '2026-01-01T10:00+05:00', abx_course_ended_at: '2026-01-07T10:00+05:00' } });
   assert.equal(res(out, 'SEP-009').observation, E.OBS.AMBIGUOUS_PENDING);
 });
 
@@ -478,7 +493,13 @@ test('комплексный синтетический случай по трё
     sepsis_suspected: true, early_onset_sepsis_suspected: true, red_flag_count: 1, antibiotics_start_minutes: 40,
     empirical_regimen: 'ampicillin+gentamicin', gentamicin_given: true, gentamicin_initial_dose_mg_kg: 5, crp_18_24h_after_start: true,
     nec_suspected: true, nec_stage: '2а', enteral_feeding_stopped: true, ng_tube_decompression: true, parenteral_nutrition_started_day: 1,
-    metronidazole_given: true, facility_level: 3
+    metronidazole_given: true, facility_level: 3,
+    // rules-0.2: события с отметками времени
+    meningitis: false, feeding_at_nec_suspicion: 'active', ng_tube_placed: true, pn_type: 'full', pn_running_at_nec_onset: true,
+    sepsis_indication_identified_at: '2026-01-01T10:00+05:00', first_abx_dose_administered_at: '2026-01-01T10:40+05:00',
+    blood_culture_drawn_at: '2026-01-01T10:20+05:00', initial_empirical_regimen: 'ampicillin+gentamicin',
+    crp_samples: [{ drawn_at: '2026-01-02T06:00+05:00', purpose: 'control' }],
+    mechanical_ventilation: true, blood_gases: [{ drawn_at: '2026-01-01T12:00+05:00', paco2_mmhg: 45 }], paco2_hypocapnia_threshold: 35, threshold_source: 'синтетический СОП'
   });
   assert.ok(out.summary.consistent_literal >= 10, String(out.summary.consistent_literal));
   assert.ok(out.summary.ambiguous_pending_expert >= 1);

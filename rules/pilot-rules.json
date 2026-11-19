@@ -1,7 +1,8 @@
 {
- "schema_version": "rules-0.1",
+ "schema_version": "rules-0.2",
  "name": "База медицинских правил — пилот (РДС, НЭК №185, сепсис №185)",
  "created": "2026-11-18",
+ "revised": "2026-11-19",
  "status": "кандидат, ожидает экспертного подтверждения",
  "authenticated": false,
  "authentication": "база не подписана; ни одно правило не подтверждено экспертом",
@@ -15,7 +16,19 @@
    "может_применяться",
    "не_рекомендуется",
    "противопоказано"
-  ]
+  ],
+  "parts": "Правило может состоять из частей проверки (requirement.parts); итог правила — самый осторожный исход применимых частей: неоднозначность → отличается → нет данных → совпадает.",
+  "chronology": "Интервалы вычисляет программа (engine/derive.js) по отметкам времени с часовым поясом; неполная или противоречивая отметка → интервал не вычисляется («Недостаточно данных»); значения вычисляемых полей, введённые вручную, не используются.",
+  "unknown": "«Неизвестно» и отсутствие записи — это нет данных, а не «нет»; «нет» — только документированное невыполнение.",
+  "justification_categories": [
+   "clinical_indication",
+   "drug_unavailable",
+   "local_practice",
+   "physician_or_consilium_decision",
+   "other"
+  ],
+  "card_labels": "Подписи карточки эксперта (card_labels) только отображаются и не меняют исход.",
+  "expert_decisions": "Решения экспертизы и клинические комментарии врача хранятся отдельно: rules/expert-decisions.json."
  },
  "protocols": {
   "rds": {
@@ -82,255 +95,1437 @@
  "data_dictionary": {
   "gestational_age_weeks": {
    "description": "Гестационный возраст при рождении",
-   "unit": "недели"
+   "unit": "недели",
+   "type": "number",
+   "since": "rules-0.1"
   },
   "birth_weight_g": {
    "description": "Масса тела при рождении",
-   "unit": "г"
+   "unit": "г",
+   "type": "number",
+   "since": "rules-0.1"
   },
   "rds_risk": {
    "description": "Ребёнок отнесён к группе риска развития РДС (решение врача)",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "rds_diagnosed": {
    "description": "Диагноз РДС установлен",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "cpap_from_birth": {
    "description": "СРАР начат с момента рождения",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "cpap_pressure_cmh2o": {
    "description": "Начальное давление СРАР",
-   "unit": "см H2O"
+   "unit": "см H2O",
+   "type": "number",
+   "since": "rules-0.1"
   },
   "intubated": {
    "description": "Ребёнок интубирован",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "surfactant_given": {
    "description": "Введён сурфактант",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "antenatal_steroids_given": {
    "description": "Мать получила антенатальные стероиды",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "intubation_needed_for_stabilization": {
    "description": "Для стабилизации потребовалась интубация",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "fio2": {
    "description": "FiO2 во время стабилизации",
-   "unit": "доля 0–1"
+   "unit": "доля 0–1",
+   "type": "number",
+   "since": "rules-0.1"
   },
   "surfactant_in_delivery_room": {
    "description": "Сурфактант введён в родильном зале",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "oxygen_given": {
    "description": "Подавался кислород",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "oxygen_via_blender": {
    "description": "Кислород подавался через кислородно-воздушный смеситель",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "oxygen_after_stabilization": {
    "description": "Оксигенотерапия после начальной стабилизации",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "spo2_target_low": {
    "description": "Нижняя граница целевой SpO2 в назначениях",
-   "unit": "%"
+   "unit": "%",
+   "type": "number",
+   "since": "rules-0.1"
   },
   "spo2_target_high": {
    "description": "Верхняя граница целевой SpO2 в назначениях",
-   "unit": "%"
+   "unit": "%",
+   "type": "number",
+   "since": "rules-0.1"
   },
   "condition_allows_delayed_clamping": {
    "description": "Состояние позволяло отсроченное пережатие пуповины (оценка врача)",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "cord_clamp_delay_s": {
    "description": "Время до пережатия пуповины",
-   "unit": "секунды"
+   "unit": "секунды",
+   "type": "number",
+   "since": "rules-0.1"
   },
   "antibiotics_started": {
    "description": "Начата антибактериальная терапия",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "serious_bacterial_infection_excluded": {
    "description": "Тяжёлая бактериальная инфекция исключена (решение врача)",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "blood_culture_before_antibiotics": {
    "description": "Посев крови взят до первой дозы антибиотика",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "surfactant_drug": {
    "description": "Препарат сурфактанта",
-   "unit": "название"
+   "unit": "название",
+   "type": "text",
+   "since": "rules-0.1"
   },
   "surfactant_initial_dose_mg_kg": {
    "description": "Начальная доза сурфактанта",
-   "unit": "мг/кг"
+   "unit": "мг/кг",
+   "type": "number",
+   "since": "rules-0.1"
   },
   "mechanical_ventilation": {
    "description": "Проводится механическая вентиляция (ИВЛ)",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "hypocapnia_documented": {
    "description": "Документирована гипокапния на ИВЛ (порог определяет врач)",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1",
+   "superseded_in_revised_rules_by": [
+    "blood_gases",
+    "paco2_hypocapnia_threshold",
+    "threshold_source"
+   ]
   },
   "nec_suspected": {
    "description": "Подозрение на НЭК",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "nec_stage": {
    "description": "Стадия НЭК по классификации протокола",
-   "unit": "1а/1б/2а/2б/3а/3б"
+   "unit": "1а/1б/2а/2б/3а/3б",
+   "type": "enum",
+   "values": [
+    "1а",
+    "1б",
+    "2а",
+    "2б",
+    "3а",
+    "3б"
+   ],
+   "since": "rules-0.1"
   },
   "enteral_feeding_stopped": {
    "description": "Энтеральное кормление прекращено",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "ng_tube_decompression": {
    "description": "Установлен назогастральный зонд для декомпрессии",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1",
+   "superseded_in_revised_rules_by": [
+    "ng_tube_present_at_suspicion",
+    "ng_tube_functioning_at_suspicion",
+    "ng_tube_placed"
+   ]
   },
   "umbilical_catheter_present": {
    "description": "На момент подозрения стоял пупочный катетер",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1",
+   "superseded_in_revised_rules_by": [
+    "uvc_present",
+    "uac_present"
+   ]
   },
   "umbilical_catheter_removed": {
    "description": "Пупочный катетер удалён",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1",
+   "superseded_in_revised_rules_by": [
+    "uvc_removed",
+    "uac_removed"
+   ]
   },
   "gi_passage_restored": {
    "description": "Функция пассажа по ЖКТ восстановлена (оценка врача)",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "enteral_feeding_resumed_day": {
    "description": "День заболевания, когда возобновлена энтеральная нагрузка",
-   "unit": "сутки"
+   "unit": "сутки",
+   "type": "number",
+   "since": "rules-0.1",
+   "superseded_in_revised_rules_by": [
+    "nec_onset_at",
+    "nec_confirmed_at",
+    "enteral_feeding_resumed_at"
+   ]
   },
   "parenteral_nutrition_started_day": {
    "description": "День заболевания, когда начато парентеральное питание",
-   "unit": "сутки"
+   "unit": "сутки",
+   "type": "number",
+   "since": "rules-0.1",
+   "superseded_in_revised_rules_by": [
+    "nec_onset_at",
+    "pn_started_at",
+    "pn_running_at_nec_onset",
+    "pn_type"
+   ]
   },
   "xray_48h_after_diagnosis": {
    "description": "Обзорная рентгенография через 48 часов после диагноза",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1",
+   "superseded_in_revised_rules_by": [
+    "nec_diagnosed_at",
+    "xrays"
+   ]
   },
   "clinical_deterioration": {
    "description": "Клиническое ухудшение состояния",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "xray_vertical_or_lateral_at_deterioration": {
    "description": "При ухудшении рентгенография в вертикальном положении или латеропозиции",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1",
+   "superseded_in_revised_rules_by": [
+    "deterioration_at",
+    "xrays"
+   ]
   },
   "metronidazole_given": {
    "description": "Метронидазол включён в терапию",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "antibiotic_days": {
    "description": "Длительность антибактериальной терапии",
-   "unit": "сутки"
+   "unit": "сутки",
+   "type": "number",
+   "since": "rules-0.1",
+   "superseded_in_revised_rules_by": [
+    "abx_course_started_at",
+    "abx_course_ended_at",
+    "course_completed"
+   ]
   },
   "facility_level": {
    "description": "Уровень родовспомогательной организации",
-   "unit": "1/2/3"
+   "unit": "1/2/3",
+   "type": "enum",
+   "values": [
+    1,
+    2,
+    3
+   ],
+   "since": "rules-0.1"
   },
   "surgeon_consulted": {
    "description": "Проведена консультация хирурга",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1",
+   "superseded_in_revised_rules_by": [
+    "surgeon_consult_status",
+    "surgeon_consult_format"
+   ]
   },
   "transferred_to_surgery": {
    "description": "Переведён в хирургическое отделение",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "red_flag_count": {
    "description": "Число признаков/факторов из группы «Красный флаг»",
-   "unit": "число"
+   "unit": "число",
+   "type": "number",
+   "since": "rules-0.1"
   },
   "risk_factor_or_sign_count": {
    "description": "Число факторов риска и клинических признаков сепсиса (без «Красного флага»)",
-   "unit": "число"
+   "unit": "число",
+   "type": "number",
+   "since": "rules-0.1"
   },
   "antibiotics_start_minutes": {
    "description": "Минут от выявления показания до первой дозы антибиотика",
-   "unit": "минуты"
+   "unit": "минуты",
+   "type": "number",
+   "since": "rules-0.1",
+   "superseded_in_revised_rules_by": [
+    "sepsis_indication_identified_at",
+    "first_abx_dose_administered_at"
+   ]
   },
   "early_onset_sepsis_suspected": {
    "description": "Подозрение на ранний неонатальный сепсис",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "empirical_regimen": {
    "description": "Эмпирическая схема",
-   "unit": "benzylpenicillin+gentamicin / ampicillin+gentamicin / другое"
+   "unit": "benzylpenicillin+gentamicin / ampicillin+gentamicin / другое",
+   "type": "enum",
+   "values": [
+    "benzylpenicillin+gentamicin",
+    "ampicillin+gentamicin",
+    "другое"
+   ],
+   "since": "rules-0.1"
   },
   "benzylpenicillin_given": {
    "description": "Назначен бензилпенициллин",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "benzylpenicillin_dose_mg_kg": {
    "description": "Разовая доза бензилпенициллина",
-   "unit": "мг/кг"
+   "unit": "мг/кг",
+   "type": "number",
+   "since": "rules-0.1"
   },
   "benzylpenicillin_interval_h": {
    "description": "Интервал введения бензилпенициллина",
-   "unit": "часы"
+   "unit": "часы",
+   "type": "number",
+   "since": "rules-0.1"
   },
   "very_severe_condition": {
    "description": "Состояние оценено как очень тяжёлое",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "gentamicin_given": {
    "description": "Назначен гентамицин",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "gentamicin_initial_dose_mg_kg": {
    "description": "Начальная доза гентамицина",
-   "unit": "мг/кг"
+   "unit": "мг/кг",
+   "type": "number",
+   "since": "rules-0.1"
   },
   "gentamicin_interval_h": {
    "description": "Интервал между первой и второй дозой гентамицина",
-   "unit": "часы"
+   "unit": "часы",
+   "type": "number",
+   "since": "rules-0.1"
   },
   "crp_18_24h_after_start": {
    "description": "СРБ определён через 18–24 ч от начала антибиотиков",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1",
+   "superseded_in_revised_rules_by": [
+    "first_abx_dose_administered_at",
+    "crp_samples"
+   ]
   },
   "improving": {
    "description": "Состояние улучшается (оценка врача)",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "blood_culture_result": {
    "description": "Результат посева крови",
-   "unit": "положительный/отрицательный"
+   "unit": "положительный/отрицательный",
+   "type": "enum",
+   "values": [
+    "положительный",
+    "отрицательный"
+   ],
+   "since": "rules-0.1"
   },
   "high_risk_factors": {
    "description": "Факторы риска, указывающие на высокий риск реализации сепсиса",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "sepsis_suspected": {
    "description": "Подозрение на неонатальный сепсис",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "immunoglobulin_given": {
    "description": "Введён иммуноглобулин",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "meningitis": {
    "description": "Менингит подозревается или подтверждён",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1"
   },
   "immunoglobulin_indication_documented": {
    "description": "Задокументировано отдельное показание к иммуноглобулину",
-   "unit": "да/нет"
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных",
+   "since": "rules-0.1",
+   "superseded_in_revised_rules_by": [
+    "immunoglobulin_purpose",
+    "immunoglobulin_use_type"
+   ]
+  },
+  "sbi_excluded_at": {
+   "description": "Время, когда тяжёлая бактериальная инфекция исключена (запись врача)",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "antibiotics_stopped_at": {
+   "description": "Время отмены антибактериальной терапии",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "abx_decision_justification": {
+   "description": "Обоснование начала или неначала АБТ (текст записи)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "local_abx_protocol_ref": {
+   "description": "Ссылка на протокол антибиотикотерапии отделения",
+   "unit": "текст",
+   "type": "text"
+  },
+  "hours_sbi_excluded_to_abx_stop": {
+   "description": "Часов от исключения ТБИ до отмены АБТ (вычисляется)",
+   "unit": "часы",
+   "type": "derived",
+   "derived_from": [
+    "sbi_excluded_at",
+    "antibiotics_stopped_at"
+   ]
+  },
+  "abx_stopped_after_sbi_exclusion": {
+   "description": "АБТ отменена позже исключения ТБИ (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "sbi_excluded_at",
+    "antibiotics_stopped_at"
+   ]
+  },
+  "blood_gases": {
+   "description": "Газы крови за время ИВЛ: {drawn_at, paco2_mmhg, ph}",
+   "unit": "список",
+   "type": "list"
+  },
+  "paco2_hypocapnia_threshold": {
+   "description": "Порог PaCO₂ для гипокапнии, принятый в отделении (протокол порог не задаёт)",
+   "unit": "мм рт. ст.",
+   "type": "number"
+  },
+  "threshold_source": {
+   "description": "Источник порога PaCO₂ (документ, пункт)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "vent_changes": {
+   "description": "Изменения настроек ИВЛ: {at, parameter, from, to}",
+   "unit": "список",
+   "type": "list"
+  },
+  "blood_gas_count": {
+   "description": "Число анализов газов крови с PaCO₂ (вычисляется)",
+   "unit": "число",
+   "type": "derived",
+   "derived_from": [
+    "blood_gases"
+   ]
+  },
+  "hypocapnia_episode_count": {
+   "description": "Число анализов с PaCO₂ ниже порога из источника (вычисляется)",
+   "unit": "число",
+   "type": "derived",
+   "derived_from": [
+    "blood_gases",
+    "paco2_hypocapnia_threshold",
+    "threshold_source"
+   ]
+  },
+  "minutes_hypocapnia_to_vent_change": {
+   "description": "Минут от первого эпизода гипокапнии до первого изменения ИВЛ (вычисляется)",
+   "unit": "минуты",
+   "type": "derived",
+   "derived_from": [
+    "blood_gases",
+    "paco2_hypocapnia_threshold",
+    "threshold_source",
+    "vent_changes"
+   ]
+  },
+  "nec_suspected_at": {
+   "description": "Время возникновения подозрения на НЭК",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "feeding_at_nec_suspicion": {
+   "description": "Энтеральное питание на момент подозрения: active — проводилось, already_stopped — уже не проводилось",
+   "unit": "значение",
+   "type": "enum",
+   "values": [
+    "active",
+    "already_stopped",
+    "unknown"
+   ]
+  },
+  "feeding_stopped_before_suspicion_at": {
+   "description": "Когда питание было прекращено до подозрения (если известно)",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "enteral_feeding_stopped_at": {
+   "description": "Время прекращения энтерального кормления после подозрения",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "ng_tube_present_at_suspicion": {
+   "description": "Назогастральный зонд уже стоял на момент подозрения",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "ng_tube_functioning_at_suspicion": {
+   "description": "Стоящий зонд исправно функционировал на момент подозрения",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "ng_tube_placed": {
+   "description": "Назогастральный зонд установлен после подозрения",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "ng_tube_placed_at": {
+   "description": "Время установки назогастрального зонда",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "ng_tube_size_f": {
+   "description": "Размер зонда (показывается, не проверяется)",
+   "unit": "F",
+   "type": "number"
+  },
+  "ng_decompression_documented": {
+   "description": "Документирована декомпрессия через зонд (показывается)",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "minutes_suspicion_to_feeding_stop": {
+   "description": "Минут от подозрения до прекращения кормления (вычисляется, показывается)",
+   "unit": "минуты",
+   "type": "derived",
+   "derived_from": [
+    "nec_suspected_at",
+    "enteral_feeding_stopped_at"
+   ]
+  },
+  "minutes_suspicion_to_ng_tube": {
+   "description": "Минут от подозрения до установки зонда (вычисляется, показывается)",
+   "unit": "минуты",
+   "type": "derived",
+   "derived_from": [
+    "nec_suspected_at",
+    "ng_tube_placed_at"
+   ]
+  },
+  "uvc_present": {
+   "description": "На момент подозрения стоял пупочный венозный катетер (ПВК)",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "uvc_removed": {
+   "description": "ПВК удалён",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "uvc_removed_at": {
+   "description": "Время удаления ПВК",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "uac_present": {
+   "description": "На момент подозрения стоял пупочный артериальный катетер (ПАК)",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "uac_removed": {
+   "description": "ПАК удалён",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "uac_removed_at": {
+   "description": "Время удаления ПАК",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "alternative_access_available": {
+   "description": "Был ли другой сосудистый доступ",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "retention_reason": {
+   "description": "Причина сохранения катетера (текст записи)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "replacement_plan": {
+   "description": "План замены доступа (текст записи)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "nec_onset_at": {
+   "description": "Время начала заболевания (НЭК)",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "nec_confirmed_at": {
+   "description": "Время подтверждения диагноза НЭК",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "nec_diagnosed_at": {
+   "description": "Время установленного диагноза НЭК (для отсчёта рентгенологического контроля)",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "gi_passage_restored_at": {
+   "description": "Время восстановления пассажа по ЖКТ",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "improvement_signs": {
+   "description": "Признаки улучшения (стр. 12): abdomen_not_distended_not_tender, no_pathological_gastric_residuals, ileus_resolved, spontaneous_stool, labs_normalized, no_us_bowel_wall_inflammation, no_ascites, peristalsis_restored — да/нет каждый",
+   "unit": "объект",
+   "type": "object"
+  },
+  "enteral_feeding_resumed_at": {
+   "description": "Время возобновления энтеральной нагрузки",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "feeding_decision_documented": {
+   "description": "Решение о возобновлении нагрузки записано",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "nec_day_from_onset_at_feeding_resumption": {
+   "description": "День заболевания (от начала) при возобновлении нагрузки; 1 — день начала (вычисляется)",
+   "unit": "сутки",
+   "type": "derived",
+   "derived_from": [
+    "nec_onset_at",
+    "enteral_feeding_resumed_at"
+   ]
+  },
+  "nec_day_from_confirmation_at_feeding_resumption": {
+   "description": "День от подтверждения НЭК при возобновлении нагрузки; 1 — день подтверждения (вычисляется)",
+   "unit": "сутки",
+   "type": "derived",
+   "derived_from": [
+    "nec_confirmed_at",
+    "enteral_feeding_resumed_at"
+   ]
+  },
+  "feeding_resumed_after_passage_restored": {
+   "description": "Нагрузка возобновлена не раньше восстановления пассажа (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "enteral_feeding_resumed_at",
+    "gi_passage_restored",
+    "gi_passage_restored_at"
+   ]
+  },
+  "improvement_achieved": {
+   "description": "Отмечены все признаки улучшения со стр. 12 (вычисляется; любой «нет» → нет)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "improvement_signs"
+   ]
+  },
+  "improvement_signs_documented_count": {
+   "description": "Число отмеченных признаков улучшения (вычисляется)",
+   "unit": "число",
+   "type": "derived",
+   "derived_from": [
+    "improvement_signs"
+   ]
+  },
+  "pn_running_at_nec_onset": {
+   "description": "Полное ПП уже проводилось на момент начала НЭК",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "pn_started_at": {
+   "description": "Время начала полного парентерального питания",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "pn_type": {
+   "description": "Вид ПП: full — полное, partial — частичное (например, без липидов), glucose_only — только глюкоза",
+   "unit": "значение",
+   "type": "enum",
+   "values": [
+    "full",
+    "partial",
+    "glucose_only",
+    "unknown"
+   ]
+  },
+  "pn_start_illness_day": {
+   "description": "День заболевания, в который начато ПП; 1 — день начала НЭК (вычисляется)",
+   "unit": "сутки",
+   "type": "derived",
+   "derived_from": [
+    "nec_onset_at",
+    "pn_started_at"
+   ]
+  },
+  "xrays": {
+   "description": "Рентгенограммы: {at, position: horizontal/vertical/lateral, reason: planned/urgent, result}",
+   "unit": "список",
+   "type": "list"
+  },
+  "deterioration_at": {
+   "description": "Время клинического ухудшения",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "xray_count": {
+   "description": "Число рентгенограмм с полной отметкой времени (вычисляется)",
+   "unit": "число",
+   "type": "derived",
+   "derived_from": [
+    "xrays"
+   ]
+  },
+  "hours_diagnosis_to_first_xray": {
+   "description": "Часов от диагноза до первого снимка (вычисляется)",
+   "unit": "часы",
+   "type": "derived",
+   "derived_from": [
+    "nec_diagnosed_at",
+    "xrays"
+   ]
+  },
+  "max_hours_between_xrays": {
+   "description": "Наибольший интервал между снимками после диагноза (вычисляется)",
+   "unit": "часы",
+   "type": "derived",
+   "derived_from": [
+    "nec_diagnosed_at",
+    "xrays"
+   ]
+  },
+  "xray_vertical_or_lateral_after_deterioration": {
+   "description": "После ухудшения был снимок вертикально или в латеропозиции (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "deterioration_at",
+    "xrays"
+   ]
+  },
+  "abx_regimen": {
+   "description": "Полная схема антибактериальной терапии (список препаратов)",
+   "unit": "список",
+   "type": "list"
+  },
+  "metronidazole_given_at": {
+   "description": "Время первой дозы метронидазола",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "other_antianaerobic_drug": {
+   "description": "Иной антианаэробный препарат вместо метронидазола",
+   "unit": "текст",
+   "type": "text"
+  },
+  "microbiology_considered": {
+   "description": "Учтены результаты посевов и госпитальная флора (запись)",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "clinical_pharmacologist_involved": {
+   "description": "Участие клинического фармаколога (показывается; Q23)",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "abx_course_started_at": {
+   "description": "Время первой дозы курса АБТ",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "abx_course_ended_at": {
+   "description": "Время последней дозы курса АБТ",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "course_completed": {
+   "description": "Курс АБТ завершён",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "drug_changes": {
+   "description": "Смены препарата в курсе: {at, from, to} (курс не перезапускают)",
+   "unit": "список",
+   "type": "list"
+  },
+  "interruptions": {
+   "description": "Перерывы в курсе: {from, to} (показываются; Q14)",
+   "unit": "список",
+   "type": "list"
+  },
+  "stabilization_documented": {
+   "description": "Устойчивая стабилизация клинико-лабораторного статуса документирована",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "gi_function_restored": {
+   "description": "Функция ЖКТ восстановлена",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "abx_course_days": {
+   "description": "Длительность курса в календарных сутках от первой до последней дозы (вычисляется; только для завершённого курса; Q14)",
+   "unit": "сутки",
+   "type": "derived",
+   "derived_from": [
+    "abx_course_started_at",
+    "abx_course_ended_at",
+    "course_completed"
+   ]
+  },
+  "abx_course_hours": {
+   "description": "Длительность курса в часах (вычисляется, показывается)",
+   "unit": "часы",
+   "type": "derived",
+   "derived_from": [
+    "abx_course_started_at",
+    "abx_course_ended_at",
+    "course_completed"
+   ]
+  },
+  "abx_drug_change_count": {
+   "description": "Число смен препарата (вычисляется)",
+   "unit": "число",
+   "type": "derived",
+   "derived_from": [
+    "drug_changes"
+   ]
+  },
+  "abx_interruption_count": {
+   "description": "Число перерывов (вычисляется)",
+   "unit": "число",
+   "type": "derived",
+   "derived_from": [
+    "interruptions"
+   ]
+  },
+  "surgeon_consult_status": {
+   "description": "Консультация хирурга: done — проведена, documented_not_done — записано, что не проводилась, no_record — записи нет",
+   "unit": "значение",
+   "type": "enum",
+   "values": [
+    "done",
+    "documented_not_done",
+    "no_record"
+   ]
+  },
+  "surgeon_consult_at": {
+   "description": "Время консультации хирурга",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "surgeon_consult_format": {
+   "description": "Формат консультации: in_person — очно, remote — дистанционно",
+   "unit": "значение",
+   "type": "enum",
+   "values": [
+    "in_person",
+    "remote",
+    "unknown"
+   ]
+  },
+  "surgeon_conclusion": {
+   "description": "Заключение хирурга (текст)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "surgeon_recommendations": {
+   "description": "Рекомендации хирурга (текст)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "routing_decision": {
+   "description": "Решение о дальнейшей маршрутизации (текст)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "in_facility_with_neonatal_surgical_beds": {
+   "description": "В организации есть неонатальные хирургические койки (сам по себе не доказывает перевод)",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "surgical_department_available": {
+   "description": "В организации есть неонатальная (детская) хирургическая служба",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "current_department": {
+   "description": "Фактическое отделение пребывания: nicu — ОРИТН, neonatal_surgery — хирургическое отделение, other",
+   "unit": "значение",
+   "type": "enum",
+   "values": [
+    "nicu",
+    "neonatal_surgery",
+    "other",
+    "unknown"
+   ]
+  },
+  "surgeon_following": {
+   "description": "Ребёнок наблюдается/ведётся хирургом",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "transfer_type": {
+   "description": "Перевод: intra_facility — внутрибольничный, inter_facility — межбольничный, not_indicated_or_deferred — не показан/отложен",
+   "unit": "значение",
+   "type": "enum",
+   "values": [
+    "intra_facility",
+    "inter_facility",
+    "not_indicated_or_deferred",
+    "unknown"
+   ]
+  },
+  "transfer_destination": {
+   "description": "Куда переведён / планируется перевод",
+   "unit": "текст",
+   "type": "text"
+  },
+  "transfer_decision_at": {
+   "description": "Время решения о переводе",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "transferred_at": {
+   "description": "Время перевода",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "transport_stable": {
+   "description": "Ребёнок транспортабелен",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "transport_contraindications_documented": {
+   "description": "Противопоказания к транспортировке документированы",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "surgical_bed_available": {
+   "description": "Хирургическая койка доступна",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "transfer_delay_reason": {
+   "description": "Причина задержки перевода (текст)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "transfer_justification": {
+   "description": "Обоснование решения о переводе/отсрочке (текст)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "reassessment_plan": {
+   "description": "План повторной оценки (текст)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "surgical_consilium_decision": {
+   "description": "Решение хирурга/консилиума о маршрутизации (текст)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "hours_transfer_decision_to_transfer": {
+   "description": "Часов от решения до перевода (вычисляется, показывается)",
+   "unit": "часы",
+   "type": "derived",
+   "derived_from": [
+    "transfer_decision_at",
+    "transferred_at"
+   ]
+  },
+  "sepsis_indication_identified_at": {
+   "description": "Время выявления показания к АБТ",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "indication_event_type": {
+   "description": "Событие, от которого отмечено показание (признак «Красного флага», факторы риска, решение врача и т. п.)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "first_abx_dose_ordered_at": {
+   "description": "Время назначения первой дозы антибиотика",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "first_abx_dose_administered_at": {
+   "description": "Время фактического введения первой дозы антибиотика",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "minutes_indication_to_first_dose": {
+   "description": "Минут от выявления показания до введения первой дозы (вычисляется)",
+   "unit": "минуты",
+   "type": "derived",
+   "derived_from": [
+    "sepsis_indication_identified_at",
+    "first_abx_dose_ordered_at",
+    "first_abx_dose_administered_at"
+   ]
+  },
+  "blood_culture_drawn_at": {
+   "description": "Время забора крови на посев",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "culture_result_at": {
+   "description": "Время получения результата посева (не время забора)",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "sample_volume_ml": {
+   "description": "Объём крови на посев (показывается; Q20)",
+   "unit": "мл",
+   "type": "number"
+  },
+  "sample_site": {
+   "description": "Место забора: separate_vein / umbilical_vein / infusion_catheter / other (показывается; Q20)",
+   "unit": "значение",
+   "type": "enum",
+   "values": [
+    "separate_vein",
+    "umbilical_vein",
+    "infusion_catheter",
+    "other",
+    "unknown"
+   ]
+  },
+  "culture_drawn_before_first_dose": {
+   "description": "Кровь на посев взята раньше введения первой дозы (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "blood_culture_drawn_at",
+    "first_abx_dose_administered_at",
+    "culture_result_at"
+   ]
+  },
+  "immunoglobulin_purpose": {
+   "description": "Цель введения ИГ: sepsis_treatment_or_prophylaxis — лечение/профилактика сепсиса, other_indication — другое самостоятельное показание",
+   "unit": "значение",
+   "type": "enum",
+   "values": [
+    "sepsis_treatment_or_prophylaxis",
+    "other_indication",
+    "unknown"
+   ]
+  },
+  "immunoglobulin_use_type": {
+   "description": "Вид назначения ИГ при сепсисе: routine — рутинное, individualized — индивидуальное",
+   "unit": "значение",
+   "type": "enum",
+   "values": [
+    "routine",
+    "individualized",
+    "unknown"
+   ]
+  },
+  "immunoglobulin_indication_text": {
+   "description": "Показание к ИГ (текст записи)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "indication_source": {
+   "description": "Источник показания (документ)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "clinical_evidence": {
+   "description": "Особое клиническое основание (текст записи)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "consilium_documented": {
+   "description": "Решение консилиума о назначении ИГ документировано",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "research_reference": {
+   "description": "Ссылка на научную публикацию / иной документ",
+   "unit": "текст",
+   "type": "text"
+  },
+  "evidence_applicability_review": {
+   "description": "Оценка применимости источника (заполняет эксперт)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "ig_special_basis_documented": {
+   "description": "Документировано особое клиническое основание: консилиум или текст основания (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "consilium_documented",
+    "clinical_evidence"
+   ]
+  },
+  "ig_use_individualized_with_basis": {
+   "description": "Индивидуальное назначение ИГ с документированным особым основанием (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "immunoglobulin_use_type",
+    "consilium_documented",
+    "clinical_evidence"
+   ]
+  },
+  "initial_empirical_regimen": {
+   "description": "Первичная эмпирическая схема: benzylpenicillin+gentamicin / ampicillin+gentamicin / другое",
+   "unit": "значение",
+   "type": "enum",
+   "values": [
+    "benzylpenicillin+gentamicin",
+    "ampicillin+gentamicin",
+    "другое"
+   ]
+  },
+  "drug_availability": {
+   "description": "Наличие препаратов: {drug, available, checked_at, source}",
+   "unit": "список",
+   "type": "list"
+  },
+  "local_antibiogram_ref": {
+   "description": "Ссылка на местную антибиотикограмму",
+   "unit": "текст",
+   "type": "text"
+  },
+  "prior_abx": {
+   "description": "Предшествующая АБТ (текст)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "weight_kg": {
+   "description": "Масса тела на дату назначения",
+   "unit": "кг",
+   "type": "number"
+  },
+  "weight_date": {
+   "description": "Дата измерения массы",
+   "unit": "дата",
+   "type": "date"
+  },
+  "benzylpenicillin_dose_mg": {
+   "description": "Разовая доза бензилпенициллина",
+   "unit": "мг",
+   "type": "number"
+  },
+  "local_practice_ref": {
+   "description": "Ссылка на местную практику / СОП (показывается; не заменяет протокол)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "benzylpenicillin_dose_per_kg": {
+   "description": "Доза бензилпенициллина на кг: из мг и массы, иначе записанная в мг/кг (вычисляется)",
+   "unit": "мг/кг",
+   "type": "derived",
+   "derived_from": [
+    "benzylpenicillin_dose_mg",
+    "weight_kg",
+    "benzylpenicillin_dose_mg_kg"
+   ]
+  },
+  "gentamicin_dose_mg": {
+   "description": "Начальная доза гентамицина",
+   "unit": "мг",
+   "type": "number"
+  },
+  "postnatal_age_days": {
+   "description": "Постнатальный возраст",
+   "unit": "сутки",
+   "type": "number"
+  },
+  "creatinine_umol_l": {
+   "description": "Креатинин (показывается)",
+   "unit": "мкмоль/л",
+   "type": "number"
+  },
+  "urine_output_ml_kg_h": {
+   "description": "Диурез (показывается)",
+   "unit": "мл/кг/ч",
+   "type": "number"
+  },
+  "gentamicin_level": {
+   "description": "Концентрация гентамицина в крови, если определялась (показывается; п. 7d)",
+   "unit": "мг/л",
+   "type": "number"
+  },
+  "gram_negative_culture": {
+   "description": "Посев показывает грамотрицательную инфекцию",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "very_ill": {
+   "description": "Ребёнок выглядит очень больным (оценка врача, п. 7c)",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "gentamicin_dose_per_kg": {
+   "description": "Начальная доза гентамицина на кг: из мг и массы, иначе записанная в мг/кг (вычисляется)",
+   "unit": "мг/кг",
+   "type": "derived",
+   "derived_from": [
+    "gentamicin_dose_mg",
+    "weight_kg",
+    "gentamicin_initial_dose_mg_kg"
+   ]
+  },
+  "crp_samples": {
+   "description": "Анализы СРБ: {drawn_at, purpose: baseline/control, result_at}",
+   "unit": "список",
+   "type": "list"
+  },
+  "hours_first_dose_to_control_crp": {
+   "description": "Часов от первой введённой дозы до забора контрольного СРБ (вычисляется)",
+   "unit": "часы",
+   "type": "derived",
+   "derived_from": [
+    "first_abx_dose_administered_at",
+    "crp_samples"
+   ]
+  },
+  "sepsis_onset": {
+   "description": "Начало сепсиса: early — ранний (РНС), late — поздний (ПНС)",
+   "unit": "значение",
+   "type": "enum",
+   "values": [
+    "early",
+    "late",
+    "unknown"
+   ]
+  },
+  "abx_review_36_48h_documented": {
+   "description": "Запись о пересмотре АБТ через 36/48 ч (показывается; Q21)",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "crp_trend": {
+   "description": "Динамика СРБ (текст)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "pct_trend": {
+   "description": "Динамика ПКТ (текст)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "pathogen": {
+   "description": "Возбудитель (показывается)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "infection_focus": {
+   "description": "Очаг инфекции (показывается)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "extension_reason": {
+   "description": "Причины продления более 7 дней (стр. 15): not_fully_recovered, pathogen_identified, nec, osteomyelitis, catheter_associated_infection, other",
+   "unit": "список",
+   "type": "list"
+  },
+  "extension_justification_status": {
+   "description": "Обоснование продления в доступной документации: found — найдено, not_found_in_documentation — не найдено",
+   "unit": "значение",
+   "type": "enum",
+   "values": [
+    "found",
+    "not_found_in_documentation",
+    "unknown"
+   ]
+  },
+  "daily_clinical_exam_documented": {
+   "description": "Клинический осмотр не реже 1 раза в 24 ч при продлении документирован",
+   "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "disease_stage_dynamics": {
+   "description": "Стадия и динамика заболевания (текст)",
+   "unit": "текст",
+   "type": "text"
+  },
+  "extension_reason_count": {
+   "description": "Число записанных причин продления из перечня стр. 15 (вычисляется)",
+   "unit": "число",
+   "type": "derived",
+   "derived_from": [
+    "extension_reason"
+   ]
   }
  },
  "protocol_conflicts": [
@@ -1202,31 +2397,64 @@
       "page": 9,
       "text": "лечение антибиотиками следует прекратить как можно быстрее, как только будет исключена реализация ТБИ;",
       "sha256": "09acad3c120d563fe0c1804ae9bd10184d3fb8914b6e07b6ac6368705b4e01b4"
+     },
+     {
+      "page": 9,
+      "text": "В каждом неонатальном отделении должны разрабатываться собственные протоколы по использованию антибиотиков, основанных на анализе спектра возбудителей, вызывающих ранний сепсис;",
+      "sha256": "e170c1fcf28e1cbc7ddbbb0d9993e84ad396c06c614a38ecbc1cdec302976645"
      }
     ]
    },
    "kind": "требование",
    "applicability": {
-    "description": "диагноз РДС, ТБИ не исключена",
+    "description": "диагноз РДС",
     "condition": {
-     "all": [
-      {
-       "field": "rds_diagnosed",
-       "op": "is_true"
-      },
-      {
-       "field": "serious_bacterial_infection_excluded",
-       "op": "is_false"
-      }
-     ]
+     "field": "rds_diagnosed",
+     "op": "is_true"
     }
    },
    "requirement": {
-    "description": "антибактериальная терапия начата",
-    "check": {
-     "field": "antibiotics_started",
-     "op": "is_true"
-    }
+    "description": "а) АБТ начата, пока ТБИ не исключена; б) после исключения ТБИ АБТ прекращена как можно быстрее",
+    "parts": [
+     {
+      "part_id": "start",
+      "description": "Начало АБТ, пока тяжёлая бактериальная инфекция не исключена",
+      "applicability": {
+       "description": "ТБИ не исключена",
+       "condition": {
+        "field": "serious_bacterial_infection_excluded",
+        "op": "is_false"
+       }
+      },
+      "check": {
+       "field": "antibiotics_started",
+       "op": "is_true"
+      }
+     },
+     {
+      "part_id": "stop",
+      "description": "Прекращение АБТ после исключения ТБИ «как можно быстрее» (число часов протокол не задаёт; интервал показывается)",
+      "applicability": {
+       "description": "АБТ начата и ТБИ исключена",
+       "condition": {
+        "all": [
+         {
+          "field": "antibiotics_started",
+          "op": "is_true"
+         },
+         {
+          "field": "serious_bacterial_infection_excluded",
+          "op": "is_true"
+         }
+        ]
+       }
+      },
+      "check": {
+       "field": "abx_stopped_after_sbi_exclusion",
+       "op": "is_false"
+      }
+     }
+    ]
    },
    "normativity": "рекомендуется",
    "normativity_marker": "«следует»",
@@ -1249,6 +2477,21 @@
      "field": "antibiotics_started",
      "description": "Начата антибактериальная терапия",
      "unit": "да/нет"
+    },
+    {
+     "field": "sbi_excluded_at",
+     "description": "Время, когда тяжёлая бактериальная инфекция исключена (запись врача)",
+     "unit": "дата-время"
+    },
+    {
+     "field": "antibiotics_stopped_at",
+     "description": "Время отмены антибактериальной терапии",
+     "unit": "дата-время"
+    },
+    {
+     "field": "abx_stopped_after_sbi_exclusion",
+     "description": "АБТ отменена позже исключения ТБИ (вычисляется)",
+     "unit": "да/нет"
     }
    ],
    "evidence_level": {
@@ -1262,12 +2505,48 @@
      "blocking": "always",
      "scope": "requirement",
      "decision_by": "врач-эксперт",
-     "decision": null
+     "decision": null,
+     "part": "start"
+    },
+    {
+     "id": "RDS-007-A2",
+     "text": "«Прекратить как можно быстрее, как только будет исключена реализация ТБИ» (стр. 9) не задано во времени: допустимую задержку отмены после исключения ТБИ определяет эксперт (Q10). Интервал показывается в карточке.",
+     "blocking": "when",
+     "scope": "requirement",
+     "decision_by": "врач-эксперт",
+     "decision": null,
+     "blocks_when": {
+      "field": "abx_stopped_after_sbi_exclusion",
+      "op": "is_true"
+     },
+     "part": "stop",
+     "added": "rules-0.2 (этап 6)"
     }
    ],
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "hours_sbi_excluded_to_abx_stop",
+    "red_flag_count",
+    "risk_factor_or_sign_count",
+    "abx_decision_justification",
+    "local_abx_protocol_ref"
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.1",
+     "план 22 правил: RDS-007"
+    ],
+    "model_changes": [
+     "M1",
+     "M2",
+     "M4"
+    ]
+   },
    "protocol_conflicts": [
     "CF-004"
    ]
@@ -1443,6 +2722,16 @@
       "page": 8,
       "text": "Следует избегать гипокапнии, поскольку она связана с повышенным риском бронхолегочной дисплазии и перивентрикулярной лейкомаляции;",
       "sha256": "f9387d0fb443a5a1ca467330ecd016a918e144c6ee3931cd0440b3956f21516e"
+     },
+     {
+      "page": 8,
+      "text": "Настройки МВ должны чаще регулироваться для обеспечения оптимального объема легких;",
+      "sha256": "e23943b33f2f9e20fbc2b090610090712c3ddf3e64dde54e69f194bd1a45eaae"
+     },
+     {
+      "page": 8,
+      "text": "необходимо пошагово изменять PEEP с оценкой уровней FiO2, CO2 и наблюдения за механикой дыхания.",
+      "sha256": "e8305c28738ab6af8859fc519641abf56c59b7b9b54d4f285b8e91f59cb072be"
      }
     ]
    },
@@ -1455,16 +2744,51 @@
     }
    },
    "requirement": {
-    "description": "гипокапния не документирована",
-    "check": {
-     "field": "hypocapnia_documented",
-     "op": "is_false"
-    }
+    "description": "а) газы крови за время ИВЛ есть; б) гипокапния определена по порогу PaCO₂ из указанного источника; в) реакция врача на эпизод гипокапнии",
+    "parts": [
+     {
+      "part_id": "gases",
+      "description": "Газы крови за время ИВЛ есть (нет ни одного анализа — нет данных, а не «совпадает»)",
+      "check": {
+       "field": "blood_gas_count",
+       "op": "gte",
+       "value": 1
+      }
+     },
+     {
+      "part_id": "hypocapnia",
+      "description": "Наличие гипокапнии определено по порогу PaCO₂ из указанного источника (порог в протоколе не задан и не придумывается)",
+      "check": {
+       "field": "hypocapnia_episode_count",
+       "op": "gte",
+       "value": 0
+      }
+     },
+     {
+      "part_id": "response",
+      "description": "Реакция врача на эпизод гипокапнии: динамика PaCO₂ и изменения настроек ИВЛ",
+      "applicability": {
+       "description": "был эпизод гипокапнии",
+       "condition": {
+        "field": "hypocapnia_episode_count",
+        "op": "gte",
+        "value": 1
+       }
+      },
+      "check": {
+       "field": "minutes_hypocapnia_to_vent_change",
+       "op": "gte",
+       "value": 0
+      }
+     }
+    ]
    },
    "normativity": "не_рекомендуется",
    "normativity_marker": "«следует избегать»",
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
-   "exceptions_and_caveats": [],
+   "exceptions_and_caveats": [
+    "Цитаты о регулировке настроек МВ и пошаговом изменении PEEP (стр. 8) — контекст для оценки реакции врача, не отдельные требования."
+   ],
    "required_data": [
     {
      "field": "mechanical_ventilation",
@@ -1475,6 +2799,41 @@
      "field": "hypocapnia_documented",
      "description": "Документирована гипокапния на ИВЛ (порог определяет врач)",
      "unit": "да/нет"
+    },
+    {
+     "field": "blood_gases",
+     "description": "Газы крови за время ИВЛ: {drawn_at, paco2_mmhg, ph}",
+     "unit": "список"
+    },
+    {
+     "field": "paco2_hypocapnia_threshold",
+     "description": "Порог PaCO₂ для гипокапнии, принятый в отделении (протокол порог не задаёт)",
+     "unit": "мм рт. ст."
+    },
+    {
+     "field": "threshold_source",
+     "description": "Источник порога PaCO₂ (документ, пункт)",
+     "unit": "текст"
+    },
+    {
+     "field": "vent_changes",
+     "description": "Изменения настроек ИВЛ: {at, parameter, from, to}",
+     "unit": "список"
+    },
+    {
+     "field": "blood_gas_count",
+     "description": "Число анализов газов крови с PaCO₂ (вычисляется)",
+     "unit": "число"
+    },
+    {
+     "field": "hypocapnia_episode_count",
+     "description": "Число анализов с PaCO₂ ниже порога из источника (вычисляется)",
+     "unit": "число"
+    },
+    {
+     "field": "minutes_hypocapnia_to_vent_change",
+     "description": "Минут от первого эпизода гипокапнии до первого изменения ИВЛ (вычисляется)",
+     "unit": "минуты"
     }
    ],
    "evidence_level": {
@@ -1488,12 +2847,41 @@
      "blocking": "no",
      "scope": "requirement",
      "decision_by": "врач-эксперт",
-     "decision": null
+     "decision": null,
+     "machine_note": "С rules-0.2 порог берётся только из поля paco2_hypocapnia_threshold с указанным источником threshold_source; без источника — «Недостаточно данных» (Q11)."
+    },
+    {
+     "id": "RDS-010-A2",
+     "text": "Что считать «не избежали гипокапнии» — единичный эпизод, его длительность или отсутствие коррекции ИВЛ — протокол не определяет (Q11). Эпизод показывается эксперту вместе с динамикой PaCO₂ и изменениями ИВЛ; сам по себе он не даёт «отличается».",
+     "blocking": "always",
+     "scope": "requirement",
+     "decision_by": "врач-эксперт",
+     "decision": null,
+     "part": "response",
+     "added": "rules-0.2 (этап 6)"
     }
    ],
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "blood_gases",
+    "vent_changes"
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.2",
+     "план 22 правил: RDS-010"
+    ],
+    "model_changes": [
+     "M1",
+     "M2",
+     "M3"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -1519,24 +2907,66 @@
     }
    },
    "requirement": {
-    "description": "энтеральное кормление прекращено и установлен назогастральный зонд",
-    "check": {
-     "all": [
-      {
-       "field": "enteral_feeding_stopped",
-       "op": "is_true"
-      },
-      {
-       "field": "ng_tube_decompression",
-       "op": "is_true"
+    "description": "а) энтеральное кормление не проводится после подозрения (прекращено или уже не проводилось); б) действует назогастральный зонд для декомпрессии (установлен или исправный зонд уже стоял)",
+    "parts": [
+     {
+      "part_id": "feeding",
+      "description": "Кормление прекращено при подозрении, либо на момент подозрения уже не проводилось (повторного «прекращения» не требуется)",
+      "check": {
+       "any": [
+        {
+         "field": "feeding_at_nec_suspicion",
+         "op": "eq",
+         "value": "already_stopped"
+        },
+        {
+         "all": [
+          {
+           "field": "feeding_at_nec_suspicion",
+           "op": "eq",
+           "value": "active"
+          },
+          {
+           "field": "enteral_feeding_stopped",
+           "op": "is_true"
+          }
+         ]
+        }
+       ]
       }
-     ]
-    }
+     },
+     {
+      "part_id": "ng_tube",
+      "description": "Назогастральный зонд установлен, либо исправный зонд уже стоял на момент подозрения (повторной установки не требуется)",
+      "check": {
+       "any": [
+        {
+         "all": [
+          {
+           "field": "ng_tube_present_at_suspicion",
+           "op": "is_true"
+          },
+          {
+           "field": "ng_tube_functioning_at_suspicion",
+           "op": "is_true"
+          }
+         ]
+        },
+        {
+         "field": "ng_tube_placed",
+         "op": "is_true"
+        }
+       ]
+      }
+     }
+    ]
    },
    "normativity": "обязательно",
    "normativity_marker": "«немедленно» (повелительная форма)",
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
-   "exceptions_and_caveats": [],
+   "exceptions_and_caveats": [
+    "Редакция врача (19.11.2026): на момент подозрения ребёнок мог уже не получать энтеральное питание, а зонд мог уже стоять и исправно работать — оценивается статус на момент подозрения."
+   ],
    "required_data": [
     {
      "field": "nec_suspected",
@@ -1552,6 +2982,41 @@
      "field": "ng_tube_decompression",
      "description": "Установлен назогастральный зонд для декомпрессии",
      "unit": "да/нет"
+    },
+    {
+     "field": "feeding_at_nec_suspicion",
+     "description": "Энтеральное питание на момент подозрения: active — проводилось, already_stopped — уже не проводилось",
+     "unit": "значение"
+    },
+    {
+     "field": "ng_tube_present_at_suspicion",
+     "description": "Назогастральный зонд уже стоял на момент подозрения",
+     "unit": "да/нет"
+    },
+    {
+     "field": "ng_tube_functioning_at_suspicion",
+     "description": "Стоящий зонд исправно функционировал на момент подозрения",
+     "unit": "да/нет"
+    },
+    {
+     "field": "ng_tube_placed",
+     "description": "Назогастральный зонд установлен после подозрения",
+     "unit": "да/нет"
+    },
+    {
+     "field": "nec_suspected_at",
+     "description": "Время возникновения подозрения на НЭК",
+     "unit": "дата-время"
+    },
+    {
+     "field": "enteral_feeding_stopped_at",
+     "description": "Время прекращения энтерального кормления после подозрения",
+     "unit": "дата-время"
+    },
+    {
+     "field": "ng_tube_placed_at",
+     "description": "Время установки назогастрального зонда",
+     "unit": "дата-время"
     }
    ],
    "evidence_level": {
@@ -1571,6 +3036,26 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "feeding_stopped_before_suspicion_at",
+    "minutes_suspicion_to_feeding_stop",
+    "minutes_suspicion_to_ng_tube",
+    "ng_tube_size_f",
+    "ng_decompression_documented"
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Изменить",
+    "basis": [
+     "ТЗ §3.1"
+    ],
+    "model_changes": [
+     "M1",
+     "M2",
+     "M3"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -1589,7 +3074,7 @@
    },
    "kind": "требование",
    "applicability": {
-    "description": "подозрение на НЭК при стоящем пупочном катетере",
+    "description": "подозрение на НЭК при стоящем пупочном венозном или артериальном катетере",
     "condition": {
      "all": [
       {
@@ -1597,18 +3082,54 @@
        "op": "is_true"
       },
       {
-       "field": "umbilical_catheter_present",
-       "op": "is_true"
+       "any": [
+        {
+         "field": "uvc_present",
+         "op": "is_true"
+        },
+        {
+         "field": "uac_present",
+         "op": "is_true"
+        }
+       ]
       }
      ]
     }
    },
    "requirement": {
-    "description": "пупочный катетер удалён",
-    "check": {
-     "field": "umbilical_catheter_removed",
-     "op": "is_true"
-    }
+    "description": "удалены стоявшие пупочный венозный (ПВК) и артериальный (ПАК) катетеры",
+    "parts": [
+     {
+      "part_id": "uvc",
+      "description": "ПВК удалён",
+      "applicability": {
+       "description": "стоял ПВК",
+       "condition": {
+        "field": "uvc_present",
+        "op": "is_true"
+       }
+      },
+      "check": {
+       "field": "uvc_removed",
+       "op": "is_true"
+      }
+     },
+     {
+      "part_id": "uac",
+      "description": "ПАК удалён",
+      "applicability": {
+       "description": "стоял ПАК",
+       "condition": {
+        "field": "uac_present",
+        "op": "is_true"
+       }
+      },
+      "check": {
+       "field": "uac_removed",
+       "op": "is_true"
+      }
+     }
+    ]
    },
    "normativity": "обязательно",
    "normativity_marker": "«немедленно» (общее вступление п. 5.2)",
@@ -1631,6 +3152,26 @@
      "field": "umbilical_catheter_removed",
      "description": "Пупочный катетер удалён",
      "unit": "да/нет"
+    },
+    {
+     "field": "uvc_present",
+     "description": "На момент подозрения стоял пупочный венозный катетер (ПВК)",
+     "unit": "да/нет"
+    },
+    {
+     "field": "uvc_removed",
+     "description": "ПВК удалён",
+     "unit": "да/нет"
+    },
+    {
+     "field": "uac_present",
+     "description": "На момент подозрения стоял пупочный артериальный катетер (ПАК)",
+     "unit": "да/нет"
+    },
+    {
+     "field": "uac_removed",
+     "description": "ПАК удалён",
+     "unit": "да/нет"
     }
    ],
    "evidence_level": {
@@ -1650,6 +3191,27 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "uvc_removed_at",
+    "uac_removed_at",
+    "alternative_access_available",
+    "retention_reason",
+    "replacement_plan"
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.3",
+     "план 22 правил: NEC-002"
+    ],
+    "model_changes": [
+     "M1",
+     "M2",
+     "M4"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -1668,6 +3230,11 @@
       "page": 12,
       "text": "энтеральную нагрузку начинают НЭК I на 5 день, НЭК II - на 7 день, при достижении клинико-лабораторного улучшения;",
       "sha256": "866853a087f80b9d202beeae27934e43da4e8f6942360bcbb5f9693c515a2934"
+     },
+     {
+      "page": 12,
+      "text": "признаки улучшения - нет вздутия и болезненности живота, отсутствие патологического отделяемого из желудка, разрешение пареза кишечника, появление самостоятельного стула, нормализация лабораторных показателей, отсутствие УЗИ-признаков активного воспаления кишечной стенки, асцита, восстановление перистальтики кишечника;",
+      "sha256": "f763de771264103273e89418c48fd4a27ccf06b7778141cf322131095dba3feb"
      }
     ]
    },
@@ -1692,11 +3259,32 @@
     }
    },
    "requirement": {
-    "description": "энтеральная нагрузка не возобновлена",
-    "check": {
-     "field": "enteral_feeding_stopped",
-     "op": "is_true"
-    }
+    "description": "а) энтеральная нагрузка исключена; б) возобновление — не раньше восстановления пассажа",
+    "parts": [
+     {
+      "part_id": "stop",
+      "description": "Энтеральная нагрузка исключена до восстановления пассажа",
+      "check": {
+       "field": "enteral_feeding_stopped",
+       "op": "is_true"
+      }
+     },
+     {
+      "part_id": "resume",
+      "description": "Возобновление нагрузки не раньше восстановления функции пассажа",
+      "applicability": {
+       "description": "нагрузка возобновлялась",
+       "condition": {
+        "field": "enteral_feeding_resumed_at",
+        "op": "present"
+       }
+      },
+      "check": {
+       "field": "feeding_resumed_after_passage_restored",
+       "op": "is_true"
+      }
+     }
+    ]
    },
    "normativity": "обязательно",
    "normativity_marker": "без модального слова (тактика при подтверждённом диагнозе)",
@@ -1716,6 +3304,16 @@
     {
      "field": "enteral_feeding_stopped",
      "description": "Энтеральное кормление прекращено",
+     "unit": "да/нет"
+    },
+    {
+     "field": "enteral_feeding_resumed_at",
+     "description": "Время возобновления энтеральной нагрузки",
+     "unit": "дата-время"
+    },
+    {
+     "field": "feeding_resumed_after_passage_restored",
+     "description": "Нагрузка возобновлена не раньше восстановления пассажа (вычисляется)",
      "unit": "да/нет"
     }
    ],
@@ -1744,6 +3342,37 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "nec_onset_at",
+    "gi_passage_restored_at",
+    "improvement_signs",
+    "improvement_achieved",
+    "improvement_signs_documented_count",
+    "nec_day_from_onset_at_feeding_resumption",
+    "feeding_decision_documented"
+   ],
+   "card_labels": [
+    {
+     "id": "no_improvement",
+     "label": "Признаков улучшения (стр. 12) нет",
+     "when": {
+      "field": "improvement_achieved",
+      "op": "is_false"
+     }
+    }
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.4",
+     "план 22 правил: NEC-003"
+    ],
+    "model_changes": [
+     "M2"
+    ]
+   },
    "protocol_conflicts": [
     "CF-003"
    ]
@@ -1764,6 +3393,11 @@
       "page": 12,
       "text": "энтеральную нагрузку начинают НЭК I на 5 день, НЭК II - на 7 день, при достижении клинико-лабораторного улучшения;",
       "sha256": "866853a087f80b9d202beeae27934e43da4e8f6942360bcbb5f9693c515a2934"
+     },
+     {
+      "page": 12,
+      "text": "признаки улучшения - нет вздутия и болезненности живота, отсутствие патологического отделяемого из желудка, разрешение пареза кишечника, появление самостоятельного стула, нормализация лабораторных показателей, отсутствие УЗИ-признаков активного воспаления кишечной стенки, асцита, восстановление перистальтики кишечника;",
+      "sha256": "f763de771264103273e89418c48fd4a27ccf06b7778141cf322131095dba3feb"
      }
     ]
    },
@@ -1780,12 +3414,35 @@
     }
    },
    "requirement": {
-    "description": "энтеральная нагрузка возобновлена не ранее 7-х суток",
-    "check": {
-     "field": "enteral_feeding_resumed_day",
-     "op": "gte",
-     "value": 7
-    }
+    "description": "а) возобновление нагрузки не ранее 7-го дня — оба отсчёта (от начала заболевания и от подтверждения НЭК); б) при достижении клинико-лабораторного улучшения",
+    "parts": [
+     {
+      "part_id": "term",
+      "description": "Не ранее 7-го дня: показываются оба отсчёта, один не подменяет другой",
+      "check": {
+       "all": [
+        {
+         "field": "nec_day_from_onset_at_feeding_resumption",
+         "op": "gte",
+         "value": 7
+        },
+        {
+         "field": "nec_day_from_confirmation_at_feeding_resumption",
+         "op": "gte",
+         "value": 7
+        }
+       ]
+      }
+     },
+     {
+      "part_id": "improvement",
+      "description": "Возобновление при клинико-лабораторном улучшении (признаки — стр. 12; машинно: отмечены все признаки)",
+      "check": {
+       "field": "improvement_achieved",
+       "op": "is_true"
+      }
+     }
+    ]
    },
    "normativity": "обязательно",
    "normativity_marker": "без модального слова (тактика при подтверждённом диагнозе)",
@@ -1803,6 +3460,41 @@
      "field": "enteral_feeding_resumed_day",
      "description": "День заболевания, когда возобновлена энтеральная нагрузка",
      "unit": "сутки"
+    },
+    {
+     "field": "nec_onset_at",
+     "description": "Время начала заболевания (НЭК)",
+     "unit": "дата-время"
+    },
+    {
+     "field": "nec_confirmed_at",
+     "description": "Время подтверждения диагноза НЭК",
+     "unit": "дата-время"
+    },
+    {
+     "field": "enteral_feeding_resumed_at",
+     "description": "Время возобновления энтеральной нагрузки",
+     "unit": "дата-время"
+    },
+    {
+     "field": "nec_day_from_onset_at_feeding_resumption",
+     "description": "День заболевания (от начала) при возобновлении нагрузки; 1 — день начала (вычисляется)",
+     "unit": "сутки"
+    },
+    {
+     "field": "nec_day_from_confirmation_at_feeding_resumption",
+     "description": "День от подтверждения НЭК при возобновлении нагрузки; 1 — день подтверждения (вычисляется)",
+     "unit": "сутки"
+    },
+    {
+     "field": "improvement_signs",
+     "description": "Признаки улучшения (стр. 12): abdomen_not_distended_not_tender, no_pathological_gastric_residuals, ileus_resolved, spontaneous_stool, labs_normalized, no_us_bowel_wall_inflammation, no_ascites, peristalsis_restored — да/нет каждый",
+     "unit": "объект"
+    },
+    {
+     "field": "improvement_achieved",
+     "description": "Отмечены все признаки улучшения со стр. 12 (вычисляется; любой «нет» → нет)",
+     "unit": "да/нет"
     }
    ],
    "evidence_level": {
@@ -1816,7 +3508,8 @@
      "blocking": "always",
      "scope": "requirement",
      "decision_by": "врач-эксперт",
-     "decision": null
+     "decision": null,
+     "machine_note": "С rules-0.2 день считается программой по отметкам nec_onset_at и nec_confirmed_at (календарные дни, 1 — день события); показываются оба отсчёта."
     },
     {
      "id": "NEC-004-A2",
@@ -1830,6 +3523,31 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "improvement_signs_documented_count"
+   ],
+   "card_labels": [
+    {
+     "id": "no_improvement",
+     "label": "Признаков улучшения (стр. 12) нет",
+     "when": {
+      "field": "improvement_achieved",
+      "op": "is_false"
+     }
+    }
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.5",
+     "план 22 правил: NEC-004"
+    ],
+    "model_changes": [
+     "M2"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -1843,6 +3561,11 @@
       "page": 13,
       "text": "парентеральное питание следует начинать с первого дня заболевания согласно протоколу парентерального питания;",
       "sha256": "46a9de9b89edf1a74df352797c73ce495ef4c774b37b7458d086a4d03642ec53"
+     },
+     {
+      "page": 11,
+      "text": "полное парентеральное питание из расчета физиологической потребности ребенка данного веса и срока гестации согласно протоколу парентерального питания;",
+      "sha256": "dd84c646811ec3b0bb8f73c60e239022cb0aa5aadd7ff8957affe7df01a9aa0d"
      }
     ]
    },
@@ -1863,11 +3586,28 @@
     }
    },
    "requirement": {
-    "description": "ПП начато в 1-й день заболевания",
+    "description": "полное ПП уже проводилось на момент начала НЭК или начато в 1-й день заболевания (инфузия только глюкозы — не ПП)",
     "check": {
-     "field": "parenteral_nutrition_started_day",
-     "op": "lte",
-     "value": 1
+     "all": [
+      {
+       "field": "pn_type",
+       "op": "eq",
+       "value": "full"
+      },
+      {
+       "any": [
+        {
+         "field": "pn_running_at_nec_onset",
+         "op": "is_true"
+        },
+        {
+         "field": "pn_start_illness_day",
+         "op": "lte",
+         "value": 1
+        }
+       ]
+      }
+     ]
     }
    },
    "normativity": "рекомендуется",
@@ -1891,16 +3631,69 @@
      "field": "parenteral_nutrition_started_day",
      "description": "День заболевания, когда начато парентеральное питание",
      "unit": "сутки"
+    },
+    {
+     "field": "pn_type",
+     "description": "Вид ПП: full — полное, partial — частичное (например, без липидов), glucose_only — только глюкоза",
+     "unit": "значение"
+    },
+    {
+     "field": "pn_running_at_nec_onset",
+     "description": "Полное ПП уже проводилось на момент начала НЭК",
+     "unit": "да/нет"
+    },
+    {
+     "field": "pn_start_illness_day",
+     "description": "День заболевания, в который начато ПП; 1 — день начала НЭК (вычисляется)",
+     "unit": "сутки"
+    },
+    {
+     "field": "nec_onset_at",
+     "description": "Время начала заболевания (НЭК)",
+     "unit": "дата-время"
+    },
+    {
+     "field": "pn_started_at",
+     "description": "Время начала полного парентерального питания",
+     "unit": "дата-время"
     }
    ],
    "evidence_level": {
     "value": null,
     "note": "в тексте рекомендации уровень доказательности не указан"
    },
-   "ambiguities": [],
+   "ambiguities": [
+    {
+     "id": "NEC-005-A1",
+     "text": "Считать ли началом ПП частичное парентеральное питание (например, без липидов): протокол говорит о «полном парентеральном питании» (стр. 11) — решает эксперт (Q12).",
+     "blocking": "when",
+     "scope": "requirement",
+     "decision_by": "врач-эксперт",
+     "decision": null,
+     "blocks_when": {
+      "field": "pn_type",
+      "op": "eq",
+      "value": "partial"
+     },
+     "added": "rules-0.2 (этап 6)"
+    }
+   ],
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.6",
+     "план 22 правил: NEC-005"
+    ],
+    "model_changes": [
+     "M2",
+     "M4"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -1930,33 +3723,57 @@
     }
    },
    "requirement": {
-    "description": "рентгенография через 48 ч; при ухудшении — вертикально/латеропозиция",
-    "check": {
-     "all": [
-      {
-       "field": "xray_48h_after_diagnosis",
-       "op": "is_true"
-      },
-      {
-       "any": [
-        {
-         "field": "clinical_deterioration",
-         "op": "is_false"
-        },
-        {
-         "field": "xray_vertical_or_lateral_at_deterioration",
-         "op": "is_true"
-        }
-       ]
+    "description": "а) первый контроль через 48 ч после диагноза; б) далее 1 раз в неделю; в) при ухудшении — вертикально или латеропозиция",
+    "parts": [
+     {
+      "part_id": "first_48h",
+      "description": "Первый рентгенологический контроль «через 48 часов после установленного диагноза» (часы — от диагноза до первого снимка)",
+      "check": {
+       "field": "hours_diagnosis_to_first_xray",
+       "op": "gte",
+       "value": 0
       }
-     ]
-    }
+     },
+     {
+      "part_id": "weekly",
+      "description": "Далее 1 раз в неделю: интервал между снимками не более 7 суток",
+      "applicability": {
+       "description": "после диагноза не менее двух снимков",
+       "condition": {
+        "field": "xray_count",
+        "op": "gte",
+        "value": 2
+       }
+      },
+      "check": {
+       "field": "max_hours_between_xrays",
+       "op": "lte",
+       "value": 168
+      }
+     },
+     {
+      "part_id": "deterioration",
+      "description": "При клиническом ухудшении — снимок в вертикальном положении или латеропозиции",
+      "applicability": {
+       "description": "клиническое ухудшение",
+       "condition": {
+        "field": "clinical_deterioration",
+        "op": "is_true"
+       }
+      },
+      "check": {
+       "field": "xray_vertical_or_lateral_after_deterioration",
+       "op": "is_true"
+      }
+     }
+    ]
    },
    "normativity": "обязательно",
    "normativity_marker": "«обязательно» (для положения при ухудшении); график — без модального слова",
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
    "exceptions_and_caveats": [
-    "Горизонтальное положение допустимо «при клинически спокойном течении»."
+    "Горизонтальное положение допустимо «при клинически спокойном течении».",
+    "Ограничения позиционирования ребёнка — обоснование отклонения для эксперта, а не автоматическое исключение."
    ],
    "required_data": [
     {
@@ -1978,6 +3795,41 @@
      "field": "xray_vertical_or_lateral_at_deterioration",
      "description": "При ухудшении рентгенография в вертикальном положении или латеропозиции",
      "unit": "да/нет"
+    },
+    {
+     "field": "nec_diagnosed_at",
+     "description": "Время установленного диагноза НЭК (для отсчёта рентгенологического контроля)",
+     "unit": "дата-время"
+    },
+    {
+     "field": "xrays",
+     "description": "Рентгенограммы: {at, position: horizontal/vertical/lateral, reason: planned/urgent, result}",
+     "unit": "список"
+    },
+    {
+     "field": "deterioration_at",
+     "description": "Время клинического ухудшения",
+     "unit": "дата-время"
+    },
+    {
+     "field": "xray_count",
+     "description": "Число рентгенограмм с полной отметкой времени (вычисляется)",
+     "unit": "число"
+    },
+    {
+     "field": "hours_diagnosis_to_first_xray",
+     "description": "Часов от диагноза до первого снимка (вычисляется)",
+     "unit": "часы"
+    },
+    {
+     "field": "max_hours_between_xrays",
+     "description": "Наибольший интервал между снимками после диагноза (вычисляется)",
+     "unit": "часы"
+    },
+    {
+     "field": "xray_vertical_or_lateral_after_deterioration",
+     "description": "После ухудшения был снимок вертикально или в латеропозиции (вычисляется)",
+     "unit": "да/нет"
     }
    ],
    "evidence_level": {
@@ -1992,11 +3844,39 @@
      "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
+    },
+    {
+     "id": "NEC-006-A2",
+     "text": "«Через 48 часов» — допустимое окно протокол не указывает; заменяет ли ургентный снимок раньше 48 ч плановый контроль — решает эксперт (Q13). Снимок раньше 48 ч не считается отличием.",
+     "blocking": "when",
+     "scope": "requirement",
+     "decision_by": "врач-эксперт",
+     "decision": null,
+     "blocks_when": {
+      "field": "xray_count",
+      "op": "gte",
+      "value": 1
+     },
+     "part": "first_48h",
+     "added": "rules-0.2 (этап 6)"
     }
    ],
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.7",
+     "план 22 правил: NEC-006"
+    ],
+    "model_changes": [
+     "M1",
+     "M2"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -2015,6 +3895,21 @@
       "page": 13,
       "text": "Антибактериальные препараты подбирают индивидуально в каждом случае при участии клинического фармаколога",
       "sha256": "306d0a5378f25815be5ac5453ce89e7aebe1a2a15e0722da50acc37d6373ed30"
+     },
+     {
+      "page": 13,
+      "text": "комбинация препаратов должна охватывать весь спектр микроорганизмов, поскольку в развитии НЭК чаще всего участвует их ассоциация",
+      "sha256": "1ce7697011e8c2d3dc0509371876b39d6d5ba1a166611a7539b9645ee7de7adc"
+     },
+     {
+      "page": 13,
+      "text": "при назначении препаратов следует учитывать результаты микробиологических посевов, а также типичную для отделения госпитальную микрофлору;",
+      "sha256": "befbfe5c57839617bb3ccfc7dd9a85fae05146999b56b7711562428a2ea8130c"
+     },
+     {
+      "page": 13,
+      "text": "контроль эффективности подобранной комбинации антибактериальных препаратов проводят через 48-72 часа после начала терапии с последующим продолжением или сменой;",
+      "sha256": "39e3d48517b77f454807b0192e6267eb8e317c179ae6515760c38b849bfd3309"
      }
     ]
    },
@@ -2045,7 +3940,8 @@
    "normativity_marker": "«должен»",
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
    "exceptions_and_caveats": [
-    "Вводная часть: препараты «подбирают индивидуально в каждом случае при участии клинического фармаколога» (стр. 13) — индивидуальный выбор может быть обоснованием."
+    "Вводная часть: препараты «подбирают индивидуально в каждом случае при участии клинического фармаколога» (стр. 13) — индивидуальный выбор может быть обоснованием.",
+    "Иной антианаэробный препарат вместо метронидазола — «отличается» с обоснованием для эксперта, а не «совпадает»."
    ],
    "required_data": [
     {
@@ -2091,6 +3987,25 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "abx_regimen",
+    "metronidazole_given_at",
+    "other_antianaerobic_drug",
+    "microbiology_considered",
+    "clinical_pharmacologist_involved"
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.8",
+     "план 22 правил: NEC-007"
+    ],
+    "model_changes": [
+     "M4"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -2104,6 +4019,11 @@
       "page": 14,
       "text": "антибактериальные препараты применяют до устойчивой стабилизации клинико-лабораторного статуса и восстановления функций ЖКТ, НЭК I в течение5 дней, НЭК II не менее 10 дней;",
       "sha256": "c70b90dd8c5fd2e87d9a858340ec2818d1e9970a14adc7a85ea8b806ee58339b"
+     },
+     {
+      "page": 13,
+      "text": "контроль эффективности подобранной комбинации антибактериальных препаратов проводят через 48-72 часа после начала терапии с последующим продолжением или сменой;",
+      "sha256": "39e3d48517b77f454807b0192e6267eb8e317c179ae6515760c38b849bfd3309"
      }
     ]
    },
@@ -2128,9 +4048,9 @@
     }
    },
    "requirement": {
-    "description": "антибактериальная терапия не менее 10 суток",
+    "description": "АБТ не менее 10 суток — длительность завершённого курса от первой до последней дозы эпизода (смена препарата курс не перезапускает)",
     "check": {
-     "field": "antibiotic_days",
+     "field": "abx_course_days",
      "op": "gte",
      "value": 10
     }
@@ -2156,6 +4076,26 @@
     {
      "field": "antibiotic_days",
      "description": "Длительность антибактериальной терапии",
+     "unit": "сутки"
+    },
+    {
+     "field": "abx_course_started_at",
+     "description": "Время первой дозы курса АБТ",
+     "unit": "дата-время"
+    },
+    {
+     "field": "abx_course_ended_at",
+     "description": "Время последней дозы курса АБТ",
+     "unit": "дата-время"
+    },
+    {
+     "field": "course_completed",
+     "description": "Курс АБТ завершён",
+     "unit": "да/нет"
+    },
+    {
+     "field": "abx_course_days",
+     "description": "Длительность курса в календарных сутках от первой до последней дозы (вычисляется; только для завершённого курса; Q14)",
      "unit": "сутки"
     }
    ],
@@ -2184,6 +4124,56 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": "В тексте PDF «в течение5» без пробела — цитата сохранена как есть.",
+   "display_fields": [
+    "abx_course_hours",
+    "drug_changes",
+    "interruptions",
+    "abx_drug_change_count",
+    "abx_interruption_count",
+    "stabilization_documented",
+    "gi_function_restored"
+   ],
+   "card_labels": [
+    {
+     "id": "course_running",
+     "label": "Курс продолжается. Окончательная длительность пока не оценивается",
+     "when": {
+      "field": "course_completed",
+      "op": "is_false"
+     },
+     "first": true
+    },
+    {
+     "id": "drug_change",
+     "label": "Смена препарата курс не перезапускает: длительность — от первой до последней дозы эпизода",
+     "when": {
+      "field": "abx_drug_change_count",
+      "op": "gte",
+      "value": 1
+     }
+    },
+    {
+     "id": "interruptions",
+     "label": "В курсе есть перерывы — они показаны; начинает ли перерыв новый курс, решает эксперт (Q14)",
+     "when": {
+      "field": "abx_interruption_count",
+      "op": "gte",
+      "value": 1
+     }
+    }
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Изменить",
+    "basis": [
+     "ТЗ §3.2",
+     "C3"
+    ],
+    "model_changes": [
+     "M2"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -2223,10 +4213,11 @@
     }
    },
    "requirement": {
-    "description": "консультация хирурга",
+    "description": "консультация хирурга проведена",
     "check": {
-     "field": "surgeon_consulted",
-     "op": "is_true"
+     "field": "surgeon_consult_status",
+     "op": "eq",
+     "value": "done"
     }
    },
    "normativity": "обязательно",
@@ -2248,16 +4239,59 @@
      "field": "surgeon_consulted",
      "description": "Проведена консультация хирурга",
      "unit": "да/нет"
+    },
+    {
+     "field": "surgeon_consult_status",
+     "description": "Консультация хирурга: done — проведена, documented_not_done — записано, что не проводилась, no_record — записи нет",
+     "unit": "значение"
+    },
+    {
+     "field": "surgeon_consult_format",
+     "description": "Формат консультации: in_person — очно, remote — дистанционно",
+     "unit": "значение"
     }
    ],
    "evidence_level": {
     "value": null,
     "note": "в тексте рекомендации уровень доказательности не указан"
    },
-   "ambiguities": [],
+   "ambiguities": [
+    {
+     "id": "NEC-009-A1",
+     "text": "Засчитывается ли дистанционная (телемедицинская) консультация хирурга как «обеспечить консультацию хирурга» — протокол формат не уточняет (Q15).",
+     "blocking": "when",
+     "scope": "requirement",
+     "decision_by": "врач-эксперт",
+     "decision": null,
+     "blocks_when": {
+      "field": "surgeon_consult_format",
+      "op": "eq",
+      "value": "remote"
+     },
+     "added": "rules-0.2 (этап 6)"
+    }
+   ],
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "surgeon_consult_at",
+    "surgeon_conclusion",
+    "surgeon_recommendations",
+    "routing_decision"
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.9",
+     "план 22 правил: NEC-009"
+    ],
+    "model_changes": [
+     "M3"
+    ]
+   },
    "protocol_conflicts": [
     "CF-001"
    ]
@@ -2296,16 +4330,27 @@
     }
    },
    "requirement": {
-    "description": "перевод в хирургическое отделение",
+    "description": "ребёнок находится в хирургическом отделении (неонатальные хирургические койки) или переведён в него",
     "check": {
-     "field": "transferred_to_surgery",
-     "op": "is_true"
+     "any": [
+      {
+       "field": "current_department",
+       "op": "eq",
+       "value": "neonatal_surgery"
+      },
+      {
+       "field": "transferred_to_surgery",
+       "op": "is_true"
+      }
+     ]
     }
    },
    "normativity": "обязательно",
    "normativity_marker": "без модального слова",
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
-   "exceptions_and_caveats": [],
+   "exceptions_and_caveats": [
+    "Редакция врача (19.11.2026): нахождение в ОРИТН центра, где есть хирургические койки, не равнозначно нахождению в хирургическом отделении; обязательность конкретного перевода не выводится до решения Q06/Q16."
+   ],
    "required_data": [
     {
      "field": "nec_stage",
@@ -2315,6 +4360,16 @@
     {
      "field": "transferred_to_surgery",
      "description": "Переведён в хирургическое отделение",
+     "unit": "да/нет"
+    },
+    {
+     "field": "current_department",
+     "description": "Фактическое отделение пребывания: nicu — ОРИТН, neonatal_surgery — хирургическое отделение, other",
+     "unit": "значение"
+    },
+    {
+     "field": "surgical_department_available",
+     "description": "В организации есть неонатальная (детская) хирургическая служба",
      "unit": "да/нет"
     }
    ],
@@ -2351,11 +4406,99 @@
      "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
+    },
+    {
+     "id": "NEC-010-A4",
+     "text": "Ребёнок в ОРИТН медицинской организации, где есть неонатальная хирургическая служба: наличие хирургических коек не доказывает выполненный перевод, а отсутствие внутрибольничного перевода не является автоматическим дефектом. Хирургическую маршрутизацию (хирургическое наблюдение, решение консилиума, транспортабельность, план) оценивает эксперт (Q06, Q16).",
+     "blocking": "when",
+     "scope": "requirement",
+     "decision_by": "врач-эксперт",
+     "decision": null,
+     "blocks_when": {
+      "all": [
+       {
+        "field": "surgical_department_available",
+        "op": "is_true"
+       },
+       {
+        "field": "current_department",
+        "op": "eq",
+        "value": "nicu"
+       }
+      ]
+     },
+     "added": "rules-0.2 (этап 6)"
     }
    ],
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "in_facility_with_neonatal_surgical_beds",
+    "surgeon_following",
+    "surgical_consilium_decision",
+    "transfer_type",
+    "transfer_destination",
+    "transfer_decision_at",
+    "transferred_at",
+    "hours_transfer_decision_to_transfer",
+    "transport_stable",
+    "transport_contraindications_documented",
+    "surgical_bed_available",
+    "transfer_delay_reason",
+    "transfer_justification",
+    "reassessment_plan",
+    "facility_level"
+   ],
+   "card_labels": [
+    {
+     "id": "not_transportable",
+     "label": "Документирована нетранспортабельность: причина, решение хирурга/консилиума, план повторной оценки и маршрут — эксперту; задержка перевода не является автоматическим дефектом",
+     "when": {
+      "any": [
+       {
+        "field": "transport_stable",
+        "op": "is_false"
+       },
+       {
+        "field": "transport_contraindications_documented",
+        "op": "is_true"
+       }
+      ]
+     }
+    },
+    {
+     "id": "level1_context",
+     "label": "Контекст: для организации I уровня протокол отдельно требует экстренного перевода в организацию 3-го уровня — в пилот как отдельное правило не добавлено",
+     "when": {
+      "field": "facility_level",
+      "op": "eq",
+      "value": 1
+     },
+     "quotes": [
+      {
+       "protocol": "nek",
+       "page": 12,
+       "text": "В случае выявления больного ребенка с НЭК 1-2а степени в родовспомогательном учреждении первого уровня– обеспечить экстренный перевод в родовспомогательную организацию 3-го уровня;",
+       "sha256": "0f3452d52dfa842d83e52d6e97723e6476dcec6281a8f267840be8883f7e019b"
+      }
+     ]
+    }
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Изменить",
+    "basis": [
+     "ТЗ §3.3",
+     "C1",
+     "C5"
+    ],
+    "model_changes": [
+     "M2",
+     "M4"
+    ]
+   },
    "protocol_conflicts": [
     "CF-001"
    ]
@@ -2393,7 +4536,7 @@
     }
    },
    "requirement": {
-    "description": "первая доза антибиотика в течение 60 минут",
+    "description": "первая доза антибиотика введена в течение 60 минут от выявления показания (интервал вычисляется по отметкам)",
     "check": {
      "all": [
       {
@@ -2401,7 +4544,7 @@
        "op": "is_true"
       },
       {
-       "field": "antibiotics_start_minutes",
+       "field": "minutes_indication_to_first_dose",
        "op": "lte",
        "value": 60
       }
@@ -2434,6 +4577,21 @@
      "field": "antibiotics_start_minutes",
      "description": "Минут от выявления показания до первой дозы антибиотика",
      "unit": "минуты"
+    },
+    {
+     "field": "minutes_indication_to_first_dose",
+     "description": "Минут от выявления показания до введения первой дозы (вычисляется)",
+     "unit": "минуты"
+    },
+    {
+     "field": "sepsis_indication_identified_at",
+     "description": "Время выявления показания к АБТ",
+     "unit": "дата-время"
+    },
+    {
+     "field": "first_abx_dose_administered_at",
+     "description": "Время фактического введения первой дозы антибиотика",
+     "unit": "дата-время"
     }
    ],
    "evidence_level": {
@@ -2475,6 +4633,22 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "indication_event_type",
+    "first_abx_dose_ordered_at"
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.10",
+     "план 22 правил: SEP-001"
+    ],
+    "model_changes": [
+     "M2"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -2488,6 +4662,11 @@
       "page": 6,
       "text": "Бактериологическое исследование крови (для определения возбудителя) и тест на чувствительность к антибиотикам: выполняется до начала антибактериальной терапии;",
       "sha256": "6be08ec45164b501f268bbfd749010e492ef83b251f381d9580bf3eda11f95f2"
+     },
+     {
+      "page": 6,
+      "text": "достаточное количество крови (не менее 1 мл); забор крови проводится из отдельной вены, избегать забора крови на посев из вены пуповины; не брать кровь на посев из катетера, который используется для инфузии или введения медикаментов;",
+      "sha256": "0f3c6d69f31b471f9e2df3960d80de16ea2a975758321f6a930b4486d083a706"
      }
     ]
    },
@@ -2508,16 +4687,18 @@
     }
    },
    "requirement": {
-    "description": "посев крови до первой дозы",
+    "description": "кровь на посев взята до введения первой дозы антибиотика (сравниваются время забора и время введения)",
     "check": {
-     "field": "blood_culture_before_antibiotics",
+     "field": "culture_drawn_before_first_dose",
      "op": "is_true"
     }
    },
    "normativity": "обязательно",
    "normativity_marker": "«выполняется» (без модального слова)",
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
-   "exceptions_and_caveats": [],
+   "exceptions_and_caveats": [
+    "Качество забора (не менее 1 мл, отдельная вена, не из вены пуповины и не из инфузионного катетера) показывается в карточке и не проверяется до решения Q20; повторный посев при каждой смене АБТ не вводится (Q01)."
+   ],
    "required_data": [
     {
      "field": "sepsis_suspected",
@@ -2533,6 +4714,21 @@
      "field": "blood_culture_before_antibiotics",
      "description": "Посев крови взят до первой дозы антибиотика",
      "unit": "да/нет"
+    },
+    {
+     "field": "culture_drawn_before_first_dose",
+     "description": "Кровь на посев взята раньше введения первой дозы (вычисляется)",
+     "unit": "да/нет"
+    },
+    {
+     "field": "blood_culture_drawn_at",
+     "description": "Время забора крови на посев",
+     "unit": "дата-время"
+    },
+    {
+     "field": "first_abx_dose_administered_at",
+     "description": "Время фактического введения первой дозы антибиотика",
+     "unit": "дата-время"
     }
    ],
    "evidence_level": {
@@ -2560,6 +4756,23 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "culture_result_at",
+    "sample_volume_ml",
+    "sample_site"
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.11",
+     "план 22 правил: SEP-002"
+    ],
+    "model_changes": [
+     "M2"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -2593,17 +4806,36 @@
     }
    },
    "requirement": {
-    "description": "есть отдельное задокументированное показание",
+    "description": "иммуноглобулин не применяется рутинно для лечения/профилактики сепсиса: индивидуальное назначение с документированным особым основанием или иное самостоятельное показание передаются эксперту",
     "check": {
-     "field": "immunoglobulin_indication_documented",
-     "op": "is_true"
+     "any": [
+      {
+       "field": "immunoglobulin_purpose",
+       "op": "eq",
+       "value": "other_indication"
+      },
+      {
+       "all": [
+        {
+         "field": "immunoglobulin_purpose",
+         "op": "eq",
+         "value": "sepsis_treatment_or_prophylaxis"
+        },
+        {
+         "field": "ig_use_individualized_with_basis",
+         "op": "is_true"
+        }
+       ]
+      }
+     ]
     }
    },
    "normativity": "не_рекомендуется",
    "normativity_marker": "«не рекомендуется»",
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
    "exceptions_and_caveats": [
-    "Запрет касается «рутинного» применения; применение по отдельному показанию не исключено."
+    "Запрет касается «рутинного» применения; применение по отдельному показанию не исключено.",
+    "Редакция врача (19.11.2026): пункт говорит о нерекомендованности РУТИННОГО применения, а не об абсолютном запрете любого введения; индивидуальное назначение автоматически «соответствующим» не объявляется."
    ],
    "required_data": [
     {
@@ -2620,6 +4852,21 @@
      "field": "immunoglobulin_indication_documented",
      "description": "Задокументировано отдельное показание к иммуноглобулину",
      "unit": "да/нет"
+    },
+    {
+     "field": "immunoglobulin_purpose",
+     "description": "Цель введения ИГ: sepsis_treatment_or_prophylaxis — лечение/профилактика сепсиса, other_indication — другое самостоятельное показание",
+     "unit": "значение"
+    },
+    {
+     "field": "immunoglobulin_use_type",
+     "description": "Вид назначения ИГ при сепсисе: routine — рутинное, individualized — индивидуальное",
+     "unit": "значение"
+    },
+    {
+     "field": "ig_use_individualized_with_basis",
+     "description": "Индивидуальное назначение ИГ с документированным особым основанием (вычисляется)",
+     "unit": "да/нет"
     }
    ],
    "evidence_level": {
@@ -2634,11 +4881,63 @@
      "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
+    },
+    {
+     "id": "SEP-003-A2",
+     "text": "Нерутинное применение иммуноглобулина — индивидуальное назначение при сепсисе по документированному особому клиническому основанию (консилиум, проверяемая публикация) или назначение по другому самостоятельному показанию — п. 18 не регламентирует: обоснованность и применимый источник оценивает эксперт (Q19). Публикация или запись показания сами по себе не дают «совпадает».",
+     "blocking": "when",
+     "scope": "requirement",
+     "decision_by": "врач-эксперт",
+     "decision": null,
+     "blocks_when": {
+      "any": [
+       {
+        "field": "immunoglobulin_purpose",
+        "op": "eq",
+        "value": "other_indication"
+       },
+       {
+        "all": [
+         {
+          "field": "immunoglobulin_purpose",
+          "op": "eq",
+          "value": "sepsis_treatment_or_prophylaxis"
+         },
+         {
+          "field": "ig_use_individualized_with_basis",
+          "op": "is_true"
+         }
+        ]
+       }
+      ]
+     },
+     "added": "rules-0.2 (этап 6)"
     }
    ],
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "immunoglobulin_indication_text",
+    "indication_source",
+    "clinical_evidence",
+    "consilium_documented",
+    "research_reference",
+    "evidence_applicability_review",
+    "ig_special_basis_documented"
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Изменить",
+    "basis": [
+     "ТЗ §3.4",
+     "C2"
+    ],
+    "model_changes": [
+     "M4"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -2657,6 +4956,16 @@
       "page": 12,
       "text": "При решении вопроса о выборе антибиотиков можно использовать местные данные, адаптированные к местной эпидемиологической ситуации и профилю устойчивости патогенов.",
       "sha256": "b4257bc9c61ca64d252af5fbab22adbed7fbe88f5adbb0fff2b90f1411a83fe1"
+     },
+     {
+      "page": 12,
+      "text": "При эмпирической антибактериальной терапии назначается комбинация антибиотиков узкого спектра действия, эффективных как против грамотрицательных, так и против грамположительных бактерий.",
+      "sha256": "2034689902758582c5282d8fe8ed0ed8260a4ef33da39462e27481f7b2b593df"
+     },
+     {
+      "page": 13,
+      "text": "При бактериологическом подтверждении сепсиса, вызванного грамотрицательными бактериями, следует бензилпенициллин заменить на антибиотик, чувствительный к выделенному возбудителю сепсиса.",
+      "sha256": "7d700760196b0f13311b3d49fbff7da38cf4db560690c02f6d35826c0f79ef3a"
      }
     ]
    },
@@ -2677,9 +4986,9 @@
     }
    },
    "requirement": {
-    "description": "бензилпенициллин/ампициллин + гентамицин",
+    "description": "первичная эмпирическая схема: бензилпенициллин/ампициллин + гентамицин (последующая коррекция по чувствительности отличием не считается)",
     "check": {
-     "field": "empirical_regimen",
+     "field": "initial_empirical_regimen",
      "op": "in",
      "value": [
       "benzylpenicillin+gentamicin",
@@ -2691,7 +5000,8 @@
    "normativity_marker": "«рекомендуется»",
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
    "exceptions_and_caveats": [
-    "П. 2 (стр. 12): «можно использовать местные данные, адаптированные к местной эпидемиологической ситуации и профилю устойчивости патогенов» — возможное обоснование иной схемы."
+    "П. 2 (стр. 12): «можно использовать местные данные, адаптированные к местной эпидемиологической ситуации и профилю устойчивости патогенов» — возможное обоснование иной схемы.",
+    "Отсутствие препарата в отделении — категория обоснования (что, когда проверено, кто подтвердил, источник); альтернатива остаётся «отличается» с обоснованием, а не «совпадает» (Q02)."
    ],
    "required_data": [
     {
@@ -2708,6 +5018,11 @@
      "field": "empirical_regimen",
      "description": "Эмпирическая схема",
      "unit": "benzylpenicillin+gentamicin / ampicillin+gentamicin / другое"
+    },
+    {
+     "field": "initial_empirical_regimen",
+     "description": "Первичная эмпирическая схема: benzylpenicillin+gentamicin / ampicillin+gentamicin / другое",
+     "unit": "значение"
     }
    ],
    "evidence_level": {
@@ -2718,6 +5033,25 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "drug_availability",
+    "local_antibiogram_ref",
+    "prior_abx",
+    "empirical_regimen"
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.12",
+     "план 22 правил: SEP-004"
+    ],
+    "model_changes": [
+     "M4",
+     "M6"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -2736,12 +5070,22 @@
       "page": 13,
       "text": "состояние ребенка оценивается очень тяжелым следует рассмотреть возможность сокращения интервала между дозами через каждые 8 часов.",
       "sha256": "79559fda8fa9221034aaa554492659d7cafe2ab2c623083dc55a2662e62c03fa"
+     },
+     {
+      "page": 15,
+      "text": "Продолжительность лечения неонатального сепсиса при подозрении или подтвержденном менингите у детей с ранним и поздним началом сепсиса",
+      "sha256": "0121ece906597ee6a14c8d57f56249dbf395dd6ba3b3839c3a2dfc54f033280f"
+     },
+     {
+      "page": 16,
+      "text": "бензилпенициллин 50 мг/кг каждые 12 часов, обычно в течение не менее 14 дней",
+      "sha256": "47fb9024a2e86b9c63c93bf7e2050eab07755b49a5bf1e17f1cc06aab48ac01b"
      }
     ]
    },
    "kind": "требование",
    "applicability": {
-    "description": "назначен бензилпенициллин при подозрении на ранний сепсис",
+    "description": "назначен бензилпенициллин при подозрении на ранний сепсис без менингита",
     "condition": {
      "all": [
       {
@@ -2751,16 +5095,20 @@
       {
        "field": "benzylpenicillin_given",
        "op": "is_true"
+      },
+      {
+       "field": "meningitis",
+       "op": "is_false"
       }
      ]
     }
    },
    "requirement": {
-    "description": "25 мг/кг; интервал 12 ч (8 ч — если состояние очень тяжёлое)",
+    "description": "25 мг/кг (доза на кг — из мг и массы на дату назначения); интервал 12 ч (8 ч — если состояние очень тяжёлое)",
     "check": {
      "all": [
       {
-       "field": "benzylpenicillin_dose_mg_kg",
+       "field": "benzylpenicillin_dose_per_kg",
        "op": "eq",
        "value": 25
       },
@@ -2794,7 +5142,8 @@
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
    "exceptions_and_caveats": [
     "Продолжение на стр. 13: при очень тяжёлом состоянии «следует рассмотреть возможность сокращения интервала между дозами через каждые 8 часов».",
-    "При менингите, вызванном стрептококком группы B, протокол даёт иную дозу (50 мг/кг каждые 12 часов, стр. 16) — правило к менингиту не применяется."
+    "При менингите, вызванном стрептококком группы B, протокол даёт иную дозу (50 мг/кг каждые 12 часов, стр. 16) — правило к менингиту не применяется.",
+    "Местная практика 50 мг/кг каждые 12 ч при раннем сепсисе без менингита — «отличается» с обоснованием «местная практика»; норма 25 мг/кг не подменяется, назначений программа не делает (Q03)."
    ],
    "required_data": [
     {
@@ -2821,6 +5170,26 @@
      "field": "very_severe_condition",
      "description": "Состояние оценено как очень тяжёлое",
      "unit": "да/нет"
+    },
+    {
+     "field": "meningitis",
+     "description": "Менингит подозревается или подтверждён",
+     "unit": "да/нет"
+    },
+    {
+     "field": "benzylpenicillin_dose_per_kg",
+     "description": "Доза бензилпенициллина на кг: из мг и массы, иначе записанная в мг/кг (вычисляется)",
+     "unit": "мг/кг"
+    },
+    {
+     "field": "benzylpenicillin_dose_mg",
+     "description": "Разовая доза бензилпенициллина",
+     "unit": "мг"
+    },
+    {
+     "field": "weight_kg",
+     "description": "Масса тела на дату назначения",
+     "unit": "кг"
     }
    ],
    "evidence_level": {
@@ -2848,6 +5217,24 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "weight_date",
+    "local_practice_ref"
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.13",
+     "план 22 правил: SEP-005"
+    ],
+    "model_changes": [
+     "M2",
+     "M4",
+     "M6"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -2871,6 +5258,16 @@
       "page": 13,
       "text": "вторая доза гентамицина вводится через 36 часов после первой дозы, однако возможен более короткий интервал, если ребенок выглядит очень больным и посев крови показывает грамотрицательную инфекцию.",
       "sha256": "b536ea96c749a876a9877be91e98a5766976054ba8f6f0016b75edede40656b8"
+     },
+     {
+      "page": 13,
+      "text": "в перечне характеристик препарата рекомендуется дозировка от 4 до 7 мг/кг/день, вводимая в разовой дозе;",
+      "sha256": "83632e3ebdeef4930aa1015d0d235f3f2fa0bd6db295bc69f51703a49546b0f9"
+     },
+     {
+      "page": 13,
+      "text": "при принятии решения о последующем режиме дозирования гентамицина необходимо учитывать его концентрацию в крови (при наличии возможности).",
+      "sha256": "f6a9caa1e58325f264c0b421b373df62988adb1dc42894644f095cfe3987c323"
      }
     ]
    },
@@ -2891,19 +5288,56 @@
     }
    },
    "requirement": {
-    "description": "начальная доза 5 мг/кг",
-    "check": {
-     "field": "gentamicin_initial_dose_mg_kg",
-     "op": "eq",
-     "value": 5
-    }
+    "description": "а) начальная доза 5 мг/кг; б) вторая доза через 36 ч (короче — если ребёнок очень болен и посев грамотрицательный)",
+    "parts": [
+     {
+      "part_id": "dose",
+      "description": "Начальная доза 5 мг/кг (п. 7, 7b)",
+      "check": {
+       "field": "gentamicin_dose_per_kg",
+       "op": "eq",
+       "value": 5
+      }
+     },
+     {
+      "part_id": "interval",
+      "description": "Интервал 36 ч; короче — при «очень больном» ребёнке с грамотрицательным посевом (п. 7c)",
+      "check": {
+       "any": [
+        {
+         "field": "gentamicin_interval_h",
+         "op": "eq",
+         "value": 36
+        },
+        {
+         "all": [
+          {
+           "field": "gentamicin_interval_h",
+           "op": "lt",
+           "value": 36
+          },
+          {
+           "field": "very_ill",
+           "op": "is_true"
+          },
+          {
+           "field": "gram_negative_culture",
+           "op": "is_true"
+          }
+         ]
+        }
+       ]
+      }
+     }
+    ]
    },
    "normativity": "рекомендуется",
    "normativity_marker": "без модального слова («вводится»)",
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
    "exceptions_and_caveats": [
     "Вторая доза — через 36 часов, «однако возможен более короткий интервал, если ребенок выглядит очень больным и посев крови показывает грамотрицательную инфекцию» (п. 7c).",
-    "Последующий режим — с учётом концентрации в крови «при наличии возможности» (п. 7d)."
+    "Последующий режим — с учётом концентрации в крови «при наличии возможности» (п. 7d).",
+    "Местная схема «4 мг/кг 1 раз в сутки независимо от гестационного возраста» автоматически не легализуется и не становится назначением: обе части дают неоднозначность SEP-006-A3 (Q04)."
    ],
    "required_data": [
     {
@@ -2920,6 +5354,36 @@
      "field": "gentamicin_initial_dose_mg_kg",
      "description": "Начальная доза гентамицина",
      "unit": "мг/кг"
+    },
+    {
+     "field": "gentamicin_dose_per_kg",
+     "description": "Начальная доза гентамицина на кг: из мг и массы, иначе записанная в мг/кг (вычисляется)",
+     "unit": "мг/кг"
+    },
+    {
+     "field": "gentamicin_dose_mg",
+     "description": "Начальная доза гентамицина",
+     "unit": "мг"
+    },
+    {
+     "field": "weight_kg",
+     "description": "Масса тела на дату назначения",
+     "unit": "кг"
+    },
+    {
+     "field": "gentamicin_interval_h",
+     "description": "Интервал между первой и второй дозой гентамицина",
+     "unit": "часы"
+    },
+    {
+     "field": "very_ill",
+     "description": "Ребёнок выглядит очень больным (оценка врача, п. 7c)",
+     "unit": "да/нет"
+    },
+    {
+     "field": "gram_negative_culture",
+     "description": "Посев показывает грамотрицательную инфекцию",
+     "unit": "да/нет"
     }
    ],
    "evidence_level": {
@@ -2954,11 +5418,100 @@
      "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
+    },
+    {
+     "id": "SEP-006-A3",
+     "text": "П. 7a («от 4 до 7 мг/кг/день, вводимая в разовой дозе») и п. 7b («5 мг/кг каждые 36 часов») расходятся: доза 4–7 мг/кг, отличная от 5, и интервал 24 ч без условий п. 7c не одобряются и не объявляются отличием — решает эксперт (Q04, Q17).",
+     "blocking": "when",
+     "scope": "requirement",
+     "decision_by": "врач-эксперт",
+     "decision": null,
+     "parts": [
+      "dose",
+      "interval"
+     ],
+     "blocks_when_by_part": {
+      "dose": {
+       "any": [
+        {
+         "all": [
+          {
+           "field": "gentamicin_dose_per_kg",
+           "op": "gte",
+           "value": 4
+          },
+          {
+           "field": "gentamicin_dose_per_kg",
+           "op": "lt",
+           "value": 5
+          }
+         ]
+        },
+        {
+         "all": [
+          {
+           "field": "gentamicin_dose_per_kg",
+           "op": "gt",
+           "value": 5
+          },
+          {
+           "field": "gentamicin_dose_per_kg",
+           "op": "lte",
+           "value": 7
+          }
+         ]
+        }
+       ]
+      },
+      "interval": {
+       "all": [
+        {
+         "field": "gentamicin_interval_h",
+         "op": "eq",
+         "value": 24
+        },
+        {
+         "any": [
+          {
+           "field": "very_ill",
+           "op": "is_false"
+          },
+          {
+           "field": "gram_negative_culture",
+           "op": "is_false"
+          }
+         ]
+        }
+       ]
+      }
+     },
+     "added": "rules-0.2 (этап 6)"
     }
    ],
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "gestational_age_weeks",
+    "postnatal_age_days",
+    "creatinine_umol_l",
+    "urine_output_ml_kg_h",
+    "gentamicin_level"
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.14",
+     "план 22 правил: SEP-006"
+    ],
+    "model_changes": [
+     "M1",
+     "M4",
+     "M6"
+    ]
+   },
    "protocol_conflicts": [
     "CF-005"
    ]
@@ -2999,16 +5552,28 @@
     }
    },
    "requirement": {
-    "description": "СРБ через 18–24 ч",
+    "description": "контрольный СРБ взят через 18–24 ч (включительно) после введения первой дозы",
     "check": {
-     "field": "crp_18_24h_after_start",
-     "op": "is_true"
+     "all": [
+      {
+       "field": "hours_first_dose_to_control_crp",
+       "op": "gte",
+       "value": 18
+      },
+      {
+       "field": "hours_first_dose_to_control_crp",
+       "op": "lte",
+       "value": 24
+      }
+     ]
     }
    },
    "normativity": "рекомендуется",
    "normativity_marker": "«следует» (вводная фраза п. 9)",
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
-   "exceptions_and_caveats": [],
+   "exceptions_and_caveats": [
+    "«Начало антибактериальной терапии» машинно — фактическое введение первой дозы; это рабочее толкование, вопрос Q18 открыт."
+   ],
    "required_data": [
     {
      "field": "sepsis_suspected",
@@ -3024,6 +5589,21 @@
      "field": "crp_18_24h_after_start",
      "description": "СРБ определён через 18–24 ч от начала антибиотиков",
      "unit": "да/нет"
+    },
+    {
+     "field": "hours_first_dose_to_control_crp",
+     "description": "Часов от первой введённой дозы до забора контрольного СРБ (вычисляется)",
+     "unit": "часы"
+    },
+    {
+     "field": "first_abx_dose_administered_at",
+     "description": "Время фактического введения первой дозы антибиотика",
+     "unit": "дата-время"
+    },
+    {
+     "field": "crp_samples",
+     "description": "Анализы СРБ: {drawn_at, purpose: baseline/control, result_at}",
+     "unit": "список"
     }
    ],
    "evidence_level": {
@@ -3034,6 +5614,18 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.15",
+     "план 22 правил: SEP-007"
+    ],
+    "model_changes": [
+     "M2"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -3052,6 +5644,21 @@
       "page": 15,
       "text": "через 36/48 часов от начала антибактериальной терапии следует рассмотреть возможность прекращения введения антибиотиков, если:",
       "sha256": "f0d5a6b36950231661beaacb6aeb4309a0f375d9eeb014ffb16146cdbfdf37b7"
+     },
+     {
+      "page": 14,
+      "text": "Решения через 36 часов у новорожденных с РНС и через 48 часов у новорожденных с ПНС",
+      "sha256": "ccc39ba6a38dbe83c90e1207672c933393e72b0b35a94138892809e06f60439d"
+     },
+     {
+      "page": 15,
+      "text": "посев крови отрицательный; клиническое состояние ребенка удовлетворительное, клинические признаки возможной инфекции отсутствуют; уровни и тенденции концентрации С-реактивного белка, ПКТ не превышают нормальные показатели.",
+      "sha256": "948566ce932426eefbf6dd7f2e48f053cb4d65eaa8a3775e09e6b4bc5d435e1e"
+     },
+     {
+      "page": 13,
+      "text": "Оценка результатов лечения антибиотиками проводится после трех дней",
+      "sha256": "d5c885c03e580cfc28892637c226af3402d4c6bcea7767d796862306da4b9390"
      }
     ]
    },
@@ -3086,9 +5693,9 @@
     }
    },
    "requirement": {
-    "description": "терапия не более 5 суток",
+    "description": "терапия прекращена не позднее 5 суток (раньше 3 суток — допустимо при условиях стр. 15; длительность — по отметкам курса)",
     "check": {
-     "field": "antibiotic_days",
+     "field": "abx_course_days",
      "op": "lte",
      "value": 5
     }
@@ -3129,6 +5736,26 @@
      "field": "antibiotic_days",
      "description": "Длительность антибактериальной терапии",
      "unit": "сутки"
+    },
+    {
+     "field": "abx_course_started_at",
+     "description": "Время первой дозы курса АБТ",
+     "unit": "дата-время"
+    },
+    {
+     "field": "abx_course_ended_at",
+     "description": "Время последней дозы курса АБТ",
+     "unit": "дата-время"
+    },
+    {
+     "field": "course_completed",
+     "description": "Курс АБТ завершён",
+     "unit": "да/нет"
+    },
+    {
+     "field": "abx_course_days",
+     "description": "Длительность курса в календарных сутках от первой до последней дозы (вычисляется; только для завершённого курса; Q14)",
+     "unit": "сутки"
     }
    ],
    "evidence_level": {
@@ -3156,6 +5783,44 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "sepsis_onset",
+    "abx_review_36_48h_documented",
+    "crp_trend",
+    "pct_trend",
+    "abx_course_hours",
+    "drug_changes",
+    "interruptions",
+    "abx_drug_change_count",
+    "abx_interruption_count"
+   ],
+   "card_labels": [
+    {
+     "id": "review_36_48",
+     "label": "Пересмотр через 36 ч (ранний сепсис) / 48 ч (поздний) показывается; неотмена на этих сроках отличием не считается, наличие записи о пересмотре не проверяется (Q21)",
+     "when": {
+      "field": "sepsis_onset",
+      "op": "in",
+      "value": [
+       "early",
+       "late"
+      ]
+     }
+    }
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.16",
+     "план 22 правил: SEP-008"
+    ],
+    "model_changes": [
+     "M1",
+     "M2"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -3169,12 +5834,17 @@
       "page": 14,
       "text": "Если состояние ребенка улучшается при положительном бактериологическом посеве крови, то лечение ампициллином и гентамицином продолжается10 дней.",
       "sha256": "e16f9e224c643a0837ea7bfe1f436689ce7b7300283cca8983cf0e314d01e3c2"
+     },
+     {
+      "page": 15,
+      "text": "Продолжительность лечения неонатального сепсиса при подозрении или подтвержденном менингите у детей с ранним и поздним началом сепсиса",
+      "sha256": "0121ece906597ee6a14c8d57f56249dbf395dd6ba3b3839c3a2dfc54f033280f"
      }
     ]
    },
    "kind": "требование",
    "applicability": {
-    "description": "схема ампициллин + гентамицин; улучшение при положительном посеве",
+    "description": "схема ампициллин + гентамицин; улучшение при положительном посеве; нет менингита",
     "condition": {
      "all": [
       {
@@ -3194,14 +5864,18 @@
        "field": "blood_culture_result",
        "op": "eq",
        "value": "положительный"
+      },
+      {
+       "field": "meningitis",
+       "op": "is_false"
       }
      ]
     }
    },
    "requirement": {
-    "description": "длительность 10 суток",
+    "description": "длительность 10 суток (по отметкам завершённого курса)",
     "check": {
-     "field": "antibiotic_days",
+     "field": "abx_course_days",
      "op": "gte",
      "value": 10
     }
@@ -3236,6 +5910,31 @@
     {
      "field": "antibiotic_days",
      "description": "Длительность антибактериальной терапии",
+     "unit": "сутки"
+    },
+    {
+     "field": "meningitis",
+     "description": "Менингит подозревается или подтверждён",
+     "unit": "да/нет"
+    },
+    {
+     "field": "abx_course_started_at",
+     "description": "Время первой дозы курса АБТ",
+     "unit": "дата-время"
+    },
+    {
+     "field": "abx_course_ended_at",
+     "description": "Время последней дозы курса АБТ",
+     "unit": "дата-время"
+    },
+    {
+     "field": "course_completed",
+     "description": "Курс АБТ завершён",
+     "unit": "да/нет"
+    },
+    {
+     "field": "abx_course_days",
+     "description": "Длительность курса в календарных сутках от первой до последней дозы (вычисляется; только для завершённого курса; Q14)",
      "unit": "сутки"
     }
    ],
@@ -3272,6 +5971,27 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": "В тексте PDF «продолжается10» без пробела — цитата сохранена как есть.",
+   "display_fields": [
+    "pathogen",
+    "infection_focus",
+    "abx_course_hours",
+    "drug_changes",
+    "interruptions",
+    "abx_drug_change_count",
+    "abx_interruption_count"
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Утвердить",
+    "basis": [
+     "ТЗ §4.17",
+     "план 22 правил: SEP-009"
+    ],
+    "model_changes": [
+     "M2"
+    ]
+   },
    "protocol_conflicts": [
     "CF-002"
    ]
@@ -3297,6 +6017,21 @@
       "page": 15,
       "text": "Продолжение лечения антибиотиками более 7 дней может быть рассмотрено, если:",
       "sha256": "31e6353457915c03ace6930831dd2bcff2c623172123040d1491c24bbbe61f6e"
+     },
+     {
+      "page": 15,
+      "text": "ребенок еще не полностью выздоровел или целесообразность продолжения обусловлена идентификацией возбудителя при бактериологическом исследовании крови",
+      "sha256": "41f0d86b275fbe861581c06baf44597e58e2e71d5af40ecc17d002277e2a935a"
+     },
+     {
+      "page": 15,
+      "text": "требуется более длительное лечение из-за наличия сопутствующей патологии, такой как некротизирующий энтероколит, остеомиелит или катетер - ассоциированная инфекция",
+      "sha256": "88c7fca07174bccbdf831eab30326461cf336dad72b1cb79fff20cbb1bf09f75"
+     },
+     {
+      "page": 15,
+      "text": "При продолжении антибиотикотерапии более 7 дней, несмотря на отрицательный результат посева крови, следует проводить клиническое обследование ребенка не реже одного раза каждые 24 часа.",
+      "sha256": "582113ce73ade8f61d98e8b1def7996fd42d7d5eb63b0763e5fdbb5e03314708"
      }
     ]
    },
@@ -3339,9 +6074,9 @@
     }
    },
    "requirement": {
-    "description": "длительность 7 суток",
+    "description": "длительность 7 суток (по отметкам завершённого курса)",
     "check": {
-     "field": "antibiotic_days",
+     "field": "abx_course_days",
      "op": "eq",
      "value": 7
     }
@@ -3351,7 +6086,8 @@
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
    "exceptions_and_caveats": [
     "Положение относится к разделу «без менингита»; при неизвестном статусе менингита правило не оценивается.",
-    "Продолжение более 7 дней «может быть рассмотрено» (ребёнок не выздоровел; возбудитель; сопутствующие НЭК, остеомиелит, катетер-ассоциированная инфекция) — стр. 15."
+    "Продолжение более 7 дней «может быть рассмотрено» (ребёнок не выздоровел; возбудитель; сопутствующие НЭК, остеомиелит, катетер-ассоциированная инфекция) — стр. 15.",
+    "Редакция врача (19.11.2026): запись о причине продления не равна доказанной обоснованности выбранной длительности; отсутствие текста обоснования в доступных материалах — «Обоснование не найдено в доступной документации», а не «показаний не было»."
    ],
    "required_data": [
     {
@@ -3377,6 +6113,26 @@
     {
      "field": "antibiotic_days",
      "description": "Длительность антибактериальной терапии",
+     "unit": "сутки"
+    },
+    {
+     "field": "abx_course_started_at",
+     "description": "Время первой дозы курса АБТ",
+     "unit": "дата-время"
+    },
+    {
+     "field": "abx_course_ended_at",
+     "description": "Время последней дозы курса АБТ",
+     "unit": "дата-время"
+    },
+    {
+     "field": "course_completed",
+     "description": "Курс АБТ завершён",
+     "unit": "да/нет"
+    },
+    {
+     "field": "abx_course_days",
+     "description": "Длительность курса в календарных сутках от первой до последней дозы (вычисляется; только для завершённого курса; Q14)",
      "unit": "сутки"
     }
    ],
@@ -3413,6 +6169,120 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "extension_reason",
+    "extension_reason_count",
+    "extension_justification_status",
+    "daily_clinical_exam_documented",
+    "disease_stage_dynamics",
+    "abx_course_hours",
+    "drug_changes",
+    "interruptions",
+    "abx_drug_change_count",
+    "abx_interruption_count"
+   ],
+   "card_labels": [
+    {
+     "id": "course_running",
+     "label": "Курс продолжается. Окончательная длительность пока не оценивается",
+     "when": {
+      "field": "course_completed",
+      "op": "is_false"
+     },
+     "first": true
+    },
+    {
+     "id": "extension_documented",
+     "label": "Продление документировано. Требуется экспертная оценка клинического обоснования",
+     "when": {
+      "all": [
+       {
+        "field": "abx_course_days",
+        "op": "gt",
+        "value": 7
+       },
+       {
+        "field": "extension_reason_count",
+        "op": "gte",
+        "value": 1
+       }
+      ]
+     }
+    },
+    {
+     "id": "extension_not_found",
+     "label": "Обоснование не найдено в доступной документации",
+     "when": {
+      "all": [
+       {
+        "field": "abx_course_days",
+        "op": "gt",
+        "value": 7
+       },
+       {
+        "field": "extension_justification_status",
+        "op": "eq",
+        "value": "not_found_in_documentation"
+       }
+      ]
+     }
+    },
+    {
+     "id": "daily_exam",
+     "label": "Продление более 7 суток при отрицательном посеве: показано, документирован ли клинический осмотр не реже 1 раза в 24 ч",
+     "when": {
+      "all": [
+       {
+        "field": "abx_course_days",
+        "op": "gt",
+        "value": 7
+       },
+       {
+        "field": "blood_culture_result",
+        "op": "eq",
+        "value": "отрицательный"
+       }
+      ]
+     }
+    },
+    {
+     "id": "shorter_than_7",
+     "label": "Курс короче 7 суток: протокол допускает решение о прекращении через 36/48 ч с учётом уровня первоначального риска (стр. 15) — показывается эксперту",
+     "when": {
+      "field": "abx_course_days",
+      "op": "lt",
+      "value": 7
+     },
+     "quotes": [
+      {
+       "protocol": "sepsis",
+       "page": 15,
+       "text": "через 36/48 часов от начала антибактериальной терапии следует рассмотреть возможность прекращения введения антибиотиков, если:",
+       "sha256": "f0d5a6b36950231661beaacb6aeb4309a0f375d9eeb014ffb16146cdbfdf37b7"
+      },
+      {
+       "protocol": "sepsis",
+       "page": 15,
+       "text": "Следует оценить возможность прекращения эмпирической антибактериальной терапии после 36/48 часов с учетом: уровня первоначального риска реализации инфекции;",
+       "sha256": "9ee95d1a2c134ce15f72f84d4cc363b3f2f8769fc10b15452007c60c16066b73"
+      }
+     ]
+    }
+   ],
+   "revision": {
+    "schema": "rules-0.2",
+    "date": "2026-11-19",
+    "round2_decision": "Изменить",
+    "basis": [
+     "ТЗ §3.5",
+     "C3",
+     "C4.1-А",
+     "C4.2-А"
+    ],
+    "model_changes": [
+     "M2"
+    ]
+   },
    "protocol_conflicts": [
     "CF-002"
    ]

@@ -1,7 +1,18 @@
-# База медицинских правил (пилот, этап 5)
+# База медицинских правил (пилот, этапы 5–6)
 
 `pilot-rules.json` — 30 правил-кандидатов: РДС (№4/2016), НЭК (№185/2023), бактериальный сепсис (№185/2023), по 10 на протокол.
-Отчёт с цитатами и неоднозначностями: `docs/stage5-rules-pilot-report.md`.
+Схема `rules-0.2` (этап 6): 22 правила исправлены по итогам двух кругов экспертизы, 8 подтверждённых (RDS-001–006, RDS-008, RDS-009) побайтово такие же, как в коммите 2239c52.
+Отчёты: `docs/stage5-rules-pilot-report.md` (этап 5), `docs/stage6-rules-revision-report.md` (этап 6).
+
+**JSON не правится вручную.** Источник базы — `build/build_rules.py` (определения этапа 5) + `build/revisions_stage6.py` (слой правок этапа 6).
+Тест `test_build.py` проверяет, что повторная сборка даёт побайтово тот же файл.
+
+```
+python3 rules/build/build_rules.py              # пересобрать rules/pilot-rules.json
+python3 rules/build/build_expert_decisions.py   # пересобрать rules/expert-decisions.json
+```
+
+`expert-decisions.json` — решения экспертизы отдельно от базы (круги 1–2, уточнения C1–C7, 4 клинических комментария врача дословно, Q01–Q23 — все открыты, контрольные суммы 8 подтверждённых правил). Статус правил он не меняет.
 
 ## Поля правила
 | Поле | Смысл |
@@ -20,6 +31,13 @@
 | `ambiguities[].blocking`, `scope`, `blocks_when` | блокирует ли неоднозначность оценку (always / when / no) и в какой ситуации |
 | `protocol_conflicts` | id объявленных противоречий; сами противоречия — в `protocol_conflicts` верхнего уровня, с цитатами и `active_when` |
 | `status`, `expert_confirmation` | `кандидат, ожидает экспертного подтверждения`, `null` |
+| `requirement.parts[]` (0.2) | части проверки `{part_id, description, applicability?, check}`; итог правила — самый осторожный исход применимых частей: неоднозначность → отличается → нет данных → совпадает |
+| `ambiguities[].part` / `.parts`, `.blocks_when_by_part` (0.2) | к какой части относится неоднозначность и её условие для каждой части; без `part` — уровень правила (как в 0.1) |
+| `ambiguities[].added`, `.machine_note` (0.2) | новая неоднозначность этапа 6; пояснение к машинному прочтению (текст и условия старых неоднозначностей не меняются) |
+| `card_labels[]` (0.2) | подписи карточки эксперта `{id, label, when?, first?, quotes?}` — только отображение, исход не меняют |
+| `display_fields` (0.2) | поля, которые показываются в карточке, но не проверяются |
+| `revision` (0.2) | решение второго круга и основание правки (раздел ТЗ, уточнение C) |
+| `data_dictionary[поле]` (0.2) | `type`: `tri` / `enum` / `number` / `text` / `datetime` / `date` / `list` / `object` / `derived`; `values`; `false_means`; `derived_from`; `superseded_in_revised_rules_by` |
 
 ## Принципы
 - Неоднозначность, которая блокирует оценку, переводит правило в состояние «Неоднозначность — ожидает экспертного решения»: ни «совпадает», ни «отличается» до решения эксперта.
@@ -28,10 +46,19 @@
 - Отклонение может быть обосновано врачом (`justifications[rule_id] = {text, author}`); обоснование передаётся эксперту и не меняет наблюдение автоматически.
 - Дозы и показания — только из цитат. Пилот принимает только синтетические случаи (`synthetic: true`).
 
+## Хронология и данные (этап 6)
+- Отметки времени — только полные: `2026-01-05T10:00+05:00` (дата, время, часовой пояс). Только дата, без часового пояса, неверный формат → интервал не вычисляется («Недостаточно данных», причина в карточке).
+- Невозможный порядок отметок (доза раньше назначения, конец курса раньше начала, результат раньше забора) → «противоречивая хронология», интервал не вычисляется.
+- Интервалы и вычисляемые поля считает `engine/derive.js`; значения этих полей, введённые вручную, игнорируются.
+- `unknown` / `неизвестно` / `no_record` и пустой список — нет данных, а не «нет».
+- Длительность курса АБТ — календарные сутки от первой до последней дозы завершённого курса (Q14 открыт; это временный режим ТЗ). Смена препарата курс не перезапускает; перерывы показываются.
+- Источник факта: `sources[поле] = {document, fragment, author, recorded_at, confidence}`; обоснование: `justifications[rule_id] = {text, author, recorded_at, category, source, reference, drug_unavailable}`; категории — `clinical_indication`, `drug_unavailable`, `local_practice`, `physician_or_consilium_decision`, `other`. Ни источник, ни категория исход не меняют.
+
 ## Проверка
 ```
 python3 rules/verify_rules.py rules/pilot-rules.json --registry registry/protocols-registry.json --pdf-dir <папка PDF>
-ANTIDEFECT_PDF_DIR=<папка PDF> python3 -m unittest rules/test_rules.py
-node --test engine/test/rules.test.js
+ANTIDEFECT_PDF_DIR=<папка PDF> python3 -m unittest rules/test_rules.py rules/test_build.py
+node --test engine/test/*.test.js
+python3 rules/export_expert_review.py --stage6 rules/pilot-rules.json rules/build/baseline-2239c52.json rules/expert-decisions.json docs/
 ```
 PDF в репозиторий не входят (их SHA-256 — в реестре).
