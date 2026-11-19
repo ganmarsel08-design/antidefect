@@ -359,7 +359,6 @@
    "superseded_in_revised_rules_by": [
     "nec_onset_at",
     "pn_started_at",
-    "pn_running_at_nec_onset",
     "pn_type"
    ]
   },
@@ -490,7 +489,8 @@
    "description": "Разовая доза бензилпенициллина",
    "unit": "мг/кг",
    "type": "number",
-   "since": "rules-0.1"
+   "since": "rules-0.1",
+   "record_format": "число или строка с десятичной запятой/точкой («25», «25,0», «25,00»); точность записи сохраняется и используется только для сверки записей"
   },
   "benzylpenicillin_interval_h": {
    "description": "Интервал введения бензилпенициллина",
@@ -516,7 +516,8 @@
    "description": "Начальная доза гентамицина",
    "unit": "мг/кг",
    "type": "number",
-   "since": "rules-0.1"
+   "since": "rules-0.1",
+   "record_format": "число или строка с десятичной запятой/точкой («25», «25,0», «25,00»); точность записи сохраняется и используется только для сверки записей"
   },
   "gentamicin_interval_h": {
    "description": "Интервал между первой и второй дозой гентамицина",
@@ -621,13 +622,18 @@
    ]
   },
   "abx_stopped_after_sbi_exclusion": {
-   "description": "АБТ отменена позже исключения ТБИ (вычисляется)",
+   "description": "АБТ отменена позже исключения ТБИ (вычисляется; только положительный интервал; одинаковое время — нет данных)",
    "unit": "да/нет",
    "type": "derived",
    "derived_from": [
     "sbi_excluded_at",
     "antibiotics_stopped_at"
    ]
+  },
+  "facility_utc_offset": {
+   "description": "Часовой пояс медицинской организации для календарных суток: +05:00, -03:00 или Z",
+   "unit": "значение",
+   "type": "text"
   },
   "blood_gases": {
    "description": "Газы крови за время ИВЛ: {drawn_at, paco2_mmhg, ph}",
@@ -848,6 +854,9 @@
    "derived_from": [
     "nec_onset_at",
     "enteral_feeding_resumed_at"
+   ],
+   "derived_from_optional": [
+    "facility_utc_offset"
    ]
   },
   "nec_day_from_confirmation_at_feeding_resumption": {
@@ -857,6 +866,9 @@
    "derived_from": [
     "nec_confirmed_at",
     "enteral_feeding_resumed_at"
+   ],
+   "derived_from_optional": [
+    "facility_utc_offset"
    ]
   },
   "feeding_resumed_after_passage_restored": {
@@ -869,16 +881,30 @@
     "gi_passage_restored_at"
    ]
   },
-  "improvement_achieved": {
-   "description": "Отмечены все признаки улучшения со стр. 12 (вычисляется; любой «нет» → нет)",
+  "clinical_lab_improvement_documented": {
+   "description": "Клинико-лабораторное улучшение отмечено в записи врача",
    "unit": "да/нет",
+   "type": "tri",
+   "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
+  },
+  "improvement_signs_yes_count": {
+   "description": "Признаков улучшения со стр. 12 отмечено «да» (вычисляется; показывается информационно, не критерий)",
+   "unit": "число",
    "type": "derived",
    "derived_from": [
     "improvement_signs"
    ]
   },
-  "improvement_signs_documented_count": {
-   "description": "Число отмеченных признаков улучшения (вычисляется)",
+  "improvement_signs_no_count": {
+   "description": "Признаков улучшения со стр. 12 отмечено «нет» (вычисляется; показывается информационно, не критерий)",
+   "unit": "число",
+   "type": "derived",
+   "derived_from": [
+    "improvement_signs"
+   ]
+  },
+  "improvement_signs_unspecified_count": {
+   "description": "Признаков улучшения со стр. 12 не указано (вычисляется; показывается информационно)",
    "unit": "число",
    "type": "derived",
    "derived_from": [
@@ -914,6 +940,10 @@
    "derived_from": [
     "nec_onset_at",
     "pn_started_at"
+   ],
+   "derived_from_optional": [
+    "pn_running_at_nec_onset",
+    "facility_utc_offset"
    ]
   },
   "xrays": {
@@ -949,6 +979,15 @@
    "type": "derived",
    "derived_from": [
     "nec_diagnosed_at",
+    "xrays"
+   ]
+  },
+  "hours_deterioration_to_upright_xray": {
+   "description": "Часов от клинического ухудшения до первого снимка вертикально / в латеропозиции (вычисляется, показывается)",
+   "unit": "часы",
+   "type": "derived",
+   "derived_from": [
+    "deterioration_at",
     "xrays"
    ]
   },
@@ -1034,6 +1073,9 @@
     "abx_course_started_at",
     "abx_course_ended_at",
     "course_completed"
+   ],
+   "derived_from_optional": [
+    "facility_utc_offset"
    ]
   },
   "abx_course_hours": {
@@ -1322,22 +1364,33 @@
    "unit": "текст",
    "type": "text"
   },
-  "ig_special_basis_documented": {
-   "description": "Документировано особое клиническое основание: консилиум или текст основания (вычисляется)",
+  "ig_basis_text_found": {
+   "description": "Содержание особого клинического основания изложено текстом (вычисляется; консилиум и публикация его не заменяют)",
    "unit": "да/нет",
    "type": "derived",
    "derived_from": [
-    "consilium_documented",
     "clinical_evidence"
    ]
   },
+  "ig_consilium_status": {
+   "description": "Решение консилиума: documented — документировано, recorded_not_held — записано, что не проводился, no_record — записи нет (вычисляется)",
+   "unit": "значение",
+   "type": "derived",
+   "values": [
+    "documented",
+    "recorded_not_held",
+    "no_record"
+   ],
+   "derived_from": [
+    "consilium_documented"
+   ]
+  },
   "ig_use_individualized_with_basis": {
-   "description": "Индивидуальное назначение ИГ с документированным особым основанием (вычисляется)",
+   "description": "Индивидуальное назначение ИГ с изложенным особым клиническим основанием (вычисляется; без текста основания — нет данных)",
    "unit": "да/нет",
    "type": "derived",
    "derived_from": [
     "immunoglobulin_use_type",
-    "consilium_documented",
     "clinical_evidence"
    ]
   },
@@ -1376,6 +1429,21 @@
    "unit": "дата",
    "type": "date"
   },
+  "weight_measured_at": {
+   "description": "Время взвешивания (масса, по которой проверяется доза)",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "benzylpenicillin_prescribed_at": {
+   "description": "Время назначения бензилпенициллина",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
+  "gentamicin_prescribed_at": {
+   "description": "Время назначения гентамицина",
+   "unit": "дата-время",
+   "type": "datetime"
+  },
   "benzylpenicillin_dose_mg": {
    "description": "Разовая доза бензилпенициллина",
    "unit": "мг",
@@ -1386,14 +1454,69 @@
    "unit": "текст",
    "type": "text"
   },
-  "benzylpenicillin_dose_per_kg": {
-   "description": "Доза бензилпенициллина на кг: из мг и массы, иначе записанная в мг/кг (вычисляется)",
+  "benzylpenicillin_dose_per_kg_calculated": {
+   "description": "Доза бензилпенициллина на кг, вычисленная: мг ÷ масса (вычисляется; округление только до 6 знаков)",
    "unit": "мг/кг",
+   "type": "derived",
+   "derived_from": [
+    "benzylpenicillin_dose_mg",
+    "weight_kg"
+   ]
+  },
+  "benzylpenicillin_dose_records_consistent": {
+   "description": "Записи согласованы: вычисленная доза, округлённая до точности записи benzylpenicillin_dose_mg_kg, равна записанной (вычисляется)",
+   "unit": "да/нет",
    "type": "derived",
    "derived_from": [
     "benzylpenicillin_dose_mg",
     "weight_kg",
     "benzylpenicillin_dose_mg_kg"
+   ]
+  },
+  "benzylpenicillin_weight_confirmed_for_calc": {
+   "description": "Масса пригодна для расчёта: взвешивание в тот же календарный день по поясу организации и не позже назначения (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "weight_measured_at",
+    "benzylpenicillin_prescribed_at"
+   ],
+   "derived_from_optional": [
+    "facility_utc_offset"
+   ]
+  },
+  "benzylpenicillin_dose_per_kg": {
+   "description": "Доза бензилпенициллина на кг для предварительной оценки: вычисленная, если масса подтверждена; иначе записанная в мг/кг (вычисляется)",
+   "unit": "мг/кг",
+   "type": "derived",
+   "derived_from": [
+    "benzylpenicillin_dose_mg",
+    "weight_kg",
+    "benzylpenicillin_dose_mg_kg",
+    "weight_measured_at",
+    "benzylpenicillin_prescribed_at"
+   ],
+   "derived_from_optional": [
+    "facility_utc_offset"
+   ]
+  },
+  "benzylpenicillin_dose_basis": {
+   "description": "Основа значения дозы на кг: calculated — вычислена по актуальной массе, recorded — записанная в мг/кг (вычисляется)",
+   "unit": "значение",
+   "type": "derived",
+   "values": [
+    "calculated",
+    "recorded"
+   ],
+   "derived_from": [
+    "benzylpenicillin_dose_mg",
+    "weight_kg",
+    "benzylpenicillin_dose_mg_kg",
+    "weight_measured_at",
+    "benzylpenicillin_prescribed_at"
+   ],
+   "derived_from_optional": [
+    "facility_utc_offset"
    ]
   },
   "gentamicin_dose_mg": {
@@ -1433,14 +1556,69 @@
    "type": "tri",
    "false_means": "только документированное «нет»; отсутствие записи или «unknown» — нет данных"
   },
-  "gentamicin_dose_per_kg": {
-   "description": "Начальная доза гентамицина на кг: из мг и массы, иначе записанная в мг/кг (вычисляется)",
+  "gentamicin_dose_per_kg_calculated": {
+   "description": "Доза гентамицина (начальная) на кг, вычисленная: мг ÷ масса (вычисляется; округление только до 6 знаков)",
    "unit": "мг/кг",
+   "type": "derived",
+   "derived_from": [
+    "gentamicin_dose_mg",
+    "weight_kg"
+   ]
+  },
+  "gentamicin_dose_records_consistent": {
+   "description": "Записи согласованы: вычисленная доза, округлённая до точности записи gentamicin_initial_dose_mg_kg, равна записанной (вычисляется)",
+   "unit": "да/нет",
    "type": "derived",
    "derived_from": [
     "gentamicin_dose_mg",
     "weight_kg",
     "gentamicin_initial_dose_mg_kg"
+   ]
+  },
+  "gentamicin_weight_confirmed_for_calc": {
+   "description": "Масса пригодна для расчёта: взвешивание в тот же календарный день по поясу организации и не позже назначения (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "weight_measured_at",
+    "gentamicin_prescribed_at"
+   ],
+   "derived_from_optional": [
+    "facility_utc_offset"
+   ]
+  },
+  "gentamicin_dose_per_kg": {
+   "description": "Доза гентамицина (начальная) на кг для предварительной оценки: вычисленная, если масса подтверждена; иначе записанная в мг/кг (вычисляется)",
+   "unit": "мг/кг",
+   "type": "derived",
+   "derived_from": [
+    "gentamicin_dose_mg",
+    "weight_kg",
+    "gentamicin_initial_dose_mg_kg",
+    "weight_measured_at",
+    "gentamicin_prescribed_at"
+   ],
+   "derived_from_optional": [
+    "facility_utc_offset"
+   ]
+  },
+  "gentamicin_dose_basis": {
+   "description": "Основа значения дозы на кг: calculated — вычислена по актуальной массе, recorded — записанная в мг/кг (вычисляется)",
+   "unit": "значение",
+   "type": "derived",
+   "values": [
+    "calculated",
+    "recorded"
+   ],
+   "derived_from": [
+    "gentamicin_dose_mg",
+    "weight_kg",
+    "gentamicin_initial_dose_mg_kg",
+    "weight_measured_at",
+    "gentamicin_prescribed_at"
+   ],
+   "derived_from_optional": [
+    "facility_utc_offset"
    ]
   },
   "crp_samples": {
@@ -2451,7 +2629,7 @@
       },
       "check": {
        "field": "abx_stopped_after_sbi_exclusion",
-       "op": "is_false"
+       "op": "is_true"
       }
      }
     ]
@@ -2490,7 +2668,7 @@
     },
     {
      "field": "abx_stopped_after_sbi_exclusion",
-     "description": "АБТ отменена позже исключения ТБИ (вычисляется)",
+     "description": "АБТ отменена позже исключения ТБИ (вычисляется; только положительный интервал; одинаковое время — нет данных)",
      "unit": "да/нет"
     }
    ],
@@ -2533,13 +2711,41 @@
     "abx_decision_justification",
     "local_abx_protocol_ref"
    ],
+   "card_labels": [
+    {
+     "id": "stop_before_exclusion",
+     "label": "АБТ отменена до исключения ТБИ, интервал {hours_sbi_excluded_to_abx_stop} ч — как отмена после исключения не засчитывается; клиническое обоснование оценивает эксперт",
+     "when": {
+      "field": "abx_stopped_after_sbi_exclusion",
+      "op": "is_false"
+     }
+    },
+    {
+     "id": "stop_same_time",
+     "label": "Отмена АБТ и исключение ТБИ отмечены одним временем — порядок событий не установлен, часть «отмена» не оценивается",
+     "when": {
+      "field": "hours_sbi_excluded_to_abx_stop",
+      "op": "eq",
+      "value": 0
+     }
+    },
+    {
+     "id": "stop_after_exclusion",
+     "label": "АБТ отменена через {hours_sbi_excluded_to_abx_stop} ч после исключения ТБИ; своевременность оценивает эксперт (RDS-007-A2)",
+     "when": {
+      "field": "abx_stopped_after_sbi_exclusion",
+      "op": "is_true"
+     }
+    }
+   ],
    "revision": {
     "schema": "rules-0.2",
     "date": "2026-11-19",
     "round2_decision": "Утвердить",
     "basis": [
      "ТЗ §4.1",
-     "план 22 правил: RDS-007"
+     "план 22 правил: RDS-007",
+     "исправления этапа 6, п. 1"
     ],
     "model_changes": [
      "M1",
@@ -3346,18 +3552,20 @@
     "nec_onset_at",
     "gi_passage_restored_at",
     "improvement_signs",
-    "improvement_achieved",
-    "improvement_signs_documented_count",
+    "improvement_signs_yes_count",
+    "improvement_signs_no_count",
+    "improvement_signs_unspecified_count",
+    "clinical_lab_improvement_documented",
     "nec_day_from_onset_at_feeding_resumption",
     "feeding_decision_documented"
    ],
    "card_labels": [
     {
-     "id": "no_improvement",
-     "label": "Признаков улучшения (стр. 12) нет",
+     "id": "improvement_signs_info",
+     "label": "Признаки улучшения со стр. 12 показаны информационно: «да» — {improvement_signs_yes_count}, «нет» — {improvement_signs_no_count}, не указано — {improvement_signs_unspecified_count}; клиническое улучшение оценивается по записи врача",
      "when": {
-      "field": "improvement_achieved",
-      "op": "is_false"
+      "field": "improvement_signs_yes_count",
+      "op": "present"
      }
     }
    ],
@@ -3367,7 +3575,8 @@
     "round2_decision": "Утвердить",
     "basis": [
      "ТЗ §4.4",
-     "план 22 правил: NEC-003"
+     "план 22 правил: NEC-003",
+     "исправления этапа 6, п. 8"
     ],
     "model_changes": [
      "M2"
@@ -3436,9 +3645,9 @@
      },
      {
       "part_id": "improvement",
-      "description": "Возобновление при клинико-лабораторном улучшении (признаки — стр. 12; машинно: отмечены все признаки)",
+      "description": "Возобновление при клинико-лабораторном улучшении — по записи врача (признаки стр. 12 показываются информационно, не критерий)",
       "check": {
-       "field": "improvement_achieved",
+       "field": "clinical_lab_improvement_documented",
        "op": "is_true"
       }
      }
@@ -3487,13 +3696,8 @@
      "unit": "сутки"
     },
     {
-     "field": "improvement_signs",
-     "description": "Признаки улучшения (стр. 12): abdomen_not_distended_not_tender, no_pathological_gastric_residuals, ileus_resolved, spontaneous_stool, labs_normalized, no_us_bowel_wall_inflammation, no_ascites, peristalsis_restored — да/нет каждый",
-     "unit": "объект"
-    },
-    {
-     "field": "improvement_achieved",
-     "description": "Отмечены все признаки улучшения со стр. 12 (вычисляется; любой «нет» → нет)",
+     "field": "clinical_lab_improvement_documented",
+     "description": "Клинико-лабораторное улучшение отмечено в записи врача",
      "unit": "да/нет"
     }
    ],
@@ -3524,15 +3728,19 @@
    "expert_confirmation": null,
    "notes": null,
    "display_fields": [
-    "improvement_signs_documented_count"
+    "improvement_signs",
+    "improvement_signs_yes_count",
+    "improvement_signs_no_count",
+    "improvement_signs_unspecified_count",
+    "facility_utc_offset"
    ],
    "card_labels": [
     {
-     "id": "no_improvement",
-     "label": "Признаков улучшения (стр. 12) нет",
+     "id": "improvement_signs_info",
+     "label": "Признаки улучшения со стр. 12 показаны информационно: «да» — {improvement_signs_yes_count}, «нет» — {improvement_signs_no_count}, не указано — {improvement_signs_unspecified_count}; клиническое улучшение оценивается по записи врача",
      "when": {
-      "field": "improvement_achieved",
-      "op": "is_false"
+      "field": "improvement_signs_yes_count",
+      "op": "present"
      }
     }
    ],
@@ -3542,7 +3750,8 @@
     "round2_decision": "Утвердить",
     "basis": [
      "ТЗ §4.5",
-     "план 22 правил: NEC-004"
+     "план 22 правил: NEC-004",
+     "исправления этапа 6, п. 3, 8"
     ],
     "model_changes": [
      "M2"
@@ -3681,13 +3890,17 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "facility_utc_offset"
+   ],
    "revision": {
     "schema": "rules-0.2",
     "date": "2026-11-19",
     "round2_decision": "Утвердить",
     "basis": [
      "ТЗ §4.6",
-     "план 22 правил: NEC-005"
+     "план 22 правил: NEC-005",
+     "исправления этапа 6, п. 3, 7"
     ],
     "model_changes": [
      "M2",
@@ -3864,13 +4077,43 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "hours_deterioration_to_upright_xray"
+   ],
+   "card_labels": [
+    {
+     "id": "first_xray_hours",
+     "label": "Первый снимок через {hours_diagnosis_to_first_xray} ч после установленного диагноза; допустимое окно «через 48 часов» протоколом не определено (Q13)",
+     "when": {
+      "field": "hours_diagnosis_to_first_xray",
+      "op": "present"
+     }
+    },
+    {
+     "id": "max_interval_hours",
+     "label": "Наибольший интервал между снимками после диагноза — {max_hours_between_xrays} ч (часть «1 раз в неделю»: не более 168 ч)",
+     "when": {
+      "field": "max_hours_between_xrays",
+      "op": "present"
+     }
+    },
+    {
+     "id": "deterioration_to_upright_hours",
+     "label": "Снимок вертикально / в латеропозиции через {hours_deterioration_to_upright_xray} ч после клинического ухудшения; срок протоколом не задан — показывается эксперту",
+     "when": {
+      "field": "hours_deterioration_to_upright_xray",
+      "op": "present"
+     }
+    }
+   ],
    "revision": {
     "schema": "rules-0.2",
     "date": "2026-11-19",
     "round2_decision": "Утвердить",
     "basis": [
      "ТЗ §4.7",
-     "план 22 правил: NEC-006"
+     "план 22 правил: NEC-006",
+     "исправления этапа 6, п. 6"
     ],
     "model_changes": [
      "M1",
@@ -4483,6 +4726,22 @@
        "sha256": "0f3452d52dfa842d83e52d6e97723e6476dcec6281a8f267840be8883f7e019b"
       }
      ]
+    },
+    {
+     "id": "no_surgery_no_transfer",
+     "label": "Предварительная техническая оценка (Q16 открыт): отсутствие перевода — отличие для экспертной проверки, не дефект; клиническое обоснование обязательно сохраняется",
+     "when": {
+      "all": [
+       {
+        "field": "surgical_department_available",
+        "op": "is_false"
+       },
+       {
+        "field": "transferred_to_surgery",
+        "op": "is_false"
+       }
+      ]
+     }
     }
    ],
    "revision": {
@@ -4492,7 +4751,8 @@
     "basis": [
      "ТЗ §3.3",
      "C1",
-     "C5"
+     "C5",
+     "исправления этапа 6, п. 9"
     ],
     "model_changes": [
      "M2",
@@ -4865,7 +5125,7 @@
     },
     {
      "field": "ig_use_individualized_with_basis",
-     "description": "Индивидуальное назначение ИГ с документированным особым основанием (вычисляется)",
+     "description": "Индивидуальное назначение ИГ с изложенным особым клиническим основанием (вычисляется; без текста основания — нет данных)",
      "unit": "да/нет"
     }
    ],
@@ -4924,7 +5184,109 @@
     "consilium_documented",
     "research_reference",
     "evidence_applicability_review",
-    "ig_special_basis_documented"
+    "ig_basis_text_found",
+    "ig_consilium_status"
+   ],
+   "card_labels": [
+    {
+     "id": "basis_without_consilium",
+     "label": "Основание изложено, решение консилиума не документировано",
+     "when": {
+      "all": [
+       {
+        "all": [
+         {
+          "field": "immunoglobulin_purpose",
+          "op": "eq",
+          "value": "sepsis_treatment_or_prophylaxis"
+         },
+         {
+          "field": "immunoglobulin_use_type",
+          "op": "eq",
+          "value": "individualized"
+         }
+        ]
+       },
+       {
+        "field": "ig_basis_text_found",
+        "op": "is_true"
+       },
+       {
+        "field": "ig_consilium_status",
+        "op": "in",
+        "value": [
+         "recorded_not_held",
+         "no_record"
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "id": "consilium_without_basis",
+     "label": "Консилиум документирован, содержание особого клинического основания не найдено",
+     "when": {
+      "all": [
+       {
+        "all": [
+         {
+          "field": "immunoglobulin_purpose",
+          "op": "eq",
+          "value": "sepsis_treatment_or_prophylaxis"
+         },
+         {
+          "field": "immunoglobulin_use_type",
+          "op": "eq",
+          "value": "individualized"
+         }
+        ]
+       },
+       {
+        "field": "ig_basis_text_found",
+        "op": "is_false"
+       },
+       {
+        "field": "ig_consilium_status",
+        "op": "eq",
+        "value": "documented"
+       }
+      ]
+     }
+    },
+    {
+     "id": "basis_not_found",
+     "label": "Обоснование не найдено в доступной документации",
+     "when": {
+      "all": [
+       {
+        "all": [
+         {
+          "field": "immunoglobulin_purpose",
+          "op": "eq",
+          "value": "sepsis_treatment_or_prophylaxis"
+         },
+         {
+          "field": "immunoglobulin_use_type",
+          "op": "eq",
+          "value": "individualized"
+         }
+        ]
+       },
+       {
+        "field": "ig_basis_text_found",
+        "op": "is_false"
+       },
+       {
+        "field": "ig_consilium_status",
+        "op": "in",
+        "value": [
+         "recorded_not_held",
+         "no_record"
+        ]
+       }
+      ]
+     }
+    }
    ],
    "revision": {
     "schema": "rules-0.2",
@@ -4932,7 +5294,8 @@
     "round2_decision": "Изменить",
     "basis": [
      "ТЗ §3.4",
-     "C2"
+     "C2",
+     "исправления этапа 6, п. 2"
     ],
     "model_changes": [
      "M4"
@@ -5178,7 +5541,7 @@
     },
     {
      "field": "benzylpenicillin_dose_per_kg",
-     "description": "Доза бензилпенициллина на кг: из мг и массы, иначе записанная в мг/кг (вычисляется)",
+     "description": "Доза бензилпенициллина на кг для предварительной оценки: вычисленная, если масса подтверждена; иначе записанная в мг/кг (вычисляется)",
      "unit": "мг/кг"
     },
     {
@@ -5219,7 +5582,52 @@
    "notes": null,
    "display_fields": [
     "weight_date",
+    "weight_measured_at",
+    "benzylpenicillin_prescribed_at",
+    "facility_utc_offset",
+    "benzylpenicillin_dose_mg_kg",
+    "benzylpenicillin_dose_per_kg_calculated",
+    "benzylpenicillin_dose_records_consistent",
+    "benzylpenicillin_weight_confirmed_for_calc",
+    "benzylpenicillin_dose_basis",
     "local_practice_ref"
+   ],
+   "card_labels": [
+    {
+     "id": "dose_recorded_basis",
+     "label": "Расчёт по актуальной массе не подтверждён — оценка по записанной дозе в мг/кг",
+     "when": {
+      "field": "benzylpenicillin_dose_basis",
+      "op": "eq",
+      "value": "recorded"
+     }
+    },
+    {
+     "id": "dose_records_inconsistent",
+     "label": "Записи дозы не согласованы: записано {benzylpenicillin_dose_mg_kg} мг/кг, вычислено {benzylpenicillin_dose_per_kg_calculated} мг/кг ({benzylpenicillin_dose_mg} мг ÷ {weight_kg} кг)",
+     "when": {
+      "field": "benzylpenicillin_dose_records_consistent",
+      "op": "is_false"
+     }
+    },
+    {
+     "id": "dose_q24",
+     "label": "Доза {benzylpenicillin_dose_per_kg} мг/кг: отличие от буквального значения 25 мг/кг — предварительная оценка, не дефект; допустимое отклонение — Q24",
+     "when": {
+      "any": [
+       {
+        "field": "benzylpenicillin_dose_per_kg",
+        "op": "lt",
+        "value": 25
+       },
+       {
+        "field": "benzylpenicillin_dose_per_kg",
+        "op": "gt",
+        "value": 25
+       }
+      ]
+     }
+    }
    ],
    "revision": {
     "schema": "rules-0.2",
@@ -5227,7 +5635,9 @@
     "round2_decision": "Утвердить",
     "basis": [
      "ТЗ §4.13",
-     "план 22 правил: SEP-005"
+     "план 22 правил: SEP-005",
+     "исправления этапа 6, п. 4, 5",
+     "уточнения 17:34, 17:53"
     ],
     "model_changes": [
      "M2",
@@ -5357,7 +5767,7 @@
     },
     {
      "field": "gentamicin_dose_per_kg",
-     "description": "Начальная доза гентамицина на кг: из мг и массы, иначе записанная в мг/кг (вычисляется)",
+     "description": "Доза гентамицина (начальная) на кг для предварительной оценки: вычисленная, если масса подтверждена; иначе записанная в мг/кг (вычисляется)",
      "unit": "мг/кг"
     },
     {
@@ -5496,7 +5906,52 @@
     "postnatal_age_days",
     "creatinine_umol_l",
     "urine_output_ml_kg_h",
-    "gentamicin_level"
+    "gentamicin_level",
+    "weight_measured_at",
+    "gentamicin_prescribed_at",
+    "facility_utc_offset",
+    "gentamicin_initial_dose_mg_kg",
+    "gentamicin_dose_per_kg_calculated",
+    "gentamicin_dose_records_consistent",
+    "gentamicin_weight_confirmed_for_calc",
+    "gentamicin_dose_basis"
+   ],
+   "card_labels": [
+    {
+     "id": "dose_recorded_basis",
+     "label": "Расчёт по актуальной массе не подтверждён — оценка по записанной дозе в мг/кг",
+     "when": {
+      "field": "gentamicin_dose_basis",
+      "op": "eq",
+      "value": "recorded"
+     }
+    },
+    {
+     "id": "dose_records_inconsistent",
+     "label": "Записи дозы не согласованы: записано {gentamicin_initial_dose_mg_kg} мг/кг, вычислено {gentamicin_dose_per_kg_calculated} мг/кг ({gentamicin_dose_mg} мг ÷ {weight_kg} кг)",
+     "when": {
+      "field": "gentamicin_dose_records_consistent",
+      "op": "is_false"
+     }
+    },
+    {
+     "id": "dose_q24",
+     "label": "Доза {gentamicin_dose_per_kg} мг/кг: отличие от буквального значения 5 мг/кг — предварительная оценка, не дефект; допустимое отклонение — Q24",
+     "when": {
+      "any": [
+       {
+        "field": "gentamicin_dose_per_kg",
+        "op": "lt",
+        "value": 5
+       },
+       {
+        "field": "gentamicin_dose_per_kg",
+        "op": "gt",
+        "value": 5
+       }
+      ]
+     }
+    }
    ],
    "revision": {
     "schema": "rules-0.2",
@@ -5504,7 +5959,9 @@
     "round2_decision": "Утвердить",
     "basis": [
      "ТЗ §4.14",
-     "план 22 правил: SEP-006"
+     "план 22 правил: SEP-006",
+     "исправления этапа 6, п. 4, 5",
+     "уточнения 17:34, 17:53"
     ],
     "model_changes": [
      "M1",

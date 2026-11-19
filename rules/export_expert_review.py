@@ -8,7 +8,7 @@ python3 rules/export_expert_review.py rules/pilot-rules.json docs/
 
 python3 rules/export_expert_review.py --stage6 rules/pilot-rules.json rules/build/baseline-2239c52.json rules/expert-decisions.json docs/
 Создаёт stage6-rules-revision.csv (30 правил: было / стало, части, блокировки, вопросы Q)
-и stage6-open-questions.csv (Q01–Q23, все открыты).
+и stage6-open-questions.csv (Q01–Q24, все открыты).
 """
 import csv, json, os, sys
 

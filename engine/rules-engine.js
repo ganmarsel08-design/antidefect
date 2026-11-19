@@ -20,7 +20,7 @@
 })(typeof self !== 'undefined' ? self : this, function (Derive) {
   'use strict';
 
-  const VERSION = '0.4.0-stage6';
+  const VERSION = '0.4.1-stage6';
   const CANDIDATE = 'кандидат, ожидает экспертного подтверждения';
   const STATUS = Object.freeze({ EXPERT: 'Требуется оценка эксперта', INSUFFICIENT: 'Недостаточно данных' });
   const ALLOWED_STATUSES = Object.freeze([STATUS.EXPERT, STATUS.INSUFFICIENT]);
@@ -281,12 +281,26 @@
     if (node.any) return node.any.flatMap(fieldsOf);
     return [node.field];
   }
+  // Подстановка {поле} в текст подписи из данных случая (только отображение, на исход не влияет).
+  // Числа — до 4 знаков, десятичная запятая; строки — как записаны. Нет значения → подпись не показывается.
+  function fillTemplate(text, data) {
+    let missing = false;
+    const out = text.replace(/\{([a-z0-9_]+)\}/g, (_, f) => {
+      const v = data[f];
+      if (typeof v === 'number' && Number.isFinite(v)) return String(Math.round(v * 1e4) / 1e4).replace('.', ',');
+      if (typeof v === 'string' && v.trim()) return v;
+      missing = true; return '';
+    });
+    return missing ? null : out;
+  }
   function buildCard(out, r, c, data, ctx) {
     const labels = [];
     for (const cl of r.card_labels || []) {
       const on = cl.when ? evalNode(cl.when, data, new Set()) === true : true;
       if (!on) continue;
-      labels.push({ id: cl.id, text: cl.label, first: cl.first === true, quotes: (cl.quotes || []).map(q => ({ protocol: q.protocol, page: q.page, text: q.text })) });
+      const text = fillTemplate(cl.label, data);
+      if (text === null) continue;
+      labels.push({ id: cl.id, text, first: cl.first === true, quotes: (cl.quotes || []).map(q => ({ protocol: q.protocol, page: q.page, text: q.text })) });
     }
     labels.sort((a, b) => (b.first === true) - (a.first === true));
     if (out.observation === OBS.DIFFERS) labels.push({ id: 'differs', text: out.justification_complete ? CARD.DIFFERS_JUSTIFIED : CARD.DIFFERS_UNJUSTIFIED, first: false, quotes: [] });

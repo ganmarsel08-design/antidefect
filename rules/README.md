@@ -12,7 +12,7 @@ python3 rules/build/build_rules.py              # пересобрать rules/p
 python3 rules/build/build_expert_decisions.py   # пересобрать rules/expert-decisions.json
 ```
 
-`expert-decisions.json` — решения экспертизы отдельно от базы (круги 1–2, уточнения C1–C7, 4 клинических комментария врача дословно, Q01–Q23 — все открыты, контрольные суммы 8 подтверждённых правил). Статус правил он не меняет.
+`expert-decisions.json` — решения экспертизы отдельно от базы (круги 1–2, уточнения C1–C7, 4 клинических комментария врача дословно, Q01–Q24 — все открыты, решения по исправлениям этапа 6 в `stage6_corrections`, контрольные суммы 8 подтверждённых правил). Статус правил он не меняет.
 
 ## Поля правила
 | Поле | Смысл |
@@ -34,10 +34,10 @@ python3 rules/build/build_expert_decisions.py   # пересобрать rules/e
 | `requirement.parts[]` (0.2) | части проверки `{part_id, description, applicability?, check}`; итог правила — самый осторожный исход применимых частей: неоднозначность → отличается → нет данных → совпадает |
 | `ambiguities[].part` / `.parts`, `.blocks_when_by_part` (0.2) | к какой части относится неоднозначность и её условие для каждой части; без `part` — уровень правила (как в 0.1) |
 | `ambiguities[].added`, `.machine_note` (0.2) | новая неоднозначность этапа 6; пояснение к машинному прочтению (текст и условия старых неоднозначностей не меняются) |
-| `card_labels[]` (0.2) | подписи карточки эксперта `{id, label, when?, first?, quotes?}` — только отображение, исход не меняют |
+| `card_labels[]` (0.2) | подписи карточки эксперта `{id, label, when?, first?, quotes?}` — только отображение, исход не меняют; в `label` можно подставить значение поля `{поле}` (число — до 4 знаков, с запятой; нет значения — подпись не показывается) |
 | `display_fields` (0.2) | поля, которые показываются в карточке, но не проверяются |
 | `revision` (0.2) | решение второго круга и основание правки (раздел ТЗ, уточнение C) |
-| `data_dictionary[поле]` (0.2) | `type`: `tri` / `enum` / `number` / `text` / `datetime` / `date` / `list` / `object` / `derived`; `values`; `false_means`; `derived_from`; `superseded_in_revised_rules_by` |
+| `data_dictionary[поле]` (0.2) | `type`: `tri` / `enum` / `number` / `text` / `datetime` / `date` / `list` / `object` / `derived`; `values`; `false_means`; `derived_from`; `derived_from_optional` (вход, без которого значение всё равно может быть получено); `record_format`; `superseded_in_revised_rules_by` |
 
 ## Принципы
 - Неоднозначность, которая блокирует оценку, переводит правило в состояние «Неоднозначность — ожидает экспертного решения»: ни «совпадает», ни «отличается» до решения эксперта.
@@ -51,7 +51,11 @@ python3 rules/build/build_expert_decisions.py   # пересобрать rules/e
 - Невозможный порядок отметок (доза раньше назначения, конец курса раньше начала, результат раньше забора) → «противоречивая хронология», интервал не вычисляется.
 - Интервалы и вычисляемые поля считает `engine/derive.js`; значения этих полей, введённые вручную, игнорируются.
 - `unknown` / `неизвестно` / `no_record` и пустой список — нет данных, а не «нет».
+- Календарные сутки (курс АБТ, дни НЭК, день начала ПП, «масса того же дня») — по часовому поясу организации `facility_utc_offset` (`+05:00`, `-03:00`, `Z`). Без него — по общему смещению отметок; отметки в разных смещениях или неверный формат пояса → «Недостаточно данных». Часы от пояса не зависят.
 - Длительность курса АБТ — календарные сутки от первой до последней дозы завершённого курса (Q14 открыт; это временный режим ТЗ). Смена препарата курс не перезапускает; перерывы показываются.
+- RDS-007, часть «отмена»: засчитывается только отмена ПОСЛЕ исключения ТБИ (затем RDS-007-A2); до исключения — «отличается»; одинаковое время — «Недостаточно данных».
+- Дозы SEP-005/006: раздельно (1) согласованность записей — вычисленная доза, округлённая до точности записанной («25», «25,0», «25,00» различаются), только показывается; (2) вычисленная доза мг ÷ масса; (3) значение для оценки — вычисленная, если взвешивание (`weight_measured_at`) в тот же календарный день и не позже назначения (`*_prescribed_at`), иначе записанная в мг/кг с подписью, иначе нет данных. Клинического допуска нет (Q24 открыт).
+- Признаки улучшения стр. 12 — информационный блок карточки; часть «улучшение» NEC-004 проверяет запись врача `clinical_lab_improvement_documented`.
 - Источник факта: `sources[поле] = {document, fragment, author, recorded_at, confidence}`; обоснование: `justifications[rule_id] = {text, author, recorded_at, category, source, reference, drug_unavailable}`; категории — `clinical_indication`, `drug_unavailable`, `local_practice`, `physician_or_consilium_decision`, `other`. Ни источник, ни категория исход не меняют.
 
 ## Проверка
@@ -59,6 +63,7 @@ python3 rules/build/build_expert_decisions.py   # пересобрать rules/e
 python3 rules/verify_rules.py rules/pilot-rules.json --registry registry/protocols-registry.json --pdf-dir <папка PDF>
 ANTIDEFECT_PDF_DIR=<папка PDF> python3 -m unittest rules/test_rules.py rules/test_build.py
 node --test engine/test/*.test.js
+node engine/test/mutation-check.js   # мутационная проверка тестов
 python3 rules/export_expert_review.py --stage6 rules/pilot-rules.json rules/build/baseline-2239c52.json rules/expert-decisions.json docs/
 ```
 PDF в репозиторий не входят (их SHA-256 — в реестре).

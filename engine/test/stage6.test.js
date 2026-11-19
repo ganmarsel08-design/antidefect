@@ -29,6 +29,8 @@ const COURSE_RUNNING = 'Курс продолжается. Окончатель�
 const EXT_DOC = 'Продление документировано. Требуется экспертная оценка клинического обоснования';
 const EXT_NF = 'Обоснование не найдено в доступной документации';
 const labels = r => r.card.labels.map(l => l.text);
+// Масса подтверждена на дату назначения: взвешивание 08:00, назначение 10:00 того же дня (уточнение 17:53).
+const WT = drug => ({ weight_measured_at: at(1, '08:00'), [`${drug}_prescribed_at`]: at(1, '10:00') });
 
 // =================== Инварианты (ТЗ §6) ===================
 test('И1: 30 rule_id на месте; 22 правила исправлены, 8 подтверждённых не затронуты слоем правок', () => {
@@ -117,7 +119,10 @@ test('И3: final_conclusion === null всегда — и при подделке
 
 // Наборы данных, на которых правило «совпадает» (по одному на каждое исправленное правило, где это возможно).
 const CONSISTENT_SETS = {
-  'RDS-007': { rds_diagnosed: true, serious_bacterial_infection_excluded: true, antibiotics_started: true, sbi_excluded_at: at(2, '10:00'), antibiotics_stopped_at: at(2, '09:00') },
+  // RDS-007 исключено из наборов (исправление этапа 6, п. 1): прежний набор — исключение ТБИ 10:00, отмена АБТ 09:00 —
+  // закреплял ошибку: отмена ДО исключения ТБИ считалась «совпадает». После исправления «совпадает» для RDS-007
+  // недостижимо: часть «начало» всегда под RDS-007-A1, часть «отмена» при положительном интервале — RDS-007-A2,
+  // при отрицательном — отличие, при нулевом — нет данных (см. сценарии R1–R9 в stage6-corrections.test.js).
   'RDS-010': { mechanical_ventilation: true, blood_gases: [{ drawn_at: at(1, '10:00'), paco2_mmhg: 44 }], paco2_hypocapnia_threshold: 35, threshold_source: 'синтетический СОП' },
   'NEC-001': { nec_suspected: true, feeding_at_nec_suspicion: 'already_stopped', ng_tube_present_at_suspicion: true, ng_tube_functioning_at_suspicion: true },
   'NEC-002': { nec_suspected: true, uvc_present: true, uvc_removed: true, uac_present: true, uac_removed: true },
@@ -127,8 +132,8 @@ const CONSISTENT_SETS = {
   'NEC-010': { nec_stage: '2б', surgical_department_available: true, current_department: 'neonatal_surgery' },
   'SEP-002': { sepsis_suspected: true, antibiotics_started: true, blood_culture_drawn_at: at(1, '09:40'), first_abx_dose_administered_at: at(1, '10:00') },
   'SEP-004': { early_onset_sepsis_suspected: true, antibiotics_started: true, initial_empirical_regimen: 'benzylpenicillin+gentamicin' },
-  'SEP-005': { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg: 25, weight_kg: 1, benzylpenicillin_interval_h: 12 },
-  'SEP-006': { early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_dose_mg: 5, weight_kg: 1, gentamicin_interval_h: 36 },
+  'SEP-005': { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg: 25, weight_kg: 1, benzylpenicillin_interval_h: 12, ...WT('benzylpenicillin') },
+  'SEP-006': { early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_dose_mg: 5, weight_kg: 1, gentamicin_interval_h: 36, ...WT('gentamicin') },
   'SEP-007': { sepsis_suspected: true, antibiotics_started: true, first_abx_dose_administered_at: at(1, '11:00'), crp_samples: [{ drawn_at: at(2, '11:00'), purpose: 'control' }] },
   'SEP-008': { antibiotics_started: true, empirical_regimen: 'ampicillin+gentamicin', improving: true, blood_culture_result: 'отрицательный', high_risk_factors: false, ...COURSE(1, 5) },
 };
@@ -219,12 +224,12 @@ test('И6: категория обоснования, источники и ко
 
 test('И6: местная практика никогда не даёт «совпадает» (SEP-005 50 мг/кг, SEP-006 4 мг/кг каждые 24 ч)', () => {
   for (const interval of [8, 12, 24]) for (const sev of [true, false, undefined]) {
-    const d = { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg: 50, weight_kg: 1, benzylpenicillin_interval_h: interval };
+    const d = { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg: 50, weight_kg: 1, benzylpenicillin_interval_h: interval, ...WT('benzylpenicillin') };
     if (sev !== undefined) d.very_severe_condition = sev;
     assert.notEqual(ev('SEP-005', d, J('SEP-005', { category: 'local_practice' })).observation, O.CONSISTENT);
   }
   for (const vi of [true, false, undefined]) for (const gn of [true, false, undefined]) for (const ga of [24, 30, 40]) {
-    const d = { early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_dose_mg: 4, weight_kg: 1, gentamicin_interval_h: 24, gestational_age_weeks: ga };
+    const d = { early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_dose_mg: 4, weight_kg: 1, gentamicin_interval_h: 24, gestational_age_weeks: ga, ...WT('gentamicin') };
     if (vi !== undefined) d.very_ill = vi; if (gn !== undefined) d.gram_negative_culture = gn;
     const r = ev('SEP-006', d, J('SEP-006', { category: 'local_practice' }));
     assert.notEqual(r.observation, O.CONSISTENT);
@@ -233,7 +238,7 @@ test('И6: местная практика никогда не даёт «сов
 });
 
 test('И6: при неоднозначности части её проверка не выполняется — скрытого результата нет', () => {
-  const r = ev('SEP-006', { early_onset_sepsis_suspected: true, gentamicin_dose_mg: 4, weight_kg: 1, gentamicin_given: true, gentamicin_interval_h: 24, very_ill: false });
+  const r = ev('SEP-006', { early_onset_sepsis_suspected: true, gentamicin_dose_mg: 4, weight_kg: 1, gentamicin_given: true, gentamicin_interval_h: 24, very_ill: false, ...WT('gentamicin') });
   for (const p of r.parts) if (p.active_ambiguities.length) { assert.equal(p.observation, O.AMBIGUOUS_PENDING); assert.equal(p.observation_weight, undefined); }
   const r2 = ev('NEC-008', { nec_stage: '2б', antibiotics_started: true, ...COURSE(1, 5) });
   assert.equal(r2.observation, O.AMBIGUOUS_PENDING);
@@ -328,8 +333,9 @@ test('§3.4 SEP-003-a: ИГ рутинно всем с сепсисом — от
   const r = ev('SEP-003', { sepsis_suspected: true, immunoglobulin_given: true, immunoglobulin_purpose: 'sepsis_treatment_or_prophylaxis', immunoglobulin_use_type: 'routine' });
   assert.equal(r.observation, O.DIFFERS);
 });
-test('§3.4 SEP-003-b (C2): индивидуально, консилиум + статья — неоднозначность SEP-003-A2, не «совпадает»', () => {
-  const r = ev('SEP-003', { sepsis_suspected: true, immunoglobulin_given: true, immunoglobulin_purpose: 'sepsis_treatment_or_prophylaxis', immunoglobulin_use_type: 'individualized', consilium_documented: true, research_reference: 'doi:10.0000/синтетика' });
+test('§3.4 SEP-003-b (C2, исправление п. 2): индивидуально, текст основания + консилиум + статья — неоднозначность SEP-003-A2, не «совпадает»', () => {
+  const r = ev('SEP-003', { sepsis_suspected: true, immunoglobulin_given: true, immunoglobulin_purpose: 'sepsis_treatment_or_prophylaxis', immunoglobulin_use_type: 'individualized',
+    clinical_evidence: 'синтетическое особое клиническое основание', consilium_documented: true, research_reference: 'doi:10.0000/синтетика' });
   assert.equal(r.observation, O.AMBIGUOUS_PENDING);
   assert.deepEqual(r.active_ambiguities, ['SEP-003-A2']);
 });
@@ -491,15 +497,18 @@ test('SEP-004: первично ампициллин + гентамицин, п�
   assert.equal(ev('SEP-004', { early_onset_sepsis_suspected: false, antibiotics_started: true, initial_empirical_regimen: 'другое' }).observation, O.NOT_APPLICABLE);
   assert.equal(ev('SEP-004', { early_onset_sepsis_suspected: true, antibiotics_started: true }).observation, O.NOT_ASSESSED);
 });
-test('SEP-005: менингит — неприменимо; масса неизвестна — нет данных; 25 мг/кг каждые 8 ч при очень тяжёлом — совпадает; несогласованные мг и мг/кг — нет данных', () => {
-  const base = { early_onset_sepsis_suspected: true, benzylpenicillin_given: true };
+test('SEP-005: менингит — неприменимо; масса неизвестна — нет данных; 25 мг/кг каждые 8 ч при очень тяжёлом — совпадает; несогласованные мг и мг/кг — по вычисленной дозе (D-таблица)', () => {
+  const base = { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, ...WT('benzylpenicillin') };
   assert.equal(ev('SEP-005', { ...base, meningitis: true, benzylpenicillin_dose_mg_kg: 50, benzylpenicillin_interval_h: 12 }).observation, O.NOT_APPLICABLE);
   assert.equal(ev('SEP-005', { ...base, meningitis: false, benzylpenicillin_dose_mg: 25, benzylpenicillin_interval_h: 12 }).observation, O.NOT_ASSESSED);
   assert.equal(ev('SEP-005', { ...base, meningitis: false, benzylpenicillin_dose_mg: 30, weight_kg: 1.2, benzylpenicillin_interval_h: 8, very_severe_condition: true }).observation, O.CONSISTENT);
-  assert.equal(ev('SEP-005', { ...base, meningitis: false, benzylpenicillin_dose_mg: 60, weight_kg: 1.2, benzylpenicillin_dose_mg_kg: 25, benzylpenicillin_interval_h: 12 }).observation, O.NOT_ASSESSED);
+  // прежняя проверка «несогласованные записи → нет данных» заменена (уточнение 17:34): приоритет — у вычисленной дозы 50 мг/кг
+  const inc = ev('SEP-005', { ...base, meningitis: false, benzylpenicillin_dose_mg: 60, weight_kg: 1.2, benzylpenicillin_dose_mg_kg: 25, benzylpenicillin_interval_h: 12 });
+  assert.equal(inc.observation, O.DIFFERS);
+  assert.ok(inc.card.labels.some(l => l.id === 'dose_records_inconsistent'));
 });
 test('SEP-006: 5 мг/кг каждые 36 ч — совпадает; короче при очень больном и грамотрицательном посеве — совпадает; 3 мг/кг — отличие; интервал неизвестен — часть «интервал» нет данных', () => {
-  const base = { early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_dose_mg: 5, weight_kg: 1 };
+  const base = { early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_dose_mg: 5, weight_kg: 1, ...WT('gentamicin') };
   assert.equal(ev('SEP-006', { ...base, gentamicin_interval_h: 36 }).observation, O.CONSISTENT);
   assert.equal(ev('SEP-006', { ...base, gentamicin_interval_h: 24, very_ill: true, gram_negative_culture: true }).observation, O.CONSISTENT);
   assert.equal(part(ev('SEP-006', { ...base, gentamicin_dose_mg: 3, gentamicin_interval_h: 36 }), 'dose').observation, O.DIFFERS);
@@ -547,13 +556,13 @@ test('M6: четыре комментария врача — дословно, �
   assert.ok(ED.clinical_comments.every(x => x.requires_separate_validation === true && x.used_in_evaluation === false));
   assert.equal(res(o, 'RDS-008').card.clinical_comments.length, 1);
 });
-test('решения экспертизы — отдельно от базы: 30 решений, статус всех правил «кандидат», Q01–Q23 открыты, C1–C7 записаны', () => {
+test('решения экспертизы — отдельно от базы: 30 решений, статус всех правил «кандидат», Q01–Q24 открыты, C1–C7 записаны', () => {
   assert.equal(ED.decisions.length, 30);
   assert.ok(ED.decisions.every(d => d.rule_status_after === E.CANDIDATE));
   assert.deepEqual(ED.decisions.filter(d => d.round1 === 'Подтвердить').map(d => d.rule_id), CONFIRMED);
   const r2 = {}; ED.decisions.forEach(d => { if (d.round2) r2[d.round2.decision] = (r2[d.round2.decision] || 0) + 1; });
   assert.deepEqual(r2, { 'Утвердить': 17, 'Изменить': 5 });
-  assert.equal(ED.open_questions.length, 23);
+  assert.equal(ED.open_questions.length, 24);
   assert.ok(ED.open_questions.every(q => q.status === 'открыт' && q.answer === null));
   assert.deepEqual(ED.technical_clarifications.map(c => c.id), ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7']);
   for (const r of DB.rules) assert.ok(!('round1' in r) && !('decisions' in r) && !('clinician_comment' in r), r.rule_id);

@@ -189,11 +189,41 @@ class ExpertDecisions(unittest.TestCase):
     def test_content(self):
         ed = json.load(open(ED_PATH, encoding='utf-8'))
         self.assertEqual(len(ed['decisions']), 30)
-        self.assertEqual([q['id'] for q in ed['open_questions']], [f'Q{i:02d}' for i in range(1, 24)])
+        self.assertEqual([q['id'] for q in ed['open_questions']], [f'Q{i:02d}' for i in range(1, 25)])
+        q24 = ed['open_questions'][23]
+        self.assertEqual(q24['rules'], ['SEP-005', 'SEP-006'])
+        self.assertIsNone(q24['answer'])
         self.assertTrue(all(q['status'] == 'открыт' and q['answer'] is None for q in ed['open_questions']))
         self.assertEqual(sorted(c['rule_id'] for c in ed['clinical_comments']), ['RDS-008', 'SEP-004', 'SEP-005', 'SEP-006'])
         self.assertTrue(all(d['rule_status_after'] == V.CANDIDATE for d in ed['decisions']))
         self.assertEqual([c['id'] for c in ed['protocol_conflicts']], ['CF-001', 'CF-002', 'CF-003', 'CF-004', 'CF-005'])
+
+
+class InvariantsAfterStage6Corrections(unittest.TestCase):
+    """V2–V4: блокировки, конфликты и тексты Q01–Q23 совпадают с d314a58 (исправления этапа 6 их не меняют)."""
+    @classmethod
+    def setUpClass(cls):
+        cls.fx = json.load(open(os.path.join(HERE, 'build', 'fixture-d314a58.json'), encoding='utf-8'))
+        cls.db = json.load(open(DB_PATH, encoding='utf-8'))
+        cls.ed = json.load(open(ED_PATH, encoding='utf-8'))
+
+    def test_25_blockers_identical_to_d314a58(self):
+        cur = {a['id']: a for r in self.db['rules'] for a in r['ambiguities'] if a['blocking'] != 'no'}
+        self.assertEqual(len(cur), 25)
+        self.assertEqual(cur, self.fx['blocking_ambiguities'])
+
+    def test_conflicts_identical(self):
+        self.assertEqual(self.db['protocol_conflicts'], self.fx['protocol_conflicts'])
+
+    def test_q01_q23_unchanged(self):
+        self.assertEqual(self.ed['open_questions'][:23], self.fx['open_questions'])
+
+    def test_fixture_matches_git_when_available(self):
+        old = git_show('d314a58', 'rules/pilot-rules.json')
+        if old is None:
+            self.skipTest('нет истории git с коммитом d314a58')
+        d = json.loads(old)
+        self.assertEqual({a['id']: a for r in d['rules'] for a in r['ambiguities'] if a['blocking'] != 'no'}, self.fx['blocking_ambiguities'])
 
 
 if __name__ == '__main__':

@@ -54,13 +54,17 @@ function generated(rule) {
 }
 
 // ---- 22 исправленных правил: явные синтетические данные по новой модели ----
+// Масса подтверждена на дату назначения (взвешивание 08:00, назначение 10:00 того же дня) — исправления этапа 6, п. 4.
+const WT = drug => ({ weight_measured_at: at(1, '08:00'), [`${drug}_prescribed_at`]: at(1, '10:00') });
 const COURSE = (d1, d2, extra) => Object.assign({ course_completed: true, abx_course_started_at: at(d1, '10:00'), abx_course_ended_at: at(d2, '10:00') }, extra || {});
 const R22 = {
   'RDS-007': {
-    t1: { rds_diagnosed: true, serious_bacterial_infection_excluded: true, antibiotics_started: true, sbi_excluded_at: at(2, '10:00'), antibiotics_stopped_at: at(2, '10:00') },
+    // Исправление этапа 6, п. 1: прежний T1 (одинаковое время исключения и отмены) давал «совпадает»; теперь
+    // T1 — положительный интервал (RDS-007-A2), T3 — отмена до исключения ТБИ (отличие с обоснованием).
+    t1: { rds_diagnosed: true, serious_bacterial_infection_excluded: true, antibiotics_started: true, sbi_excluded_at: at(2, '10:00'), antibiotics_stopped_at: at(2, '14:00') },
     t2: { rds_diagnosed: true, serious_bacterial_infection_excluded: true, antibiotics_started: true, sbi_excluded_at: at(2, '10:00') },
-    t3: { rds_diagnosed: true, serious_bacterial_infection_excluded: true, antibiotics_started: true, sbi_excluded_at: at(2, '10:00'), antibiotics_stopped_at: at(2, '14:00') },
-    exp: [O.CONSISTENT, O.NOT_ASSESSED, O.AMBIGUOUS_PENDING] },
+    t3: { rds_diagnosed: true, serious_bacterial_infection_excluded: true, antibiotics_started: true, sbi_excluded_at: at(2, '10:00'), antibiotics_stopped_at: at(2, '08:00') },
+    exp: [O.AMBIGUOUS_PENDING, O.NOT_ASSESSED, O.DIFFERS] },
   'RDS-010': {
     t1: { mechanical_ventilation: true, blood_gases: [{ drawn_at: at(1, '10:00'), paco2_mmhg: 44 }], paco2_hypocapnia_threshold: 35, threshold_source: 'синтетический СОП ОРИТН' },
     t2: { mechanical_ventilation: true },
@@ -137,14 +141,14 @@ const R22 = {
     t3: { early_onset_sepsis_suspected: true, antibiotics_started: true, initial_empirical_regimen: 'другое', drug_availability: [{ drug: 'гентамицин', available: false, checked_at: at(1, '09:00'), source: 'аптека' }] },
     exp: [O.CONSISTENT, O.NOT_ASSESSED, O.DIFFERS] },
   'SEP-005': {
-    t1: { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg: 30, weight_kg: 1.2, benzylpenicillin_interval_h: 12 },
-    t2: { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg: 30, benzylpenicillin_interval_h: 12 },
-    t3: { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg: 60, weight_kg: 1.2, benzylpenicillin_interval_h: 12 },
+    t1: { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg: 30, weight_kg: 1.2, benzylpenicillin_interval_h: 12, ...WT('benzylpenicillin') },
+    t2: { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg: 30, benzylpenicillin_interval_h: 12, ...WT('benzylpenicillin') },
+    t3: { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg: 60, weight_kg: 1.2, benzylpenicillin_interval_h: 12, ...WT('benzylpenicillin') },
     exp: [O.CONSISTENT, O.NOT_ASSESSED, O.DIFFERS] },
   'SEP-006': {
-    t1: { early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_dose_mg: 6, weight_kg: 1.2, gentamicin_interval_h: 36 },
-    t2: { early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_dose_mg: 6, weight_kg: 1.2 },
-    t3: { early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_dose_mg: 9.6, weight_kg: 1.2, gentamicin_interval_h: 36 },
+    t1: { early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_dose_mg: 6, weight_kg: 1.2, gentamicin_interval_h: 36, ...WT('gentamicin') },
+    t2: { early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_dose_mg: 6, weight_kg: 1.2, ...WT('gentamicin') },
+    t3: { early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_dose_mg: 9.6, weight_kg: 1.2, gentamicin_interval_h: 36, ...WT('gentamicin') },
     exp: [O.CONSISTENT, O.NOT_ASSESSED, O.DIFFERS] },
   'SEP-007': {
     t1: { sepsis_suspected: true, antibiotics_started: true, first_abx_dose_administered_at: at(1, '11:00'), crp_samples: [{ drawn_at: at(2, '06:00'), purpose: 'control' }] },
@@ -218,7 +222,9 @@ const EDGES = [
   ['EDGE-08', 'NEC-003', { nec_stage: '1б', gi_passage_restored: false, enteral_feeding_stopped: true, nec_onset_at: at(1, '10:00') },
     (r, o) => { assert.equal(r.observation, O.AMBIGUOUS_PENDING); assert.ok(r.active_ambiguities.includes('NEC-003-A1')); assert.ok(cfs(o).includes('CF-003')); }],
   ['EDGE-09', 'NEC-004', { nec_stage: '2а', nec_onset_at: at(1, '10:00'), nec_confirmed_at: at(2, '10:00'), enteral_feeding_resumed_at: at(7, '10:00'), improvement_signs: { abdomen_not_distended_not_tender: false } },
-    (r, o) => { assert.equal(r.observation, O.AMBIGUOUS_PENDING); assert.ok(r.card.labels.some(l => l.id === 'no_improvement')); assert.equal(o.derived.values.nec_day_from_onset_at_feeding_resumption, 7); assert.equal(o.derived.values.nec_day_from_confirmation_at_feeding_resumption, 6); }],
+    // Исправление этапа 6, п. 8: признаки стр. 12 — информационный блок, а не критерий; подписи «нет улучшения» нет.
+    (r, o) => { assert.equal(r.observation, O.AMBIGUOUS_PENDING); assert.ok(!r.card.labels.some(l => l.id === 'no_improvement'));
+      assert.ok(r.card.labels.some(l => l.id === 'improvement_signs_info' && /«нет» — 1/.test(l.text) && /не указано — 7/.test(l.text))); assert.equal(o.derived.values.nec_day_from_onset_at_feeding_resumption, 7); assert.equal(o.derived.values.nec_day_from_confirmation_at_feeding_resumption, 6); }],
   ['EDGE-10', 'NEC-005', { nec_stage: '2а', pn_type: 'full', pn_running_at_nec_onset: true },
     (r) => { assert.equal(r.observation, O.CONSISTENT); }],
   ['EDGE-11', 'NEC-006', { nec_stage: '2а', nec_diagnosed_at: at(1, '10:00'), clinical_deterioration: true, deterioration_at: at(2, '08:00'), xrays: [{ at: at(2, '09:00'), position: 'vertical', reason: 'urgent' }] },

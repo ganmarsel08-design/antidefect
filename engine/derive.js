@@ -19,7 +19,7 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.4.0-stage6';
+  const VERSION = '0.4.1-stage6';
   const REASON = Object.freeze({
     NO_TS: 'нет отметки времени',
     DATE_ONLY: 'только дата без времени',
@@ -34,9 +34,15 @@
     NO_THRESHOLD: 'порог PaCO₂ не задан',
     THRESHOLD_NO_SOURCE: 'порог PaCO₂ указан без источника',
     NO_WEIGHT: 'нет массы тела',
-    DOSE_MISMATCH: 'доза в мг и записанная доза в мг/кг не согласуются',
-    SAME_TIME: 'одинаковое время — порядок не установлен',
-    NO_EVENT_AFTER: 'нет события после исходной отметки'
+    SAME_TIME: 'одинаковое время — порядок событий не установлен',
+    NO_EVENT_AFTER: 'нет события после исходной отметки',
+    MIXED_TZ: 'отметки в разных часовых поясах, часовой пояс организации не указан',
+    BAD_FACILITY_TZ: 'неверный формат часового пояса организации (нужно +05:00, -03:00 или Z)',
+    BAD_DOSE_RECORD: 'неверная запись дозы в мг/кг',
+    NO_DOSE: 'нет дозы',
+    WEIGHT_NOT_CONFIRMED: 'масса на дату назначения не подтверждена — расчёт по актуальной массе не выполняется',
+    BASIS_TEXT_NOT_FOUND: 'содержание особого клинического основания не найдено',
+    USE_TYPE_UNKNOWN: 'вид назначения (рутинное / индивидуальное) не указан'
   });
   const UNKNOWN_VALUES = new Set(['unknown', 'неизвестно', 'no_record']);
   const TS_RE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?(Z|[+-]\d{2}:\d{2})$/;
@@ -68,10 +74,50 @@
     if (probe.getUTCFullYear() !== Y || probe.getUTCMonth() !== M - 1 || probe.getUTCDate() !== D || H > 23 || MI > 59 || S > 59) return { reason: REASON.BAD_TS };
     const ms = Date.parse(v);
     if (Number.isNaN(ms)) return { reason: REASON.BAD_TS };
-    return { ms, date: `${y}-${mo}-${d}` };
+    const tz = m[7];
+    const off = tz === 'Z' ? 0 : (tz[0] === '-' ? -1 : 1) * (Number(tz.slice(1, 3)) * 60 + Number(tz.slice(4, 6)));
+    return { ms, off };
   }
-  function dayIndex(date) { const [y, m, d] = date.split('-').map(Number); return Date.UTC(y, m - 1, d) / 86400000; }
+  const OFFSET_RE = /^(Z|[+-](\d{2}):(\d{2}))$/;
+  /** Часовой пояс организации (facility_utc_offset): {off} в минутах, {reason} при неверном формате, null — не указан. */
+  function facilityOffset(data) {
+    if (!has(data, 'facility_utc_offset')) return null;
+    const v = data.facility_utc_offset;
+    const m = typeof v === 'string' ? OFFSET_RE.exec(v) : null;
+    if (!m) return { reason: REASON.BAD_FACILITY_TZ };
+    if (m[1] === 'Z') return { off: 0 };
+    const h = Number(m[2]), mi = Number(m[3]);
+    if (h > 14 || mi > 59) return { reason: REASON.BAD_FACILITY_TZ };
+    return { off: (m[1][0] === '-' ? -1 : 1) * (h * 60 + mi) };
+  }
+  /**
+   * Календарные дни двух отметок в едином поясе (пункт 3 плана): пояс организации, если указан;
+   * иначе — общее смещение самих отметок; разные смещения без пояса организации — нет данных.
+   */
+  function dayPair(a, b, data) {
+    const fac = facilityOffset(data);
+    let off;
+    if (fac && fac.reason) return { reason: fac.reason };
+    if (fac) off = fac.off;
+    else if (a.off === b.off) off = a.off;
+    else return { reason: REASON.MIXED_TZ };
+    const di = t => Math.floor((t.ms + off * 60000) / 86400000);
+    return { a: di(a), b: di(b) };
+  }
   const round = (x, n) => { const f = Math.pow(10, n); return Math.round(x * f) / f; };
+  const DOSE_RE = /^\s*(\d+)(?:[.,](\d+))?\s*$/;
+  /** Запись дозы в мг/кг как введена: строка («25», «25,0», «25,00») или число; точность — по числу знаков после запятой. */
+  function parseDoseRecord(v) {
+    if (v === null || v === undefined) return null;
+    if (typeof v === 'number') {
+      if (!Number.isFinite(v) || v < 0) return { reason: REASON.BAD_DOSE_RECORD };
+      const t = String(v); const i = t.indexOf('.');
+      return { value: v, decimals: i < 0 ? 0 : t.length - i - 1, raw: v };
+    }
+    const m = typeof v === 'string' ? DOSE_RE.exec(v) : null;
+    if (!m) return { reason: REASON.BAD_DOSE_RECORD };
+    return { value: Number(m[1] + (m[2] ? '.' + m[2] : '')), decimals: m[2] ? m[2].length : 0, raw: v };
+  }
   const hours = (a, b) => round((b.ms - a.ms) / 3600000, 2);
   const minutes = (a, b) => round((b.ms - a.ms) / 60000, 1);
 
@@ -103,7 +149,9 @@
       if (a.reason || b.reason) { const r = a.reason || b.reason; why('hours_sbi_excluded_to_abx_stop', r); why('abx_stopped_after_sbi_exclusion', r); return; }
       const h = hours(a, b);
       set('hours_sbi_excluded_to_abx_stop', h);
-      set('abx_stopped_after_sbi_exclusion', h > 0);
+      // «после исключения» — только при положительном интервале; одинаковые отметки — порядок не установлен (пункт 1 плана)
+      if (b.ms === a.ms) why('abx_stopped_after_sbi_exclusion', REASON.SAME_TIME);
+      else set('abx_stopped_after_sbi_exclusion', b.ms > a.ms);
     })();
 
     // RDS-010: газы крови, порог из источника, реакция врача
@@ -157,10 +205,10 @@
       } else {
         if (on.reason || res.reason) why('nec_day_from_onset_at_feeding_resumption', on.reason || res.reason);
         else if (res.ms < on.ms) why('nec_day_from_onset_at_feeding_resumption', REASON.CONTRADICTORY);
-        else set('nec_day_from_onset_at_feeding_resumption', dayIndex(res.date) - dayIndex(on.date) + 1);
+        else { const dp = dayPair(on, res, data); if (dp.reason) why('nec_day_from_onset_at_feeding_resumption', dp.reason); else set('nec_day_from_onset_at_feeding_resumption', dp.b - dp.a + 1); }
         if (cf.reason || res.reason) why('nec_day_from_confirmation_at_feeding_resumption', cf.reason || res.reason);
         else if (res.ms < cf.ms) why('nec_day_from_confirmation_at_feeding_resumption', REASON.CONTRADICTORY);
-        else set('nec_day_from_confirmation_at_feeding_resumption', dayIndex(res.date) - dayIndex(cf.date) + 1);
+        else { const dp = dayPair(cf, res, data); if (dp.reason) why('nec_day_from_confirmation_at_feeding_resumption', dp.reason); else set('nec_day_from_confirmation_at_feeding_resumption', dp.b - dp.a + 1); }
       }
       if (has(data, 'enteral_feeding_resumed_at')) {
         if (data.gi_passage_restored === false) set('feeding_resumed_after_passage_restored', false);
@@ -170,28 +218,36 @@
           else set('feeding_resumed_after_passage_restored', res.ms >= p.ms);
         }
       } else why('feeding_resumed_after_passage_restored', 'энтеральная нагрузка не возобновлялась или нет записи');
+      // Восемь признаков улучшения (стр. 12) — только информационный блок карточки, не критерий (пункт 8 плана).
       const sg = isObj(data.improvement_signs) ? data.improvement_signs : null;
-      if (!sg) { why('improvement_achieved', REASON.EMPTY_LIST); why('improvement_signs_documented_count', REASON.EMPTY_LIST); }
+      const cnt = ['improvement_signs_yes_count', 'improvement_signs_no_count', 'improvement_signs_unspecified_count'];
+      if (!sg) cnt.forEach(f => why(f, REASON.EMPTY_LIST));
       else {
         const vals = IMPROVEMENT_SIGNS.map(k => (sg[k] === true ? true : sg[k] === false ? false : null));
-        set('improvement_signs_documented_count', vals.filter(v => v === true).length);
-        if (vals.some(v => v === false)) set('improvement_achieved', false);
-        else if (vals.every(v => v === true)) set('improvement_achieved', true);
-        else why('improvement_achieved', 'отмечены не все признаки улучшения (стр. 12)');
+        set(cnt[0], vals.filter(v => v === true).length);
+        set(cnt[1], vals.filter(v => v === false).length);
+        set(cnt[2], vals.filter(v => v === null).length);
       }
     })();
 
     // NEC-005: день начала ПП относительно начала НЭК (1 = день начала заболевания)
     (function () {
       const on = T('nec_onset_at'), pn = T('pn_started_at');
-      if (on.reason || pn.reason) why('pn_start_illness_day', on.reason || pn.reason);
-      else set('pn_start_illness_day', dayIndex(pn.date) - dayIndex(on.date) + 1);
+      if (on.reason || pn.reason) { why('pn_start_illness_day', on.reason || pn.reason); return; }
+      // Противоречие: «ПП не шло на момент НЭК», а начато раньше НЭК, или «ПП шло», а начато позже (пункт 7 плана).
+      if ((data.pn_running_at_nec_onset === false && pn.ms < on.ms) || (data.pn_running_at_nec_onset === true && pn.ms > on.ms)) {
+        invalidate(['pn_running_at_nec_onset'], REASON.CONTRADICTORY); why('pn_start_illness_day', REASON.CONTRADICTORY); return;
+      }
+      const dp = dayPair(on, pn, data);
+      if (dp.reason) why('pn_start_illness_day', dp.reason);
+      else set('pn_start_illness_day', dp.b - dp.a + 1);
     })();
 
     // NEC-006: рентгенограммы
     (function () {
       const xs = Array.isArray(data.xrays) ? data.xrays.filter(isObj) : null;
       const names = ['xray_count', 'hours_diagnosis_to_first_xray', 'max_hours_between_xrays', 'xray_vertical_or_lateral_after_deterioration'];
+      names.push('hours_deterioration_to_upright_xray');
       if (!xs || !xs.length) { names.forEach(n => why(n, REASON.EMPTY_LIST)); return; }
       const ts = xs.map(x => ({ x, t: parseTs(x.at) }));
       const bad = ts.find(e => e.t.reason);
@@ -210,11 +266,14 @@
         }
       }
       const det = T('deterioration_at');
-      if (det.reason) why('xray_vertical_or_lateral_after_deterioration', det.reason);
+      if (det.reason) { why('xray_vertical_or_lateral_after_deterioration', det.reason); why('hours_deterioration_to_upright_xray', det.reason); }
       else {
         const post = ts.filter(e => e.t.ms >= det.ms);
+        const up = post.find(e => e.x.position === 'vertical' || e.x.position === 'lateral');
+        if (up) set('hours_deterioration_to_upright_xray', hours(det, up.t));
+        else why('hours_deterioration_to_upright_xray', post.length ? 'после ухудшения нет снимка вертикально / в латеропозиции' : REASON.NO_EVENT_AFTER);
         if (!post.length) why('xray_vertical_or_lateral_after_deterioration', REASON.NO_EVENT_AFTER);
-        else if (post.some(e => e.x.position === 'vertical' || e.x.position === 'lateral')) set('xray_vertical_or_lateral_after_deterioration', true);
+        else if (up) set('xray_vertical_or_lateral_after_deterioration', true);
         else if (post.every(e => e.x.position === 'horizontal')) set('xray_vertical_or_lateral_after_deterioration', false);
         else why('xray_vertical_or_lateral_after_deterioration', 'положение снимка не указано');
       }
@@ -229,7 +288,11 @@
       else if (data.course_completed !== true) names.forEach(n => why(n, REASON.COURSE_STATUS_UNKNOWN));
       else if (a.reason || b.reason) names.forEach(n => why(n, a.reason || b.reason));
       else if (b.ms < a.ms) names.forEach(n => why(n, REASON.CONTRADICTORY));
-      else { set('abx_course_days', dayIndex(b.date) - dayIndex(a.date) + 1); set('abx_course_hours', hours(a, b)); }
+      else {
+        set('abx_course_hours', hours(a, b));
+        const dp = dayPair(a, b, data);
+        if (dp.reason) why('abx_course_days', dp.reason); else set('abx_course_days', dp.b - dp.a + 1);
+      }
       for (const [f, list] of [['abx_drug_change_count', 'drug_changes'], ['abx_interruption_count', 'interruptions']]) {
         if (Array.isArray(data[list])) set(f, data[list].length);
       }
@@ -265,29 +328,48 @@
       set('culture_drawn_before_first_dose', d.ms < g.ms);
     })();
 
-    // SEP-003: индивидуальное назначение иммуноглобулина с документированным особым основанием (C2)
+    // SEP-003: консилиум и содержание особого клинического основания — раздельно (пункт 2 плана).
+    // Основанием считается только изложенный текст основания; консилиум и публикация его не заменяют.
     (function () {
-      const ev = nonEmptyText(data.clinical_evidence);
-      let basis = null;
-      if (data.consilium_documented === true || ev) basis = true;
-      else if (data.consilium_documented === false) basis = false;
-      if (basis === null) why('ig_special_basis_documented', 'нет сведений о консилиуме и клиническом основании');
-      else set('ig_special_basis_documented', basis);
+      const text = nonEmptyText(data.clinical_evidence);
+      set('ig_basis_text_found', text);
+      if (data.consilium_documented === true) set('ig_consilium_status', 'documented');
+      else if (data.consilium_documented === false) set('ig_consilium_status', 'recorded_not_held');
+      else set('ig_consilium_status', 'no_record');
       const u = data.immunoglobulin_use_type;
       if (u === 'routine') set('ig_use_individualized_with_basis', false);
-      else if (u === 'individualized') { if (basis === null) why('ig_use_individualized_with_basis', 'нет сведений об особом основании'); else set('ig_use_individualized_with_basis', basis); }
-      else why('ig_use_individualized_with_basis', 'вид назначения (рутинное / индивидуальное) не указан');
+      else if (u === 'individualized') { if (text) set('ig_use_individualized_with_basis', true); else why('ig_use_individualized_with_basis', REASON.BASIS_TEXT_NOT_FOUND); }
+      else why('ig_use_individualized_with_basis', REASON.USE_TYPE_UNKNOWN);
     })();
 
-    // SEP-005/006: доза на кг из мг и массы (или записанная доза в мг/кг)
-    for (const [out, mg, perKg] of [['benzylpenicillin_dose_per_kg', 'benzylpenicillin_dose_mg', 'benzylpenicillin_dose_mg_kg'],
-                                     ['gentamicin_dose_per_kg', 'gentamicin_dose_mg', 'gentamicin_initial_dose_mg_kg']]) {
-      const calc = (typeof data[mg] === 'number' && typeof data.weight_kg === 'number' && data.weight_kg > 0) ? round(data[mg] / data.weight_kg, 2) : null;
-      const rec = typeof data[perKg] === 'number' ? data[perKg] : null;
-      if (calc !== null && rec !== null && Math.abs(calc - rec) > 0.02 * Math.max(calc, rec)) why(out, REASON.DOSE_MISMATCH);
-      else if (calc !== null) set(out, calc);
-      else if (rec !== null) set(out, rec);
-      else why(out, typeof data[mg] === 'number' ? REASON.NO_WEIGHT : 'нет дозы');
+    // SEP-005/006: три раздельные величины (пункт 4 плана, уточнения 17:34 и 17:53):
+    //  1) согласованность записей — записанная доза в мг/кг против мг ÷ масса, округлённых до точности самой записи;
+    //  2) вычисленная доза — мг ÷ масса (округление только до 6 знаков: погрешность машинной арифметики);
+    //  3) значение для предварительной оценки — вычисленная доза, если масса актуальна на дату назначения
+    //     (тот же календарный день по поясу организации и не позже назначения), иначе записанная, иначе нет данных.
+    // Клинического допуска нет (Q24); форма записи («25» / «25,0» / «25,00») на оценку не влияет, когда есть вычисленная доза.
+    for (const [drug, mg, rec, presc] of [['benzylpenicillin', 'benzylpenicillin_dose_mg', 'benzylpenicillin_dose_mg_kg', 'benzylpenicillin_prescribed_at'],
+                                          ['gentamicin', 'gentamicin_dose_mg', 'gentamicin_initial_dose_mg_kg', 'gentamicin_prescribed_at']]) {
+      const F = n => `${drug}_${n}`;
+      const calc = (typeof data[mg] === 'number' && typeof data.weight_kg === 'number' && data.weight_kg > 0) ? round(data[mg] / data.weight_kg, 6) : null;
+      if (calc !== null) set(F('dose_per_kg_calculated'), calc); else why(F('dose_per_kg_calculated'), typeof data[mg] === 'number' ? REASON.NO_WEIGHT : REASON.NO_DOSE);
+      const r = parseDoseRecord(data[rec]);
+      if (r && r.reason) why(F('dose_records_consistent'), r.reason);
+      else if (r && calc !== null) set(F('dose_records_consistent'), round(calc, r.decimals) === r.value);
+      else why(F('dose_records_consistent'), r ? 'нет абсолютной дозы или массы для сверки' : 'нет записанной дозы в мг/кг для сверки');
+      let wok = false, wreason = REASON.WEIGHT_NOT_CONFIRMED;
+      if (calc !== null) {
+        const w = T('weight_measured_at'), p = T(presc);
+        if (w.reason) wreason = 'время взвешивания: ' + w.reason;
+        else if (p.reason) wreason = 'время назначения: ' + p.reason;
+        else if (w.ms > p.ms) wreason = 'масса измерена после назначения';
+        else { const dp = dayPair(w, p, data); if (dp.reason) wreason = dp.reason; else if (dp.a !== dp.b) wreason = 'масса измерена в другой календарный день'; else wok = true; }
+        set(F('weight_confirmed_for_calc'), wok);
+        if (!wok) reasons[F('weight_confirmed_for_calc')] = wreason;
+      } else why(F('weight_confirmed_for_calc'), 'нет абсолютной дозы или массы');
+      if (calc !== null && wok) { set(F('dose_per_kg'), calc); set(F('dose_basis'), 'calculated'); }
+      else if (r && !r.reason) { set(F('dose_per_kg'), r.value); set(F('dose_basis'), 'recorded'); }
+      else { why(F('dose_per_kg'), calc !== null ? wreason : (r && r.reason) || REASON.NO_DOSE); why(F('dose_basis'), REASON.NO_DOSE); }
     }
 
     // SEP-007: от первой введённой дозы до ЗАБОРА контрольного СРБ (не до результата)
@@ -312,11 +394,15 @@
     'hours_sbi_excluded_to_abx_stop', 'abx_stopped_after_sbi_exclusion', 'blood_gas_count', 'hypocapnia_episode_count',
     'minutes_hypocapnia_to_vent_change', 'minutes_suspicion_to_feeding_stop', 'minutes_suspicion_to_ng_tube',
     'nec_day_from_onset_at_feeding_resumption', 'nec_day_from_confirmation_at_feeding_resumption', 'feeding_resumed_after_passage_restored',
-    'improvement_achieved', 'improvement_signs_documented_count', 'pn_start_illness_day', 'xray_count', 'hours_diagnosis_to_first_xray',
-    'max_hours_between_xrays', 'xray_vertical_or_lateral_after_deterioration', 'abx_course_days', 'abx_course_hours',
+    'improvement_signs_yes_count', 'improvement_signs_no_count', 'improvement_signs_unspecified_count', 'pn_start_illness_day', 'xray_count',
+    'hours_diagnosis_to_first_xray', 'max_hours_between_xrays', 'xray_vertical_or_lateral_after_deterioration', 'hours_deterioration_to_upright_xray',
+    'abx_course_days', 'abx_course_hours',
     'abx_drug_change_count', 'abx_interruption_count', 'extension_reason_count', 'hours_transfer_decision_to_transfer',
-    'minutes_indication_to_first_dose', 'culture_drawn_before_first_dose', 'ig_special_basis_documented', 'ig_use_individualized_with_basis',
-    'benzylpenicillin_dose_per_kg', 'gentamicin_dose_per_kg', 'hours_first_dose_to_control_crp'
+    'minutes_indication_to_first_dose', 'culture_drawn_before_first_dose', 'ig_basis_text_found', 'ig_consilium_status', 'ig_use_individualized_with_basis',
+    'benzylpenicillin_dose_per_kg_calculated', 'benzylpenicillin_dose_records_consistent', 'benzylpenicillin_weight_confirmed_for_calc',
+    'benzylpenicillin_dose_per_kg', 'benzylpenicillin_dose_basis',
+    'gentamicin_dose_per_kg_calculated', 'gentamicin_dose_records_consistent', 'gentamicin_weight_confirmed_for_calc',
+    'gentamicin_dose_per_kg', 'gentamicin_dose_basis', 'hours_first_dose_to_control_crp'
   ]);
 
   // Хронология для карточки эксперта: все поля *_at и отметки внутри списков.
@@ -335,5 +421,5 @@
     return ev.sort((a, b) => (a.ms === null) - (b.ms === null) || (a.ms || 0) - (b.ms || 0)).map(({ ms, ...e }) => e);
   }
 
-  return Object.freeze({ VERSION, REASON, DERIVED_FIELDS, IMPROVEMENT_SIGNS, EXTENSION_REASONS, parseTs, derive });
+  return Object.freeze({ VERSION, REASON, DERIVED_FIELDS, IMPROVEMENT_SIGNS, EXTENSION_REASONS, parseTs, parseDoseRecord, facilityOffset, derive });
 });

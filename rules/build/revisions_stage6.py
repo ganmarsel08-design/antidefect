@@ -21,7 +21,8 @@ NEW_DATA = {
  'abx_decision_justification':('Обоснование начала или неначала АБТ (текст записи)','текст'),
  'local_abx_protocol_ref':('Ссылка на протокол антибиотикотерапии отделения','текст'),
  'hours_sbi_excluded_to_abx_stop':('Часов от исключения ТБИ до отмены АБТ (вычисляется)','часы'),
- 'abx_stopped_after_sbi_exclusion':('АБТ отменена позже исключения ТБИ (вычисляется)','да/нет'),
+ 'abx_stopped_after_sbi_exclusion':('АБТ отменена позже исключения ТБИ (вычисляется; только положительный интервал; одинаковое время — нет данных)','да/нет'),
+ 'facility_utc_offset':('Часовой пояс медицинской организации для календарных суток: +05:00, -03:00 или Z','значение'),
  'blood_gases':('Газы крови за время ИВЛ: {drawn_at, paco2_mmhg, ph}','список'),
  'paco2_hypocapnia_threshold':('Порог PaCO₂ для гипокапнии, принятый в отделении (протокол порог не задаёт)','мм рт. ст.'),
  'threshold_source':('Источник порога PaCO₂ (документ, пункт)','текст'),
@@ -60,8 +61,10 @@ NEW_DATA = {
  'nec_day_from_onset_at_feeding_resumption':('День заболевания (от начала) при возобновлении нагрузки; 1 — день начала (вычисляется)','сутки'),
  'nec_day_from_confirmation_at_feeding_resumption':('День от подтверждения НЭК при возобновлении нагрузки; 1 — день подтверждения (вычисляется)','сутки'),
  'feeding_resumed_after_passage_restored':('Нагрузка возобновлена не раньше восстановления пассажа (вычисляется)','да/нет'),
- 'improvement_achieved':('Отмечены все признаки улучшения со стр. 12 (вычисляется; любой «нет» → нет)','да/нет'),
- 'improvement_signs_documented_count':('Число отмеченных признаков улучшения (вычисляется)','число'),
+ 'clinical_lab_improvement_documented':('Клинико-лабораторное улучшение отмечено в записи врача','да/нет'),
+ 'improvement_signs_yes_count':('Признаков улучшения со стр. 12 отмечено «да» (вычисляется; показывается информационно, не критерий)','число'),
+ 'improvement_signs_no_count':('Признаков улучшения со стр. 12 отмечено «нет» (вычисляется; показывается информационно, не критерий)','число'),
+ 'improvement_signs_unspecified_count':('Признаков улучшения со стр. 12 не указано (вычисляется; показывается информационно)','число'),
  'pn_running_at_nec_onset':('Полное ПП уже проводилось на момент начала НЭК','да/нет'),
  'pn_started_at':('Время начала полного парентерального питания','дата-время'),
  'pn_type':('Вид ПП: full — полное, partial — частичное (например, без липидов), glucose_only — только глюкоза','значение'),
@@ -71,6 +74,7 @@ NEW_DATA = {
  'xray_count':('Число рентгенограмм с полной отметкой времени (вычисляется)','число'),
  'hours_diagnosis_to_first_xray':('Часов от диагноза до первого снимка (вычисляется)','часы'),
  'max_hours_between_xrays':('Наибольший интервал между снимками после диагноза (вычисляется)','часы'),
+ 'hours_deterioration_to_upright_xray':('Часов от клинического ухудшения до первого снимка вертикально / в латеропозиции (вычисляется, показывается)','часы'),
  'xray_vertical_or_lateral_after_deterioration':('После ухудшения был снимок вертикально или в латеропозиции (вычисляется)','да/нет'),
  'abx_regimen':('Полная схема антибактериальной терапии (список препаратов)','список'),
  'metronidazole_given_at':('Время первой дозы метронидазола','дата-время'),
@@ -128,17 +132,25 @@ NEW_DATA = {
  'consilium_documented':('Решение консилиума о назначении ИГ документировано','да/нет'),
  'research_reference':('Ссылка на научную публикацию / иной документ','текст'),
  'evidence_applicability_review':('Оценка применимости источника (заполняет эксперт)','текст'),
- 'ig_special_basis_documented':('Документировано особое клиническое основание: консилиум или текст основания (вычисляется)','да/нет'),
- 'ig_use_individualized_with_basis':('Индивидуальное назначение ИГ с документированным особым основанием (вычисляется)','да/нет'),
+ 'ig_basis_text_found':('Содержание особого клинического основания изложено текстом (вычисляется; консилиум и публикация его не заменяют)','да/нет'),
+ 'ig_consilium_status':('Решение консилиума: documented — документировано, recorded_not_held — записано, что не проводился, no_record — записи нет (вычисляется)','значение'),
+ 'ig_use_individualized_with_basis':('Индивидуальное назначение ИГ с изложенным особым клиническим основанием (вычисляется; без текста основания — нет данных)','да/нет'),
  'initial_empirical_regimen':('Первичная эмпирическая схема: benzylpenicillin+gentamicin / ampicillin+gentamicin / другое','значение'),
  'drug_availability':('Наличие препаратов: {drug, available, checked_at, source}','список'),
  'local_antibiogram_ref':('Ссылка на местную антибиотикограмму','текст'),
  'prior_abx':('Предшествующая АБТ (текст)','текст'),
  'weight_kg':('Масса тела на дату назначения','кг'),
  'weight_date':('Дата измерения массы','дата'),
+ 'weight_measured_at':('Время взвешивания (масса, по которой проверяется доза)','дата-время'),
+ 'benzylpenicillin_prescribed_at':('Время назначения бензилпенициллина','дата-время'),
+ 'gentamicin_prescribed_at':('Время назначения гентамицина','дата-время'),
  'benzylpenicillin_dose_mg':('Разовая доза бензилпенициллина','мг'),
  'local_practice_ref':('Ссылка на местную практику / СОП (показывается; не заменяет протокол)','текст'),
- 'benzylpenicillin_dose_per_kg':('Доза бензилпенициллина на кг: из мг и массы, иначе записанная в мг/кг (вычисляется)','мг/кг'),
+ 'benzylpenicillin_dose_per_kg_calculated':('Доза бензилпенициллина на кг, вычисленная: мг ÷ масса (вычисляется; округление только до 6 знаков)','мг/кг'),
+ 'benzylpenicillin_dose_records_consistent':('Записи согласованы: вычисленная доза, округлённая до точности записи benzylpenicillin_dose_mg_kg, равна записанной (вычисляется)','да/нет'),
+ 'benzylpenicillin_weight_confirmed_for_calc':('Масса пригодна для расчёта: взвешивание в тот же календарный день по поясу организации и не позже назначения (вычисляется)','да/нет'),
+ 'benzylpenicillin_dose_per_kg':('Доза бензилпенициллина на кг для предварительной оценки: вычисленная, если масса подтверждена; иначе записанная в мг/кг (вычисляется)','мг/кг'),
+ 'benzylpenicillin_dose_basis':('Основа значения дозы на кг: calculated — вычислена по актуальной массе, recorded — записанная в мг/кг (вычисляется)','значение'),
  'gentamicin_dose_mg':('Начальная доза гентамицина','мг'),
  'postnatal_age_days':('Постнатальный возраст','сутки'),
  'creatinine_umol_l':('Креатинин (показывается)','мкмоль/л'),
@@ -146,7 +158,11 @@ NEW_DATA = {
  'gentamicin_level':('Концентрация гентамицина в крови, если определялась (показывается; п. 7d)','мг/л'),
  'gram_negative_culture':('Посев показывает грамотрицательную инфекцию','да/нет'),
  'very_ill':('Ребёнок выглядит очень больным (оценка врача, п. 7c)','да/нет'),
- 'gentamicin_dose_per_kg':('Начальная доза гентамицина на кг: из мг и массы, иначе записанная в мг/кг (вычисляется)','мг/кг'),
+ 'gentamicin_dose_per_kg_calculated':('Доза гентамицина (начальная) на кг, вычисленная: мг ÷ масса (вычисляется; округление только до 6 знаков)','мг/кг'),
+ 'gentamicin_dose_records_consistent':('Записи согласованы: вычисленная доза, округлённая до точности записи gentamicin_initial_dose_mg_kg, равна записанной (вычисляется)','да/нет'),
+ 'gentamicin_weight_confirmed_for_calc':('Масса пригодна для расчёта: взвешивание в тот же календарный день по поясу организации и не позже назначения (вычисляется)','да/нет'),
+ 'gentamicin_dose_per_kg':('Доза гентамицина (начальная) на кг для предварительной оценки: вычисленная, если масса подтверждена; иначе записанная в мг/кг (вычисляется)','мг/кг'),
+ 'gentamicin_dose_basis':('Основа значения дозы на кг: calculated — вычислена по актуальной массе, recorded — записанная в мг/кг (вычисляется)','значение'),
  'crp_samples':('Анализы СРБ: {drawn_at, purpose: baseline/control, result_at}','список'),
  'hours_first_dose_to_control_crp':('Часов от первой введённой дозы до забора контрольного СРБ (вычисляется)','часы'),
  'sepsis_onset':('Начало сепсиса: early — ранний (РНС), late — поздний (ПНС)','значение'),
@@ -181,8 +197,11 @@ ENUM_VALUES = {
  'immunoglobulin_use_type': ['routine', 'individualized', 'unknown'],
  'sepsis_onset': ['early', 'late', 'unknown'],
  'extension_justification_status': ['found', 'not_found_in_documentation', 'unknown'],
+ 'ig_consilium_status': ['documented', 'recorded_not_held', 'no_record'],
+ 'benzylpenicillin_dose_basis': ['calculated', 'recorded'],
+ 'gentamicin_dose_basis': ['calculated', 'recorded'],
 }
-TEXT_FIELDS = {'surfactant_drug', 'abx_decision_justification', 'local_abx_protocol_ref', 'threshold_source', 'retention_reason', 'replacement_plan',
+TEXT_FIELDS = {'facility_utc_offset', 'surfactant_drug', 'abx_decision_justification', 'local_abx_protocol_ref', 'threshold_source', 'retention_reason', 'replacement_plan',
  'other_antianaerobic_drug', 'surgeon_conclusion', 'surgeon_recommendations', 'routing_decision', 'transfer_destination', 'transfer_delay_reason',
  'transfer_justification', 'reassessment_plan', 'surgical_consilium_decision', 'indication_event_type', 'immunoglobulin_indication_text',
  'indication_source', 'clinical_evidence', 'research_reference', 'evidence_applicability_review', 'local_antibiogram_ref', 'prior_abx',
@@ -199,10 +218,12 @@ DERIVED_FROM = {
  'nec_day_from_onset_at_feeding_resumption': ['nec_onset_at', 'enteral_feeding_resumed_at'],
  'nec_day_from_confirmation_at_feeding_resumption': ['nec_confirmed_at', 'enteral_feeding_resumed_at'],
  'feeding_resumed_after_passage_restored': ['enteral_feeding_resumed_at', 'gi_passage_restored', 'gi_passage_restored_at'],
- 'improvement_achieved': ['improvement_signs'], 'improvement_signs_documented_count': ['improvement_signs'],
+ 'improvement_signs_yes_count': ['improvement_signs'], 'improvement_signs_no_count': ['improvement_signs'],
+ 'improvement_signs_unspecified_count': ['improvement_signs'],
  'pn_start_illness_day': ['nec_onset_at', 'pn_started_at'],
  'xray_count': ['xrays'], 'hours_diagnosis_to_first_xray': ['nec_diagnosed_at', 'xrays'], 'max_hours_between_xrays': ['nec_diagnosed_at', 'xrays'],
  'xray_vertical_or_lateral_after_deterioration': ['deterioration_at', 'xrays'],
+ 'hours_deterioration_to_upright_xray': ['deterioration_at', 'xrays'],
  'abx_course_days': ['abx_course_started_at', 'abx_course_ended_at', 'course_completed'],
  'abx_course_hours': ['abx_course_started_at', 'abx_course_ended_at', 'course_completed'],
  'abx_drug_change_count': ['drug_changes'], 'abx_interruption_count': ['interruptions'],
@@ -210,12 +231,26 @@ DERIVED_FROM = {
  'hours_transfer_decision_to_transfer': ['transfer_decision_at', 'transferred_at'],
  'minutes_indication_to_first_dose': ['sepsis_indication_identified_at', 'first_abx_dose_ordered_at', 'first_abx_dose_administered_at'],
  'culture_drawn_before_first_dose': ['blood_culture_drawn_at', 'first_abx_dose_administered_at', 'culture_result_at'],
- 'ig_special_basis_documented': ['consilium_documented', 'clinical_evidence'],
- 'ig_use_individualized_with_basis': ['immunoglobulin_use_type', 'consilium_documented', 'clinical_evidence'],
- 'benzylpenicillin_dose_per_kg': ['benzylpenicillin_dose_mg', 'weight_kg', 'benzylpenicillin_dose_mg_kg'],
- 'gentamicin_dose_per_kg': ['gentamicin_dose_mg', 'weight_kg', 'gentamicin_initial_dose_mg_kg'],
+ 'ig_basis_text_found': ['clinical_evidence'],
+ 'ig_consilium_status': ['consilium_documented'],
+ 'ig_use_individualized_with_basis': ['immunoglobulin_use_type', 'clinical_evidence'],
+ 'benzylpenicillin_dose_per_kg_calculated': ['benzylpenicillin_dose_mg', 'weight_kg'],
+ 'benzylpenicillin_dose_records_consistent': ['benzylpenicillin_dose_mg', 'weight_kg', 'benzylpenicillin_dose_mg_kg'],
+ 'benzylpenicillin_weight_confirmed_for_calc': ['weight_measured_at', 'benzylpenicillin_prescribed_at'],
+ 'benzylpenicillin_dose_per_kg': ['benzylpenicillin_dose_mg', 'weight_kg', 'benzylpenicillin_dose_mg_kg', 'weight_measured_at', 'benzylpenicillin_prescribed_at'],
+ 'benzylpenicillin_dose_basis': ['benzylpenicillin_dose_mg', 'weight_kg', 'benzylpenicillin_dose_mg_kg', 'weight_measured_at', 'benzylpenicillin_prescribed_at'],
+ 'gentamicin_dose_per_kg_calculated': ['gentamicin_dose_mg', 'weight_kg'],
+ 'gentamicin_dose_records_consistent': ['gentamicin_dose_mg', 'weight_kg', 'gentamicin_initial_dose_mg_kg'],
+ 'gentamicin_weight_confirmed_for_calc': ['weight_measured_at', 'gentamicin_prescribed_at'],
+ 'gentamicin_dose_per_kg': ['gentamicin_dose_mg', 'weight_kg', 'gentamicin_initial_dose_mg_kg', 'weight_measured_at', 'gentamicin_prescribed_at'],
+ 'gentamicin_dose_basis': ['gentamicin_dose_mg', 'weight_kg', 'gentamicin_initial_dose_mg_kg', 'weight_measured_at', 'gentamicin_prescribed_at'],
  'hours_first_dose_to_control_crp': ['first_abx_dose_administered_at', 'crp_samples'],
 }
+# Необязательные входы вычисления: при отсутствии значение всё равно может быть получено (в «не хватает данных» не перечисляются).
+DERIVED_OPTIONAL = {f: ['facility_utc_offset'] for f in ('nec_day_from_onset_at_feeding_resumption', 'nec_day_from_confirmation_at_feeding_resumption',
+                                                         'abx_course_days', 'benzylpenicillin_weight_confirmed_for_calc', 'gentamicin_weight_confirmed_for_calc',
+                                                         'benzylpenicillin_dose_per_kg', 'gentamicin_dose_per_kg', 'benzylpenicillin_dose_basis', 'gentamicin_dose_basis')}
+DERIVED_OPTIONAL['pn_start_illness_day'] = ['pn_running_at_nec_onset', 'facility_utc_offset']
 FALSE_MEANS = 'только документированное «нет»; отсутствие записи или «unknown» — нет данных'
 
 def field_type(k, unit):
@@ -239,20 +274,26 @@ SUPERSEDED = {
  'umbilical_catheter_removed': ['uvc_removed', 'uac_removed'],
  'ng_tube_decompression': ['ng_tube_present_at_suspicion', 'ng_tube_functioning_at_suspicion', 'ng_tube_placed'],
  'enteral_feeding_resumed_day': ['nec_onset_at', 'nec_confirmed_at', 'enteral_feeding_resumed_at'],
- 'parenteral_nutrition_started_day': ['nec_onset_at', 'pn_started_at', 'pn_running_at_nec_onset', 'pn_type'],
+ 'parenteral_nutrition_started_day': ['nec_onset_at', 'pn_started_at', 'pn_type'],
  'xray_48h_after_diagnosis': ['nec_diagnosed_at', 'xrays'],
  'xray_vertical_or_lateral_at_deterioration': ['deterioration_at', 'xrays'],
  'surgeon_consulted': ['surgeon_consult_status', 'surgeon_consult_format'],
  'immunoglobulin_indication_documented': ['immunoglobulin_purpose', 'immunoglobulin_use_type'],
 }
+# Записанная доза в мг/кг принимается как введена: число или строка («25», «25,0», «25,00»; запятая или точка).
+# Точность записи (число знаков после запятой) сохраняется и используется только для сверки записей (пункт 4 плана).
+RECORD_FORMAT = {k: 'число или строка с десятичной запятой/точкой («25», «25,0», «25,00»); точность записи сохраняется и используется только для сверки записей'
+                 for k in ('benzylpenicillin_dose_mg_kg', 'gentamicin_initial_dose_mg_kg')}
 DICTIONARY = {}
 for k, (desc, unit) in DATA.items():
     e = {'description': desc, 'unit': unit, 'type': field_type(k, unit)}
     if k in ENUM_VALUES: e['values'] = ENUM_VALUES[k]
     if e['type'] == 'tri': e['false_means'] = FALSE_MEANS
     if k in DERIVED_FROM: e['derived_from'] = DERIVED_FROM[k]
+    if k in DERIVED_OPTIONAL: e['derived_from_optional'] = DERIVED_OPTIONAL[k]
     if k not in NEW_DATA: e['since'] = 'rules-0.1'
     if k in SUPERSEDED: e['superseded_in_revised_rules_by'] = SUPERSEDED[k]
+    if k in RECORD_FORMAT: e['record_format'] = RECORD_FORMAT[k]
     DICTIONARY[k] = e
 
 # ---------- помощники правок ----------
@@ -325,7 +366,7 @@ requirement('RDS-007', 'а) АБТ начата, пока ТБИ не исклю
   part('start', 'Начало АБТ, пока тяжёлая бактериальная инфекция не исключена', F('antibiotics_started', 'is_true'),
        ('ТБИ не исключена', F('serious_bacterial_infection_excluded', 'is_false'))),
   part('stop', 'Прекращение АБТ после исключения ТБИ «как можно быстрее» (число часов протокол не задаёт; интервал показывается)',
-       F('abx_stopped_after_sbi_exclusion', 'is_false'),
+       F('abx_stopped_after_sbi_exclusion', 'is_true'),
        ('АБТ начата и ТБИ исключена', ALL(F('antibiotics_started', 'is_true'), F('serious_bacterial_infection_excluded', 'is_true')))),
 ])
 amb_set('RDS-007', 'RDS-007-A1', part='start')
@@ -334,7 +375,13 @@ amb_new('RDS-007', 'RDS-007-A2', '«Прекратить как можно бы�
 add_quotes('RDS-007', (9, 'В каждом неонатальном отделении должны разрабатываться собственные протоколы по использованию антибиотиков, основанных на анализе спектра возбудителей, вызывающих ранний сепсис;'))
 need_more('RDS-007', 'sbi_excluded_at', 'antibiotics_stopped_at', 'abx_stopped_after_sbi_exclusion')
 display('RDS-007', 'hours_sbi_excluded_to_abx_stop', 'red_flag_count', 'risk_factor_or_sign_count', 'abx_decision_justification', 'local_abx_protocol_ref')
-revise('RDS-007', 'Утвердить', ['ТЗ §4.1', 'план 22 правил: RDS-007'], ['M1', 'M2', 'M4'])
+card('RDS-007', 'stop_before_exclusion', 'АБТ отменена до исключения ТБИ, интервал {hours_sbi_excluded_to_abx_stop} ч — как отмена после исключения не засчитывается; клиническое обоснование оценивает эксперт',
+     when=F('abx_stopped_after_sbi_exclusion', 'is_false'))
+card('RDS-007', 'stop_same_time', 'Отмена АБТ и исключение ТБИ отмечены одним временем — порядок событий не установлен, часть «отмена» не оценивается',
+     when=F('hours_sbi_excluded_to_abx_stop', 'eq', 0))
+card('RDS-007', 'stop_after_exclusion', 'АБТ отменена через {hours_sbi_excluded_to_abx_stop} ч после исключения ТБИ; своевременность оценивает эксперт (RDS-007-A2)',
+     when=F('abx_stopped_after_sbi_exclusion', 'is_true'))
+revise('RDS-007', 'Утвердить', ['ТЗ §4.1', 'план 22 правил: RDS-007', 'исправления этапа 6, п. 1'], ['M1', 'M2', 'M4'])
 
 # RDS-010 — «Утвердить»: три части; эпизод гипокапнии сам по себе не даёт «отличается» (новая RDS-010-A2).
 requirement('RDS-010', 'а) газы крови за время ИВЛ есть; б) гипокапния определена по порогу PaCO₂ из указанного источника; в) реакция врача на эпизод гипокапнии', parts=[
@@ -386,23 +433,25 @@ requirement('NEC-003', 'а) энтеральная нагрузка исключ
 ])
 add_quotes('NEC-003', SIGNS_Q)
 need_more('NEC-003', 'enteral_feeding_resumed_at', 'feeding_resumed_after_passage_restored')
-display('NEC-003', 'nec_onset_at', 'gi_passage_restored_at', 'improvement_signs', 'improvement_achieved', 'improvement_signs_documented_count',
-        'nec_day_from_onset_at_feeding_resumption', 'feeding_decision_documented')
-card('NEC-003', 'no_improvement', 'Признаков улучшения (стр. 12) нет', when=F('improvement_achieved', 'is_false'))
-revise('NEC-003', 'Утвердить', ['ТЗ §4.4', 'план 22 правил: NEC-003'], ['M2'])
+display('NEC-003', 'nec_onset_at', 'gi_passage_restored_at', 'improvement_signs', 'improvement_signs_yes_count', 'improvement_signs_no_count',
+        'improvement_signs_unspecified_count', 'clinical_lab_improvement_documented', 'nec_day_from_onset_at_feeding_resumption', 'feeding_decision_documented')
+card('NEC-003', 'improvement_signs_info', 'Признаки улучшения со стр. 12 показаны информационно: «да» — {improvement_signs_yes_count}, «нет» — {improvement_signs_no_count}, не указано — {improvement_signs_unspecified_count}; клиническое улучшение оценивается по записи врача',
+     when=F('improvement_signs_yes_count', 'present'))
+revise('NEC-003', 'Утвердить', ['ТЗ §4.4', 'план 22 правил: NEC-003', 'исправления этапа 6, п. 8'], ['M2'])
 
 # NEC-004 — «Утвердить»: два отсчёта (от начала и от подтверждения) рядом; признаки улучшения — отдельная часть.
 requirement('NEC-004', 'а) возобновление нагрузки не ранее 7-го дня — оба отсчёта (от начала заболевания и от подтверждения НЭК); б) при достижении клинико-лабораторного улучшения', parts=[
   part('term', 'Не ранее 7-го дня: показываются оба отсчёта, один не подменяет другой',
        ALL(F('nec_day_from_onset_at_feeding_resumption', 'gte', 7), F('nec_day_from_confirmation_at_feeding_resumption', 'gte', 7))),
-  part('improvement', 'Возобновление при клинико-лабораторном улучшении (признаки — стр. 12; машинно: отмечены все признаки)', F('improvement_achieved', 'is_true')),
+  part('improvement', 'Возобновление при клинико-лабораторном улучшении — по записи врача (признаки стр. 12 показываются информационно, не критерий)', F('clinical_lab_improvement_documented', 'is_true')),
 ])
 amb_set('NEC-004', 'NEC-004-A1', machine_note='С rules-0.2 день считается программой по отметкам nec_onset_at и nec_confirmed_at (календарные дни, 1 — день события); показываются оба отсчёта.')
 add_quotes('NEC-004', SIGNS_Q)
-need_more('NEC-004', 'nec_onset_at', 'nec_confirmed_at', 'enteral_feeding_resumed_at', 'nec_day_from_onset_at_feeding_resumption', 'nec_day_from_confirmation_at_feeding_resumption', 'improvement_signs', 'improvement_achieved')
-display('NEC-004', 'improvement_signs_documented_count')
-card('NEC-004', 'no_improvement', 'Признаков улучшения (стр. 12) нет', when=F('improvement_achieved', 'is_false'))
-revise('NEC-004', 'Утвердить', ['ТЗ §4.5', 'план 22 правил: NEC-004'], ['M2'])
+need_more('NEC-004', 'nec_onset_at', 'nec_confirmed_at', 'enteral_feeding_resumed_at', 'nec_day_from_onset_at_feeding_resumption', 'nec_day_from_confirmation_at_feeding_resumption', 'clinical_lab_improvement_documented')
+display('NEC-004', 'improvement_signs', 'improvement_signs_yes_count', 'improvement_signs_no_count', 'improvement_signs_unspecified_count', 'facility_utc_offset')
+card('NEC-004', 'improvement_signs_info', 'Признаки улучшения со стр. 12 показаны информационно: «да» — {improvement_signs_yes_count}, «нет» — {improvement_signs_no_count}, не указано — {improvement_signs_unspecified_count}; клиническое улучшение оценивается по записи врача',
+     when=F('improvement_signs_yes_count', 'present'))
+revise('NEC-004', 'Утвердить', ['ТЗ §4.5', 'план 22 правил: NEC-004', 'исправления этапа 6, п. 3, 8'], ['M2'])
 
 # NEC-005 — «Утвердить»: ПП уже шло или начато в 1-й день; только полное ПП; частичное — новая NEC-005-A1.
 requirement('NEC-005', 'полное ПП уже проводилось на момент начала НЭК или начато в 1-й день заболевания (инфузия только глюкозы — не ПП)',
@@ -411,7 +460,8 @@ amb_new('NEC-005', 'NEC-005-A1', 'Считать ли началом ПП час
         'when', when=F('pn_type', 'eq', 'partial'))
 add_quotes('NEC-005', (11, 'полное парентеральное питание из расчета физиологической потребности ребенка данного веса и срока гестации согласно протоколу парентерального питания;'))
 need_more('NEC-005', 'pn_type', 'pn_running_at_nec_onset', 'pn_start_illness_day', 'nec_onset_at', 'pn_started_at')
-revise('NEC-005', 'Утвердить', ['ТЗ §4.6', 'план 22 правил: NEC-005'], ['M2', 'M4'])
+display('NEC-005', 'facility_utc_offset')
+revise('NEC-005', 'Утвердить', ['ТЗ §4.6', 'план 22 правил: NEC-005', 'исправления этапа 6, п. 3, 7'], ['M2', 'M4'])
 
 # NEC-006 — «Утвердить»: три части; ургентный снимок раньше 48 ч не даёт нарушения (новая NEC-006-A2).
 requirement('NEC-006', 'а) первый контроль через 48 ч после диагноза; б) далее 1 раз в неделю; в) при ухудшении — вертикально или латеропозиция', parts=[
@@ -425,7 +475,14 @@ amb_new('NEC-006', 'NEC-006-A2', '«Через 48 часов» — допуст�
         'when', when=F('xray_count', 'gte', 1), part='first_48h')
 need_more('NEC-006', 'nec_diagnosed_at', 'xrays', 'deterioration_at', 'xray_count', 'hours_diagnosis_to_first_xray', 'max_hours_between_xrays', 'xray_vertical_or_lateral_after_deterioration')
 rule('NEC-006')['exceptions_and_caveats'].append('Ограничения позиционирования ребёнка — обоснование отклонения для эксперта, а не автоматическое исключение.')
-revise('NEC-006', 'Утвердить', ['ТЗ §4.7', 'план 22 правил: NEC-006'], ['M1', 'M2'])
+display('NEC-006', 'hours_deterioration_to_upright_xray')
+card('NEC-006', 'first_xray_hours', 'Первый снимок через {hours_diagnosis_to_first_xray} ч после установленного диагноза; допустимое окно «через 48 часов» протоколом не определено (Q13)',
+     when=F('hours_diagnosis_to_first_xray', 'present'))
+card('NEC-006', 'max_interval_hours', 'Наибольший интервал между снимками после диагноза — {max_hours_between_xrays} ч (часть «1 раз в неделю»: не более 168 ч)',
+     when=F('max_hours_between_xrays', 'present'))
+card('NEC-006', 'deterioration_to_upright_hours', 'Снимок вертикально / в латеропозиции через {hours_deterioration_to_upright_xray} ч после клинического ухудшения; срок протоколом не задан — показывается эксперту',
+     when=F('hours_deterioration_to_upright_xray', 'present'))
+revise('NEC-006', 'Утвердить', ['ТЗ §4.7', 'план 22 правил: NEC-006', 'исправления этапа 6, п. 6'], ['M1', 'M2'])
 
 # NEC-007 — «Утвердить»: проверка прежняя; в карточке — вся схема и контекст.
 add_quotes('NEC-007', (13, 'комбинация препаратов должна охватывать весь спектр микроорганизмов, поскольку в развитии НЭК чаще всего участвует их ассоциация'),
@@ -469,7 +526,9 @@ card('NEC-010', 'level1_context', 'Контекст: для организаци
      when=F('facility_level', 'eq', 1),
      quotes=[('nek', 12, 'В случае выявления больного ребенка с НЭК 1-2а степени в родовспомогательном учреждении первого уровня– обеспечить экстренный перевод в родовспомогательную организацию 3-го уровня;')])
 rule('NEC-010')['exceptions_and_caveats'].append('Редакция врача (19.11.2026): нахождение в ОРИТН центра, где есть хирургические койки, не равнозначно нахождению в хирургическом отделении; обязательность конкретного перевода не выводится до решения Q06/Q16.')
-revise('NEC-010', 'Изменить', ['ТЗ §3.3', 'C1', 'C5'], ['M2', 'M4'])
+card('NEC-010', 'no_surgery_no_transfer', 'Предварительная техническая оценка (Q16 открыт): отсутствие перевода — отличие для экспертной проверки, не дефект; клиническое обоснование обязательно сохраняется',
+     when=ALL(F('surgical_department_available', 'is_false'), F('transferred_to_surgery', 'is_false')))
+revise('NEC-010', 'Изменить', ['ТЗ §3.3', 'C1', 'C5', 'исправления этапа 6, п. 9'], ['M2', 'M4'])
 
 # ======================= Сепсис =======================
 # SEP-001 — «Утвердить»: интервал по отметкам — от выявления показания до ФАКТИЧЕСКОГО введения; A1/A2 без изменений (Q09).
@@ -496,9 +555,17 @@ amb_new('SEP-003', 'SEP-003-A2', 'Нерутинное применение им
         'when', when=ANY(F('immunoglobulin_purpose', 'eq', 'other_indication'),
                          ALL(F('immunoglobulin_purpose', 'eq', 'sepsis_treatment_or_prophylaxis'), F('ig_use_individualized_with_basis', 'is_true'))))
 need_more('SEP-003', 'immunoglobulin_purpose', 'immunoglobulin_use_type', 'ig_use_individualized_with_basis')
-display('SEP-003', 'immunoglobulin_indication_text', 'indication_source', 'clinical_evidence', 'consilium_documented', 'research_reference', 'evidence_applicability_review', 'ig_special_basis_documented')
+display('SEP-003', 'immunoglobulin_indication_text', 'indication_source', 'clinical_evidence', 'consilium_documented', 'research_reference', 'evidence_applicability_review',
+        'ig_basis_text_found', 'ig_consilium_status')
+IG_IND = ALL(F('immunoglobulin_purpose', 'eq', 'sepsis_treatment_or_prophylaxis'), F('immunoglobulin_use_type', 'eq', 'individualized'))
+card('SEP-003', 'basis_without_consilium', 'Основание изложено, решение консилиума не документировано',
+     when=ALL(IG_IND, F('ig_basis_text_found', 'is_true'), F('ig_consilium_status', 'in', ['recorded_not_held', 'no_record'])))
+card('SEP-003', 'consilium_without_basis', 'Консилиум документирован, содержание особого клинического основания не найдено',
+     when=ALL(IG_IND, F('ig_basis_text_found', 'is_false'), F('ig_consilium_status', 'eq', 'documented')))
+card('SEP-003', 'basis_not_found', EXT_NOT_FOUND,
+     when=ALL(IG_IND, F('ig_basis_text_found', 'is_false'), F('ig_consilium_status', 'in', ['recorded_not_held', 'no_record'])))
 rule('SEP-003')['exceptions_and_caveats'].append('Редакция врача (19.11.2026): пункт говорит о нерекомендованности РУТИННОГО применения, а не об абсолютном запрете любого введения; индивидуальное назначение автоматически «соответствующим» не объявляется.')
-revise('SEP-003', 'Изменить', ['ТЗ §3.4', 'C2'], ['M4'])
+revise('SEP-003', 'Изменить', ['ТЗ §3.4', 'C2', 'исправления этапа 6, п. 2'], ['M4'])
 
 # SEP-004 — «Утвердить»: первичная эмпирическая схема; наличие препарата — отдельное поле и категория обоснования.
 requirement('SEP-004', 'первичная эмпирическая схема: бензилпенициллин/ампициллин + гентамицин (последующая коррекция по чувствительности отличием не считается)',
@@ -518,9 +585,17 @@ requirement('SEP-005', '25 мг/кг (доза на кг — из мг и мас
             check=ALL(F('benzylpenicillin_dose_per_kg', 'eq', 25), ANY(F('benzylpenicillin_interval_h', 'eq', 12), ALL(F('very_severe_condition', 'is_true'), F('benzylpenicillin_interval_h', 'eq', 8)))))
 add_quotes('SEP-005', MENINGITIS_Q, (16, 'бензилпенициллин 50 мг/кг каждые 12 часов, обычно в течение не менее 14 дней'))
 need_more('SEP-005', 'meningitis', 'benzylpenicillin_dose_per_kg', 'benzylpenicillin_dose_mg', 'weight_kg')
-display('SEP-005', 'weight_date', 'local_practice_ref')
+display('SEP-005', 'weight_date', 'weight_measured_at', 'benzylpenicillin_prescribed_at', 'facility_utc_offset', 'benzylpenicillin_dose_mg_kg',
+        'benzylpenicillin_dose_per_kg_calculated', 'benzylpenicillin_dose_records_consistent', 'benzylpenicillin_weight_confirmed_for_calc',
+        'benzylpenicillin_dose_basis', 'local_practice_ref')
+card('SEP-005', 'dose_recorded_basis', 'Расчёт по актуальной массе не подтверждён — оценка по записанной дозе в мг/кг',
+     when=F('benzylpenicillin_dose_basis', 'eq', 'recorded'))
+card('SEP-005', 'dose_records_inconsistent', 'Записи дозы не согласованы: записано {benzylpenicillin_dose_mg_kg} мг/кг, вычислено {benzylpenicillin_dose_per_kg_calculated} мг/кг ({benzylpenicillin_dose_mg} мг ÷ {weight_kg} кг)',
+     when=F('benzylpenicillin_dose_records_consistent', 'is_false'))
+card('SEP-005', 'dose_q24', 'Доза {benzylpenicillin_dose_per_kg} мг/кг: отличие от буквального значения 25 мг/кг — предварительная оценка, не дефект; допустимое отклонение — Q24',
+     when=ANY(F('benzylpenicillin_dose_per_kg', 'lt', 25), F('benzylpenicillin_dose_per_kg', 'gt', 25)))
 rule('SEP-005')['exceptions_and_caveats'].append('Местная практика 50 мг/кг каждые 12 ч при раннем сепсисе без менингита — «отличается» с обоснованием «местная практика»; норма 25 мг/кг не подменяется, назначений программа не делает (Q03).')
-revise('SEP-005', 'Утвердить', ['ТЗ §4.13', 'план 22 правил: SEP-005'], ['M2', 'M4', 'M6'])
+revise('SEP-005', 'Утвердить', ['ТЗ §4.13', 'план 22 правил: SEP-005', 'исправления этапа 6, п. 4, 5', 'уточнения 17:34, 17:53'], ['M2', 'M4', 'M6'])
 
 # SEP-006 — «Утвердить»: доза и интервал раздельно; п. 7a против п. 7b — новая SEP-006-A3 (своё условие для каждой части).
 requirement('SEP-006', 'а) начальная доза 5 мг/кг; б) вторая доза через 36 ч (короче — если ребёнок очень болен и посев грамотрицательный)', parts=[
@@ -535,9 +610,17 @@ amb_new('SEP-006', 'SEP-006-A3', 'П. 7a («от 4 до 7 мг/кг/день, в
 add_quotes('SEP-006', (13, 'в перечне характеристик препарата рекомендуется дозировка от 4 до 7 мг/кг/день, вводимая в разовой дозе;'),
            (13, 'при принятии решения о последующем режиме дозирования гентамицина необходимо учитывать его концентрацию в крови (при наличии возможности).'))
 need_more('SEP-006', 'gentamicin_dose_per_kg', 'gentamicin_dose_mg', 'weight_kg', 'gentamicin_interval_h', 'very_ill', 'gram_negative_culture')
-display('SEP-006', 'gestational_age_weeks', 'postnatal_age_days', 'creatinine_umol_l', 'urine_output_ml_kg_h', 'gentamicin_level')
+display('SEP-006', 'gestational_age_weeks', 'postnatal_age_days', 'creatinine_umol_l', 'urine_output_ml_kg_h', 'gentamicin_level',
+        'weight_measured_at', 'gentamicin_prescribed_at', 'facility_utc_offset', 'gentamicin_initial_dose_mg_kg', 'gentamicin_dose_per_kg_calculated',
+        'gentamicin_dose_records_consistent', 'gentamicin_weight_confirmed_for_calc', 'gentamicin_dose_basis')
+card('SEP-006', 'dose_recorded_basis', 'Расчёт по актуальной массе не подтверждён — оценка по записанной дозе в мг/кг',
+     when=F('gentamicin_dose_basis', 'eq', 'recorded'))
+card('SEP-006', 'dose_records_inconsistent', 'Записи дозы не согласованы: записано {gentamicin_initial_dose_mg_kg} мг/кг, вычислено {gentamicin_dose_per_kg_calculated} мг/кг ({gentamicin_dose_mg} мг ÷ {weight_kg} кг)',
+     when=F('gentamicin_dose_records_consistent', 'is_false'))
+card('SEP-006', 'dose_q24', 'Доза {gentamicin_dose_per_kg} мг/кг: отличие от буквального значения 5 мг/кг — предварительная оценка, не дефект; допустимое отклонение — Q24',
+     when=ANY(F('gentamicin_dose_per_kg', 'lt', 5), F('gentamicin_dose_per_kg', 'gt', 5)))
 rule('SEP-006')['exceptions_and_caveats'].append('Местная схема «4 мг/кг 1 раз в сутки независимо от гестационного возраста» автоматически не легализуется и не становится назначением: обе части дают неоднозначность SEP-006-A3 (Q04).')
-revise('SEP-006', 'Утвердить', ['ТЗ §4.14', 'план 22 правил: SEP-006'], ['M1', 'M4', 'M6'])
+revise('SEP-006', 'Утвердить', ['ТЗ §4.14', 'план 22 правил: SEP-006', 'исправления этапа 6, п. 4, 5', 'уточнения 17:34, 17:53'], ['M1', 'M4', 'M6'])
 
 # SEP-007 — «Утвердить»: от фактической первой дозы до ЗАБОРА контрольного СРБ (не результата); 18–24 ч включительно.
 requirement('SEP-007', 'контрольный СРБ взят через 18–24 ч (включительно) после введения первой дозы', check=ALL(F('hours_first_dose_to_control_crp', 'gte', 18), F('hours_first_dose_to_control_crp', 'lte', 24)))
