@@ -163,8 +163,32 @@ class NegativeScenarios(unittest.TestCase):
         self.assertEqual(ids, {'CF-001', 'CF-002', 'CF-003', 'CF-004', 'CF-005'})
         self.assertNotIn('conflicts_with', R['NEC-009'])
         cf1 = next(c for c in DB['protocol_conflicts'] if c['id'] == 'CF-001')
-        self.assertEqual(cf1['rules'], ['NEC-009', 'NEC-010'])
+        self.assertEqual(cf1['type'], 'неоднозначность_маршрутизации')
+        self.assertEqual(cf1['rules'], ['NEC-010'])
+        self.assertEqual(cf1['related_rules'], ['NEC-009'])
+        self.assertTrue(cf1['description'].startswith('Неоднозначность маршрутизации — требуется экспертное толкование'))
         self.assertEqual(cf1['active_when'], {'field': 'nec_stage', 'op': 'eq', 'value': '2а'})
+
+    def test_cf002_cf004_active_when_match_rule_conditions(self):
+        cf = {c['id']: c for c in DB['protocol_conflicts']}
+        leaves = lambda n: [x for x in n['all']]
+        self.assertIn({'field': 'meningitis', 'op': 'is_false'}, leaves(cf['CF-002']['active_when']))
+        self.assertIn({'field': 'empirical_regimen', 'op': 'eq', 'value': 'ampicillin+gentamicin'}, leaves(cf['CF-002']['active_when']))
+        self.assertIn({'field': 'serious_bacterial_infection_excluded', 'op': 'is_false'}, leaves(cf['CF-004']['active_when']))
+        self.assertIn({'field': 'red_flag_count', 'op': 'eq', 'value': 0}, leaves(cf['CF-004']['active_when']))
+
+    def test_rds003_requires_rds_context(self):
+        cond = R['RDS-003']['applicability']['condition']['all'][0]
+        self.assertEqual(cond, {'any': [{'field': 'rds_risk', 'op': 'is_true'}, {'field': 'rds_diagnosed', 'op': 'is_true'}]})
+
+    def test_routing_ambiguity_cannot_be_called_contradiction(self):
+        db = copy.deepcopy(DB)
+        cf = next(c for c in db['protocol_conflicts'] if c['id'] == 'CF-001')
+        cf['description'] = 'Противоречие п. 5.1. ' + cf['description']
+        self.assertTrue(any('описана как противоречие' in e for e in errs(db)))
+        db = copy.deepcopy(DB)
+        db['protocol_conflicts'][0]['type'] = 'конфликт'
+        self.assertTrue(any('недопустимый тип' in e for e in errs(db)))
 
     def test_conflict_with_one_quote_or_changed_quote_rejected(self):
         db = copy.deepcopy(DB)
@@ -187,6 +211,20 @@ class NegativeScenarios(unittest.TestCase):
         db = copy.deepcopy(DB)
         db['rules'][1]['rule_id'] = db['rules'][0]['rule_id']
         self.assertTrue(any('повтор' in e for e in errs(db)))
+
+
+class ExpertExport(unittest.TestCase):
+    def test_export_has_30_rules_and_all_questions(self):
+        import export_expert_review as X
+        rules, questions = X.rows(DB)
+        self.assertEqual(len(rules), 30)
+        self.assertEqual([r['rule_id'] for r in rules], [r['rule_id'] for r in DB['rules']])
+        self.assertTrue(all(r['Решение эксперта'] == '' for r in rules))
+        n_amb = sum(len(r['ambiguities']) for r in DB['rules'])
+        self.assertEqual(len(questions), n_amb + len(DB['protocol_conflicts']))
+        for r, src in zip(rules, DB['rules']):
+            for q in src['source']['quotes']:
+                self.assertIn(q['text'], r['Цитата и страница'])
 
 
 @unittest.skipUnless(PDF_DIR, 'ANTIDEFECT_PDF_DIR не задан — сверка цитат с PDF пропущена')

@@ -251,11 +251,125 @@ test('РДС-001: 30 нед. без риска РДС — неоднозначн
   assert.equal(r.observation, E.OBS.AMBIGUOUS_PENDING);
 });
 
-test('РДС-007: антибиотики при РДС — неоднозначность и противоречие с протоколом сепсиса 2023', () => {
-  const out = run({ rds_diagnosed: true, serious_bacterial_infection_excluded: false, antibiotics_started: false });
+test('РДС-007: антибиотики при РДС — неоднозначность; расхождение с протоколом сепсиса — только без факторов риска и признаков', () => {
+  const out = run({ rds_diagnosed: true, serious_bacterial_infection_excluded: false, antibiotics_started: false, red_flag_count: 0, risk_factor_or_sign_count: 0 });
   assert.equal(res(out, 'RDS-007').observation, E.OBS.AMBIGUOUS_PENDING);
   const cf = out.conflicts.find(c => c.id === 'CF-004');
   assert.deepEqual(cf.quotes.map(q => q.protocol), ['rds', 'sepsis']);
+});
+
+// --- ред. 3: RDS-003 — клиническая применимость (замечание 1) ---
+test('RDS-003: доношенный без РДС и без риска, мать без стероидов — сурфактант не требуется', () => {
+  const r = res(run({ rds_risk: false, rds_diagnosed: false, gestational_age_weeks: 39, antenatal_steroids_given: false, surfactant_in_delivery_room: false }), 'RDS-003');
+  assert.equal(r.applicability, 'неприменимо');
+  assert.notEqual(r.observation, E.OBS.DIFFERS);
+});
+
+test('RDS-003: интубация по иной причине (нет РДС и риска РДС) — сурфактант не требуется', () => {
+  const r = res(run({ rds_risk: false, rds_diagnosed: false, gestational_age_weeks: 38, intubation_needed_for_stabilization: true, antenatal_steroids_given: true, surfactant_in_delivery_room: false }), 'RDS-003');
+  assert.equal(r.applicability, 'неприменимо');
+});
+
+test('RDS-003: нет сведений о РДС/риске РДС — «Недостаточно данных», а не требование', () => {
+  const r = res(run({ antenatal_steroids_given: false, surfactant_in_delivery_room: false }), 'RDS-003');
+  assert.equal(r.observation, E.OBS.NOT_ASSESSED);
+  assert.deepEqual(r.missing_data, ['rds_diagnosed', 'rds_risk']);
+});
+
+test('RDS-003: риск РДС + интубация для стабилизации без сурфактанта — предварительное отличие', () => {
+  const r = res(run({ rds_risk: true, gestational_age_weeks: 29, intubation_needed_for_stabilization: true, antenatal_steroids_given: true, fio2: 0.25, surfactant_in_delivery_room: false }), 'RDS-003');
+  assert.equal(r.observation, E.OBS.DIFFERS);
+});
+
+test('RDS-003: риск РДС, единственное основание — нет стероидов — неоднозначность, не требование', () => {
+  const r = res(run({ rds_risk: true, gestational_age_weeks: 36, antenatal_steroids_given: false, intubation_needed_for_stabilization: false, fio2: 0.21, surfactant_in_delivery_room: false }), 'RDS-003');
+  assert.equal(r.observation, E.OBS.AMBIGUOUS_PENDING);
+  assert.deepEqual(r.active_ambiguities, ['RDS-003-A2']);
+});
+
+// --- ред. 3: условия противоречий (замечание 2) ---
+const CF2_BASE = { antibiotics_started: true, empirical_regimen: 'ampicillin+gentamicin', improving: true, blood_culture_result: 'положительный', meningitis: false, antibiotic_days: 7 };
+const cfIds = out => out.conflicts.map(c => c.id);
+
+test('CF-002: показывается, только когда выполнены условия обоих положений', () => {
+  assert.ok(cfIds(run(CF2_BASE)).includes('CF-002'));
+});
+
+test('CF-002: менингит — не показывается', () => {
+  assert.ok(!cfIds(run({ ...CF2_BASE, meningitis: true })).includes('CF-002'));
+});
+
+test('CF-002: статус менингита неизвестен — не показывается', () => {
+  const d = { ...CF2_BASE }; delete d.meningitis;
+  assert.ok(!cfIds(run(d)).includes('CF-002'));
+});
+
+test('CF-002: другая схема АБТ — не показывается', () => {
+  for (const reg of ['benzylpenicillin+gentamicin', 'другое']) assert.ok(!cfIds(run({ ...CF2_BASE, empirical_regimen: reg })).includes('CF-002'), reg);
+});
+
+test('CF-002: без улучшения или при отрицательном посеве — не показывается', () => {
+  assert.ok(!cfIds(run({ ...CF2_BASE, improving: false })).includes('CF-002'));
+  assert.ok(!cfIds(run({ ...CF2_BASE, blood_culture_result: 'отрицательный', high_risk_factors: true })).includes('CF-002'));
+});
+
+test('CF-004: РДС с исключённой инфекцией — не показывается', () => {
+  const out = run({ rds_diagnosed: true, serious_bacterial_infection_excluded: true, red_flag_count: 0, risk_factor_or_sign_count: 0 });
+  assert.ok(!cfIds(out).includes('CF-004'));
+  assert.equal(res(out, 'RDS-007').applicability, 'неприменимо');
+});
+
+test('CF-004: РДС с признаками/факторами риска инфекции — не показывается (антибиотики показаны по обоим протоколам)', () => {
+  assert.ok(!cfIds(run({ rds_diagnosed: true, serious_bacterial_infection_excluded: false, red_flag_count: 1, risk_factor_or_sign_count: 0 })).includes('CF-004'));
+  assert.ok(!cfIds(run({ rds_diagnosed: true, serious_bacterial_infection_excluded: false, red_flag_count: 0, risk_factor_or_sign_count: 2 })).includes('CF-004'));
+});
+
+test('CF-004: факторы риска не оценены — не показывается', () => {
+  assert.ok(!cfIds(run({ rds_diagnosed: true, serious_bacterial_infection_excluded: false })).includes('CF-004'));
+});
+
+test('CF-005: НЭК и гентамицин без подозрения на ранний сепсис — не показывается (SEP-006 неприменимо)', () => {
+  const out = run({ gentamicin_given: true, nec_stage: '2а', early_onset_sepsis_suspected: false, gentamicin_initial_dose_mg_kg: 3 });
+  assert.equal(res(out, 'SEP-006').applicability, 'неприменимо');
+  assert.ok(!cfIds(out).includes('CF-005'));
+});
+
+test('расхождение не показывается, если правило из его состава неприменимо, даже при истинном active_when', () => {
+  const db = clone(DB);
+  db.protocol_conflicts.find(c => c.id === 'CF-002').active_when = { field: 'blood_culture_result', op: 'eq', value: 'положительный' };
+  const out = E.evaluate(db, { synthetic: true, data: { ...CF2_BASE, meningitis: true } });
+  assert.ok(!cfIds(out).includes('CF-002'));
+});
+
+// --- ред. 3: CF-001 — неоднозначность маршрутизации (замечание 3) ---
+test('CF-001: НЭК 2а — «Неоднозначность маршрутизации», не противоречие; сочетание действий допустимо', () => {
+  for (const d of [
+    { nec_stage: '2а', facility_level: 2, surgeon_consulted: true, transferred_to_surgery: true },
+    { nec_stage: '2а', facility_level: 3, transferred_to_surgery: false },
+    { nec_stage: '2а', facility_level: 2, surgeon_consulted: true, transferred_to_surgery: false }
+  ]) {
+    const out = run(d);
+    const cf = out.conflicts.find(c => c.id === 'CF-001');
+    assert.ok(cf, JSON.stringify(d));
+    assert.equal(cf.type, 'неоднозначность_маршрутизации');
+    assert.equal(cf.label, 'Неоднозначность маршрутизации — требуется экспертное толкование');
+    assert.ok(!/^противоречие/i.test(cf.description));
+    assert.match(cf.description, /могут сочетаться/);
+    assert.notEqual(res(out, 'NEC-010').observation, E.OBS.DIFFERS);
+    assertNotFinal(out);
+  }
+});
+
+test('CF-001: НЭК 2б и 1б — неоднозначность маршрутизации не показывается', () => {
+  assert.ok(!cfIds(run({ nec_stage: '2б', facility_level: 2, transferred_to_surgery: true })).includes('CF-001'));
+  assert.ok(!cfIds(run({ nec_stage: '1б', facility_level: 2, surgeon_consulted: true })).includes('CF-001'));
+});
+
+test('обоснование врача сохраняется и при неоднозначности', () => {
+  const just = { 'NEC-010': { text: 'Синтетика: консервативно в 3-м уровне, хирург осмотрел, перевод не потребовался', author: 'врач-синтетик' } };
+  const r = res(run({ nec_stage: '2а', facility_level: 3, transferred_to_surgery: false }, { justifications: just }), 'NEC-010');
+  assert.equal(r.observation, E.OBS.AMBIGUOUS_PENDING);
+  assert.equal(r.justification_complete, true);
 });
 
 test('неоднозначность: ни при каком исходе не даёт отличия, веса или скрытого результата (п. 6 замечаний)', () => {

@@ -14,6 +14,7 @@ NORMATIVITY = {'обязательно', 'рекомендуется', 'може
 KINDS = {'требование', 'ограничение', 'сравнительное_положение'}
 BLOCKING = {'no', 'always', 'when'}
 SCOPES = {'applicability', 'requirement'}
+CONFLICT_TYPES = {'противоречие', 'неоднозначность_маршрутизации'}
 OPS = {'eq', 'gt', 'gte', 'lt', 'lte', 'in', 'is_true', 'is_false', 'present'}
 RULE_ID = re.compile(r'^(RDS|NEC|SEP)-\d{3}$')
 PREFIX = {'rds': 'RDS', 'nek': 'NEC', 'sepsis': 'SEP'}
@@ -187,7 +188,13 @@ def check(db, registry=None, pdf_dir=None):
         if cid in cf_ids:
             errs.append(f'{cid}: повтор id противоречия')
         cf_ids.add(cid)
-        for rr in cf.get('rules', []):
+        if cf.get('type') not in CONFLICT_TYPES:
+            errs.append(f'{cid}: недопустимый тип {cf.get("type")}')
+        if not cf.get('rules'):
+            errs.append(f'{cid}: нет правил, условия которых должны выполняться')
+        if cf.get('type') == 'неоднозначность_маршрутизации' and 'противоречи' in cf.get('description', '').split('.')[0].lower():
+            errs.append(f'{cid}: неоднозначность маршрутизации описана как противоречие')
+        for rr in cf.get('rules', []) + cf.get('related_rules', []):
             if rr not in rule_ids:
                 errs.append(f'{cid}: неизвестное правило {rr}')
         if not cf.get('active_when'):
@@ -210,7 +217,7 @@ def check(db, registry=None, pdf_dir=None):
                 if not (1 <= q['page'] <= len(pages_cache[q['protocol']])) or norm_text(q['text']) not in pages_cache[q['protocol']][q['page'] - 1]:
                     errs.append(f'{w}: текст не найден на стр. {q["page"]}')
     for r in db['rules']:
-        declared = {c['id'] for c in db.get('protocol_conflicts', []) if r['rule_id'] in c['rules']}
+        declared = {c['id'] for c in db.get('protocol_conflicts', []) if r['rule_id'] in c['rules'] + c.get('related_rules', [])}
         if set(r.get('protocol_conflicts', [])) != declared:
             errs.append(f'{r["rule_id"]}: ссылки protocol_conflicts не совпадают с объявленными противоречиями')
     per = {}

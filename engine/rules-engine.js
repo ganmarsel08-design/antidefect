@@ -15,7 +15,7 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.2.0-stage5-pilot';
+  const VERSION = '0.3.0-stage5-pilot';
   const CANDIDATE = 'кандидат, ожидает экспертного подтверждения';
   const STATUS = Object.freeze({ EXPERT: 'Требуется оценка эксперта', INSUFFICIENT: 'Недостаточно данных' });
   const ALLOWED_STATUSES = Object.freeze([STATUS.EXPERT, STATUS.INSUFFICIENT]);
@@ -34,6 +34,10 @@
     NOT_APPLICABLE: 'правило_неприменимо',
     RULE_REJECTED: 'правило_не_используется',
     AMBIGUOUS_PENDING: 'неоднозначность_ожидает_экспертного_решения'
+  });
+  const CONFLICT_LABEL = Object.freeze({
+    'противоречие': 'Расхождение положений протокола — требуется решение эксперта',
+    'неоднозначность_маршрутизации': 'Неоднозначность маршрутизации — требуется экспертное толкование'
   });
   const OBS_LABEL = Object.freeze({
     [OBS.CONSISTENT]: 'Совпадает с буквальным прочтением (предварительно)',
@@ -216,12 +220,17 @@
     // Противоречия — свойство текста протокола, объявленное в базе (protocol_conflicts).
     // Они показываются, когда случай попадает в описанную ситуацию, и НЕ выводятся из того,
     // что два правила дали разные наблюдения.
-    const used = new Set(results.map(x => x.rule_id));
+    // Показываются только когда выполнены условия применения ВСЕХ правил из cf.rules
+    // и клиническое условие active_when.
+    const byId = new Map(results.map(x => [x.rule_id, x]));
     const conflicts = (db.protocol_conflicts || [])
-      .filter(cf => cf.rules.some(id => used.has(id)) && evalNode(cf.active_when, data, new Set()) === true)
-      .map(cf => ({ id: cf.id, rules: cf.rules.slice(), description: cf.description,
+      .filter(cf => Array.isArray(cf.rules) && cf.rules.length &&
+        cf.rules.every(id => byId.has(id) && byId.get(id).applicability === 'применимо') &&
+        evalNode(cf.active_when, data, new Set()) === true)
+      .map(cf => ({ id: cf.id, type: cf.type || 'противоречие', label: CONFLICT_LABEL[cf.type] || CONFLICT_LABEL['противоречие'],
+        rules: cf.rules.slice(), related_rules: (cf.related_rules || []).slice(), description: cf.description,
         quotes: cf.quotes.map(q => ({ protocol: q.protocol, page: q.page, text: q.text })),
-        note: 'положения протокола расходятся в этой клинической ситуации — решает эксперт' }));
+        note: 'требуется экспертное толкование' }));
     const assessed = results.filter(x => x.observation === OBS.AMBIGUOUS_PENDING ||
       (x.applicability === 'применимо' && x.observation !== OBS.NOT_ASSESSED));
     const status = assessed.length ? STATUS.EXPERT : STATUS.INSUFFICIENT;
@@ -250,5 +259,5 @@
     };
   }
 
-  return Object.freeze({ VERSION, CANDIDATE, STATUS, ALLOWED_STATUSES, BLOCK, OBS, OBS_LABEL, evaluate, evalNode });
+  return Object.freeze({ VERSION, CANDIDATE, STATUS, ALLOWED_STATUSES, BLOCK, OBS, OBS_LABEL, CONFLICT_LABEL, evaluate, evalNode });
 });
