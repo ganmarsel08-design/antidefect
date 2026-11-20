@@ -128,7 +128,9 @@
     const total = s.items.length, decided = total - s.items.filter(x => x.status === STATUS.NEW).length;
     return {
       case: { synthetic: s.synthetic, data, sources },
-      completeness: { total, decided, pending: pending.length, rejected: rejected.length, used: used.length, complete: decided === total },
+      // complete — решение есть по всем извлечённым сведениям; source_complete — исходный документ прочитан полностью
+      completeness: { total, decided, pending: pending.length, rejected: rejected.length, used: used.length, complete: decided === total,
+        source_complete: s.warnings.length === 0, source_warnings: s.warnings.slice() },
       pending_fields: pending, rejected_fields: rejected,
       version: s.version,
     };

@@ -5,7 +5,7 @@
  */
 (function () {
   'use strict';
-  const D = window.ANTIDEFECT_DATA, X = window.AntidefectExtract, CB = window.AntidefectCaseBuilder, V = window.AntidefectExpertView, DX = window.AntidefectDocx;
+  const D = window.ANTIDEFECT_DATA, X = window.AntidefectExtract, CB = window.AntidefectCaseBuilder, V = window.AntidefectExpertView, DX = window.AntidefectDocx, RP = window.AntidefectReport;
   const env = { RulesEngine: window.RulesEngine, Derive: window.RulesDerive, db: D.rules, expertDecisions: D.expert_decisions };
   const DD = D.rules.data_dictionary;
   const RULE = Object.fromEntries(D.rules.rules.map(r => [r.rule_id, r]));
@@ -163,14 +163,25 @@
     const J = clear($('jr'));
     if (!s.journal.length) J.appendChild(document.createTextNode('Пока пусто.'));
     for (const j of s.journal.slice().reverse()) J.appendChild(h('div', { 'data-seq': j.seq }, `${j.at.slice(0, 19).replace('T', ' ')} · ${j.actor} · ${j.action}` + (j.field ? ` · ${j.field}` : '') + (j.group ? ` · группа «${j.group}» (${j.candidate_ids.length})` : '') + (j.action === 'исправлено' || j.action === 'выбор значения' || j.action === 'внесено врачом' ? ` · ${fmt(j.from)} → ${fmt(j.to)}` : '')));
-    $('fin').disabled = !b.completeness.complete; $('exp').disabled = !b.completeness.complete;
-    $('expn').textContent = b.completeness.complete ? '' : 'Выгрузка доступна после решения по всем сведениям.';
+    $('fin').disabled = !b.completeness.complete;
     modeBar(b); renderSource();
     if (S.lastFp !== null) $('stale').hidden = CB.fingerprint(b) === S.lastFp;
+    updateExport();
+  }
+  function updateExport() {
+    if (!S.session) return;
+    const e = RP.exportState(CB.build(S.session), S.lastFp, !!S.lastView, CB.fingerprint);
+    $('exp').disabled = !e.allowed;
+    $('expn').textContent = e.allowed ? '' : 'Выгрузка недоступна: ' + e.reasons.join('; ') + '.';
+  }
+  function sourceNote(b) {
+    return b.completeness.source_complete ? null : h('div', { class: 'warnbox', 'data-source-incomplete': '' },
+      'Исходный документ прочитан НЕ полностью: ' + b.completeness.source_warnings.join('; ') + '. Это не полная проверка всего документа — сведения из непрочитанных частей не проверялись.');
   }
   function modeBar(b) {
-    const m = $('mode');
-    if (b.completeness.complete) { m.className = 'mode full'; m.textContent = `Проверка данных завершена: решение есть по всем ${b.completeness.total} сведениям. Результаты — предварительные.`; }
+    const m = $('mode'), st = RP.auditState(b);
+    if (st.full) { m.className = 'mode full'; m.textContent = `Проверка данных завершена: решение есть по всем ${b.completeness.total} сведениям; документ прочитан полностью. Результаты — предварительные.`; }
+    else if (st.review_complete) { m.className = 'mode part'; m.textContent = `Решение есть по всем ${b.completeness.total} найденным сведениям, но исходный документ прочитан НЕ полностью — это не полная проверка документа. Результаты предварительные.`; }
     else { m.className = 'mode part'; m.textContent = `Частичная проверка: в проверку правил передано ${b.completeness.used} из ${b.completeness.total} сведений. Результаты неполные и предварительные.`; }
   }
   $('madd').addEventListener('click', () => {
@@ -187,7 +198,7 @@
 
   // ── экраны 3–4
   function compute() { const b = CB.build(S.session); S.lastView = V.view(env, b, S.protocols); S.lastFp = CB.fingerprint(b); S.lastAlts = V.timelineAlternatives(env, S.session, CB, S.protocols); }
-  $('recalc').addEventListener('click', () => { compute(); renderResults(); });
+  $('recalc').addEventListener('click', () => { compute(); renderResults(); updateExport(); });
   $('showhidden').addEventListener('change', () => renderResults());
 
   function partialNote() {
@@ -201,6 +212,9 @@
     $('stale').hidden = CB.fingerprint(b) === S.lastFp;
     const v = S.lastView;
     clear($('partial3')).appendChild(partialNote() || document.createTextNode(''));
+    clear($('source3')).appendChild(sourceNote(b) || document.createTextNode(''));
+    clear($('source4')).appendChild(sourceNote(b) || document.createTextNode(''));
+    updateExport();
     $('hc').textContent = v.hidden.length;
     const list = v.shown.concat($('showhidden').checked ? v.hidden : []);
     const C = clear($('cards'));
@@ -226,8 +240,8 @@
         linked.length ? h('div', { class: 'cf' }, linked.map(id => v.active_conflicts.includes(id) ? `Активный конфликт ${id} — решает эксперт. ` : `Связанный конфликт ${id} (в этом случае не активен). `)) : null,
         alt.map(z => h('div', { class: 'lim' }, `Ограничение движка (${z.a.field}): при передаче «${z.x.value ? 'да' : 'нет'}» (${z.x.at ? z.x.at.slice(0, 16).replace('T', ' ') : z.x.date + ', без времени'}) — ${z.ch.label}.`)),
         r.missing_data.length ? h('div', { class: 'miss' }, 'Недостаёт: ' + r.missing_data.join(', ')) : null,
-        h('label', { class: 'muted' }, 'Документированное обоснование (привязывает врач):', h('input', { value: S.justif[r.rule_id] || '', onchange: e => { S.justif[r.rule_id] = e.target.value; note('обоснование', r.rule_id, e.target.value); } })),
-        h('label', { class: 'muted' }, 'Комментарий эксперта (сохраняется с автором и датой; результат не меняет):', h('input', { value: (S.comments[r.rule_id] || {}).text || '', onchange: e => { S.comments[r.rule_id] = { text: e.target.value, at: new Date().toISOString(), by: S.session.actor }; note('комментарий', r.rule_id, e.target.value); } }))));
+        justifBlock(r.rule_id),
+        h('label', { class: 'muted' }, 'Комментарий эксперта (сохраняется с автором и датой; результат не меняет):', h('input', { 'data-comment': r.rule_id, value: (S.comments[r.rule_id] || {}).text || '', onchange: e => { S.comments[r.rule_id] = { text: e.target.value, at: new Date().toISOString(), by: S.session.actor }; note('комментарий', r.rule_id, e.target.value); } }))));
     }
     // сводка
     clear($('partial4')).appendChild(partialNote() || document.createTextNode(''));
@@ -240,21 +254,36 @@
     T.appendChild(h('tr', null, h('th', null, 'Правило'), h('th', null, 'Результат (предварительно)'), h('th', null, 'Комментарий эксперта')));
     for (const r of v.shown) { const w = v.ui_warnings.find(x => x.rule_id === r.rule_id); T.appendChild(h('tr', null, h('td', null, r.rule_id), h('td', null, w ? 'соответствует проверенному фрагменту; возрастная таблица не проверена' : r.label), h('td', null, (S.comments[r.rule_id] || {}).text || '—'))); }
   }
+  const jStatus = fr => !fr ? 'Обоснование введено вручную и не связано с документом.'
+    : fr.ambiguous ? `Фрагмент «${fr.text}» встречается в истории ${fr.occurrences} раз — место однозначно не установлено, источник не считается достоверно привязанным. Уточните цитату.`
+    : `Привязан фрагмент истории (позиция ${fr.start}): «${fr.text}»`;
+  function justifBlock(id) {
+    const j = S.justif[id] || { text: '', fragment: null };
+    const status = h('div', { class: 'muted', 'data-jstatus': id }, !j.text ? '' : jStatus(j.fragment));
+    const txt = h('input', { 'data-jtext': id, value: j.text || '', placeholder: 'текст обоснования' });
+    const frg = h('input', { 'data-jfrag': id, value: j.fragment ? j.fragment.text : '', placeholder: 'фрагмент истории (точная цитата), необязательно' });
+    const save = () => {
+      const fr = frg.value.trim() ? RP.bindFragment(S.text, frg.value) : null;
+      if (frg.value.trim() && !fr) { status.textContent = 'Фрагмент не найден в тексте истории — не привязан.'; return; }
+      S.justif[id] = { text: txt.value.trim(), fragment: fr, by: S.session.actor, at: new Date().toISOString() };
+      note('обоснование', id, txt.value.trim() + (fr ? ` [фрагмент: ${fr.text}]` : ' [введено вручную]'));
+      status.textContent = !txt.value.trim() ? '' : jStatus(fr);
+    };
+    return h('div', { class: 'muted' }, 'Документированное обоснование отклонения (привязывает врач; результат не меняет):', txt, frg,
+      h('button', { 'data-jsave': id, onclick: save }, 'Сохранить обоснование'), status);
+  }
   function note(kind, rule, text) {
     S.session.journal.push({ seq: S.session.journal.length + 1, at: new Date().toISOString(), actor: S.session.actor, action: kind, rule_id: rule, field: null, from: null, to: text, fragment: null });
   }
 
   $('exp').addEventListener('click', () => {
-    const v = S.lastView, b = CB.build(S.session);
-    if (!b.completeness.complete) return;
-    const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
-    const rows = v.shown.map(r => `<tr><td>${esc(r.rule_id)}</td><td>${esc(r.label)}</td><td>${esc((S.comments[r.rule_id] || {}).text || '')}</td></tr>`).join('');
-    const html = `<html><head><meta charset="utf-8"><title>ПРЕДВАРИТЕЛЬНО</title></head><body><h1>ПРЕДВАРИТЕЛЬНО — черновик, не экспертное заключение</h1>
-<p>Документ: ${esc(S.session.document_id)}. Данные синтетические. Часовой пояс организации: ${esc(S.session.tz)}. Окончательный вывод программа не формирует.</p>
-<p>Активные конфликты протоколов: ${esc(v.active_conflicts.join(', ') || 'нет')}.</p><table border="1"><tr><th>Правило</th><th>Результат (предварительно)</th><th>Комментарий эксперта</th></tr>${rows}</table>
-<h2>Журнал</h2><ol>${S.session.journal.map(j => `<li>${esc(j.at)} · ${esc(j.actor)} · ${esc(j.action)} ${esc(j.field || j.rule_id || '')}</li>`).join('')}</ol></body></html>`;
-    // data:-ссылка: на странице, открытой как файл, имя файла у blob-ссылки браузер может не сохранить
-    const a = h('a', { href: 'data:application/msword;charset=utf-8,' + encodeURIComponent('\ufeff' + html), download: 'antidefect-PREDVARITELNO-' + new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '') + '.doc' }); // имя только латиницей: кириллица в имени файла может сбросить его в «download»
+    const b = CB.build(S.session);
+    const e = RP.exportState(b, S.lastFp, !!S.lastView, CB.fingerprint);
+    if (!e.allowed) { updateExport(); return; } // устаревший или неполный результат не выгружается
+    const html = RP.buildReport({ view: S.lastView, built: b, journal: S.session.journal, documentId: S.session.document_id, tz: S.session.tz, text: S.text,
+      sourceWarnings: b.completeness.source_warnings, comments: S.comments, justifications: S.justif, generatedAt: new Date().toISOString() });
+    // data:-ссылка; имя файла только латиницей: кириллица в имени файла может сбросить его в «download»
+    const a = h('a', { href: 'data:application/msword;charset=utf-8,' + encodeURIComponent('\ufeff' + html), download: 'antidefect-PREDVARITELNO-' + new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '') + '.doc' });
     document.body.appendChild(a); a.click(); a.remove();
   });
 

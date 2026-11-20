@@ -59,6 +59,29 @@ const cardLabels = p => p.$$eval('.card', cs => cs.map(c => [c.dataset.rule, c.q
       await p.click('#recalc');
       const ref = TE.histories.find(h => h.id === 'СИН-РДС-01');
       step('после пересчёта: результаты = технический эталон РДС-01', JSON.stringify(await cardLabels(p)) === JSON.stringify(ref.shown_by_default.map(r => [r.rule_id, r.label])) && await p.isHidden('#stale'));
+      await tab(p, 4);
+      step('замечание 1: после расчёта по полной проверке выгрузка разрешена', await p.isEnabled('#exp'));
+      await tab(p, 2);
+      await p.click('tr[data-field="surfactant_initial_dose_mg_kg"] button[data-act="ed"]');
+      await p.fill('tr[data-field="surfactant_initial_dose_mg_kg"] .vcell input', '100');
+      await p.click('tr[data-field="surfactant_initial_dose_mg_kg"] .vcell button');
+      await tab(p, 4);
+      step('замечание 1: доза изменена после расчёта — выгрузка запрещена, причина показана', await p.isDisabled('#exp') && /изменены после последнего расчёта/.test(await p.textContent('#expn')));
+      await p.evaluate(() => document.getElementById('exp').click());
+      await tab(p, 3);
+      step('замечание 1: карточки помечены устаревшими', await p.isVisible('#stale'));
+      await p.click('#recalc');
+      step('замечание 1: после пересчёта RDS-009 — неоднозначность, выгрузка снова разрешена', (await cardLabels(p)).find(([r]) => r === 'RDS-009')[1] === 'неоднозначность' && await p.isEnabled('#exp'));
+      // 4. комментарий и обоснования
+      await p.fill('.card[data-rule="RDS-001"] [data-comment="RDS-001"]', 'Проверить давление СРАР по реанимационной карте'); await p.press('.card[data-rule="RDS-001"] [data-comment="RDS-001"]', 'Tab');
+      await p.fill('[data-jtext="RDS-006"]', 'Отсрочено на 60 секунд по состоянию'); await p.fill('[data-jfrag="RDS-006"]', 'пуповина пережата через 60 секунд'); await p.click('[data-jsave="RDS-006"]');
+      step('замечание 4: фрагмент обоснования привязан к тексту истории', /Привязан фрагмент истории \(позиция \d+\)/.test(await p.textContent('[data-jstatus="RDS-006"]')));
+      await p.fill('[data-jtext="RDS-010"]', 'Газы контролировались'); await p.fill('[data-jfrag="RDS-010"]', 'PaCO2'); await p.click('[data-jsave="RDS-010"]');
+      step('неоднозначный фрагмент (встречается несколько раз) не выдаётся за установленный источник', /встречается в истории \d+ раз — место однозначно не установлено/.test(await p.textContent('[data-jstatus="RDS-010"]')));
+      await p.fill('[data-jtext="RDS-004"]', 'Со слов старшей акушерки'); await p.fill('[data-jfrag="RDS-004"]', 'такого текста в истории нет'); await p.click('[data-jsave="RDS-004"]');
+      step('замечание 4: несуществующий фрагмент не привязывается', /не найден/.test(await p.textContent('[data-jstatus="RDS-004"]')));
+      await p.fill('[data-jfrag="RDS-004"]', ''); await p.click('[data-jsave="RDS-004"]');
+      step('замечание 4: ручное обоснование помечено как не связанное с документом', /введено вручную/.test(await p.textContent('[data-jstatus="RDS-004"]')));
       await tab(p, 2);
       await p.click('tr[data-field="cpap_pressure_cmh2o"] button[data-act="ed"]');
       await p.fill('tr[data-field="cpap_pressure_cmh2o"] .vcell input', '5');
@@ -77,6 +100,12 @@ const cardLabels = p => p.$$eval('.card', cs => cs.map(c => [c.dataset.rule, c.q
       const body = fs.readFileSync(await dl.path(), 'utf8');
       console.log('   файл:', dl.suggestedFilename(), '|', body.slice(0, 160).replace(/\n/g, ' '));
       step('выгрузка черновика: «ПРЕДВАРИТЕЛЬНО», без окончательного вывода', /PREDVARITELNO.*\.doc$/.test(dl.suggestedFilename()) && /ПРЕДВАРИТЕЛЬНО — черновик, не экспертное заключение/.test(body) && /Окончательный вывод программа не формирует/.test(body));
+      step('замечание 4: в выгрузке комментарий, обоснование с фрагментом и ручное обоснование с предупреждением',
+        /Проверить давление СРАР по реанимационной карте/.test(body) && /Отсрочено на 60 секунд по состоянию.*Фрагмент истории \(позиция \d+\): «пуповина пережата через 60 секунд»/s.test(body)
+        && /Со слов старшей акушерки.*обоснование введено вручную и не связано с документом/s.test(body));
+      step('в выгрузке неоднозначная привязка помечена, позиция не выдаётся за источник', /Газы контролировались.*встречается в документе \d+ раз — место в истории однозначно не установлено/s.test(body) && !/Фрагмент истории \(позиция \d+\): «PaCO2»/.test(body));
+      step('замечание 1: выгружен пересчитанный результат (RDS-009 — неоднозначность, RDS-001 — отличие)', /<td>RDS-009<\/td><td>неоднозначность<\/td>/.test(body) && /<td>RDS-001<\/td><td>предварительное отличие<\/td>/.test(body));
+      step('выгрузка документа, прочитанного полностью, не содержит предупреждения о неполном чтении', !/ПРОЧИТАН НЕ ПОЛНОСТЬЮ/.test(body));
       step('РДС-01: нет ошибок и сетевых запросов', errs.length === 0 || (console.log(errs), false));
       await p.close();
     }
@@ -129,6 +158,35 @@ const cardLabels = p => p.$$eval('.card', cs => cs.map(c => [c.dataset.rule, c.q
       await p.check('.prot[value="Сепсис"]'); await p.check('#synth'); await p.click('#go');
       step('DOCX СЕП-03: прочитан полностью, найдено 29 сведений', /Найдено: 29/.test(await p.textContent('#cnt')) && !(await p.textContent('#docxwarn')));
       step('DOCX: нет ошибок и сетевых запросов', errs.length === 0 || (console.log(errs), false));
+      await p.close();
+    }
+    // ── замечание 3: DOCX прочитан частично (надпись)
+    {
+      const JSZip = require(path.join(ROOT, 'engine/vendor/jszip/jszip.min.js'));
+      const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+      const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+      const src = TE.histories && fs.readFileSync(path.join(ROOT, 'engine/test/fixtures/stage7/stage7-extraction-gold.json'), 'utf8');
+      const text = JSON.parse(src).histories.find(h => h.id === 'СИН-СЕП-01').text;
+      const z = new JSZip();
+      z.file('word/document.xml', `<w:document ${W}><w:body>` + text.split('\n').map(l => `<w:p><w:r><w:t xml:space="preserve">${esc(l)}</w:t></w:r></w:p>`).join('') +
+        '<w:p><w:r><w:pict><w:txbxContent><w:p><w:r><w:t>Текст в надписи</w:t></w:r></w:p></w:txbxContent></w:pict></w:r></w:p></w:body></w:document>');
+      const buf = await z.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+      const { p, errs } = await open(b);
+      await p.setInputFiles('#docx', { name: 'partial.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', buffer: buf });
+      await p.waitForFunction(() => document.getElementById('text').value.length > 100);
+      await p.check('.prot[value="Сепсис"]'); await p.check('#synth'); await p.click('#go');
+      step('замечание 3: экран 2 — извлечение неполное', /Извлечение неполное/.test(await p.textContent('#docxwarn')));
+      await confirmAll(p);
+      step('замечание 3: все сведения решены, но полной проверки нет', await p.isEnabled('#fin') && /прочитан НЕ полностью — это не полная проверка документа/.test(await p.textContent('#mode')));
+      await tab(p, 3);
+      step('замечание 3: предупреждение на экране карточек', await p.isVisible('#source3 [data-source-incomplete]'));
+      await tab(p, 4);
+      step('замечание 3: предупреждение на экране сводки', await p.isVisible('#source4 [data-source-incomplete]'));
+      const [dl] = await Promise.all([p.waitForEvent('download'), p.click('#exp')]);
+      const body = fs.readFileSync(await dl.path(), 'utf8');
+      step('замечание 3: в выгрузке — «ИСХОДНЫЙ ДОКУМЕНТ ПРОЧИТАН НЕ ПОЛНОСТЬЮ», нет формулировки о полной проверке',
+        /ИСХОДНЫЙ ДОКУМЕНТ ПРОЧИТАН НЕ ПОЛНОСТЬЮ: [^<]*надпись/.test(body) && /исходный документ прочитан НЕ полностью/.test(body) && !/исходный документ прочитан полностью/.test(body));
+      step('замечание 3: нет ошибок и сетевых запросов', errs.length === 0 || (console.log(errs), false));
       await p.close();
     }
     // ── безопасность отображения

@@ -68,13 +68,13 @@ mark{background:#fde68a}mark.cur{background:#f59e0b;outline:2px solid #b45309}ta
 
 <section id="s3">
  <div id="stale" class="stale" hidden>Данные изменены после расчёта — карточки устарели. <button id="recalc">Пересчитать</button></div>
- <div id="partial3"></div>
+ <div id="partial3"></div><div id="source3"></div>
  <p>Показаны применимые правила, правила отмеченных протоколов и правила с неоднозначностью. <label><input type="checkbox" id="showhidden"> показать скрытые (<span id="hc">0</span> — другой протокол, применимость не установлена)</label></p>
  <div id="cards"></div>
 </section>
 
 <section id="s4">
- <div id="partial4"></div><div class="kpi" id="kpi"></div><p id="cfl"></p><table id="sum"></table>
+ <div id="partial4"></div><div id="source4"></div><div class="kpi" id="kpi"></div><p id="cfl"></p><table id="sum"></table>
  <p><button class="pri" id="exp" disabled>Выгрузить черновик (Word) — «ПРЕДВАРИТЕЛЬНО»</button> <span class="muted" id="expn"></span></p>
 </section>
 
@@ -85,6 +85,7 @@ mark{background:#fde68a}mark.cur{background:#f59e0b;outline:2px solid #b45309}ta
 <script src="extract/docx.js"></script>
 <script src="case-builder.js"></script>
 <script src="expert-view.js"></script>
+<script src="expert-report.js"></script>
 <script src="expert-data.js"></script>
 <script src="expert-app.js"></script>
 </body>
