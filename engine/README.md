@@ -11,6 +11,7 @@
 - `rules-engine.js` — применяет `rules/pilot-rules.json` к синтетическому случаю; никогда не выдаёт окончательного вывода (`final_conclusion: null`). В браузере сначала подключить `derive.js` (`window.RulesDerive`), затем `rules-engine.js` (`window.RulesEngine`).
 - `derive.js` — вычисляемые поля и хронология по отметкам времени (этап 6, M2/M3).
 - `test/rules.test.js` (этап 5), `test/stage6.test.js` (инварианты и приёмочные тесты этапа 6), `test/scenarios-117.test.js` (117 сценариев архива экспертизы).
+- Третий круг: `test/round3.test.js` (приёмочные тесты решений врача 20.11.2026), `test/regression-171.test.js` (171 случай: неперечисленные — как на 2eeb6ae, перечисленные — по явному списку), `test/fixtures/cases-171.json` и `baseline-171-2eeb6ae.json` (замороженные входы и отпечатки), `test/mutation-check.js` (26 мутаций), `test/ui/rules-card.scenario.js` (карточки базы правил в браузере; `audit.html` их не показывает — это интерфейс модуля отклонений).
 
 ```js
 const out = RulesEngine.evaluate(db, { synthetic: true, data, sources, justifications }, { expert_decisions });

@@ -214,7 +214,11 @@ test('T12: NEC-004 — оба отсчёта по поясу организац�
 test('T13: SEP-008 — 6 суток по поясу организации → отличие; без пояса при разных смещениях → нет данных', () => {
   const b = { antibiotics_started: true, empirical_regimen: 'ampicillin+gentamicin', improving: true, blood_culture_result: 'отрицательный', high_risk_factors: false,
     course_completed: true, abx_course_started_at: '2026-01-01T18:30Z', abx_course_ended_at: at(6, '10:00') };
-  assert.equal(ev('SEP-008', { ...b, facility_utc_offset: '+05:00' }).observation, O.DIFFERS);
+  // Третий круг (решение врача 19.11.2026 20:06; rules-0.3): 6 календарных суток, но 106,5 ч (не более 120 ч) — SEP-008-A3,
+  // экспертное решение вместо автоматического «отличается».
+  const t = ev('SEP-008', { ...b, facility_utc_offset: '+05:00' });
+  assert.equal(t.observation, O.AMBIGUOUS_PENDING);
+  assert.deepEqual(t.active_ambiguities, ['SEP-008-A3']);
   assert.equal(ev('SEP-008', b).observation, O.NOT_ASSESSED);
 });
 
@@ -228,8 +232,12 @@ test('D1: 30 мг / 1,2 кг, записано «25» — записи согл�
   const v = dv(BP({ benzylpenicillin_dose_mg: 30, benzylpenicillin_dose_mg_kg: '25' }));
   assert.equal(v.benzylpenicillin_dose_records_consistent, true);
   assert.equal(v.benzylpenicillin_dose_basis, 'calculated');
+  // Третий круг (решение врача 20.11.2026, п. 1; rules-0.3): режим совпадает с текстом п. 6 (каждые 12 ч), но расходится
+  // с таблицей стр. 18 (каждые 8 ч) — CF-006, SEP-005-A3; логика дозы (три величины) при этом не меняется.
   const r = ev('SEP-005', BP({ benzylpenicillin_dose_mg: 30, benzylpenicillin_dose_mg_kg: '25' }));
-  assert.equal(r.observation, O.CONSISTENT);
+  assert.equal(r.observation, O.AMBIGUOUS_PENDING);
+  assert.deepEqual(r.active_ambiguities, ['SEP-005-A3']);
+  assert.equal(dv(BP({ benzylpenicillin_dose_mg: 30, benzylpenicillin_dose_mg_kg: '25' })).benzylpenicillin_text_regimen_match, true);
   assert.ok(!ids(r).includes('dose_q24') && !ids(r).includes('dose_records_inconsistent'));
 });
 test('D2: 30,5 мг / 1,2 кг, записано «25» — записи согласованы (до целых), оценка по вычисленной 25,4167 → отличие + подпись Q24', () => {
@@ -250,7 +258,10 @@ test('D3: 30,5 мг / 1,2 кг, записано «25,0» — записи не 
 test('D4: 30 / 1,2, записано «25,00» — совпадает', () => {
   const d = BP({ benzylpenicillin_dose_mg: 30, benzylpenicillin_dose_mg_kg: '25,00' });
   assert.equal(dv(d).benzylpenicillin_dose_records_consistent, true);
-  assert.equal(ev('SEP-005', d).observation, O.CONSISTENT);
+  // Третий круг (решение врача 20.11.2026, п. 1; rules-0.3): режим совпадает с текстом п. 6 (каждые 12 ч), но расходится
+  // с таблицей стр. 18 (каждые 8 ч) — CF-006, SEP-005-A3; логика дозы (три величины) при этом не меняется.
+  assert.equal(dv(d).benzylpenicillin_text_regimen_match, true);
+  assert.deepEqual(ev('SEP-005', d).active_ambiguities, ['SEP-005-A3']);
 });
 test('D5: 30,05 / 1,2, записано «25,00» — записи не согласованы (25,04); отличие', () => {
   const d = BP({ benzylpenicillin_dose_mg: 30.05, benzylpenicillin_dose_mg_kg: '25,00' });
@@ -263,8 +274,11 @@ test('D6: 31 / 1,2, записано «25» — записи не согласо
   assert.equal(ev('SEP-005', d).observation, O.DIFFERS);
 });
 test('D7: только записанная доза «25» — совпадает с подписью «расчёт по актуальной массе не подтверждён»', () => {
+  // Третий круг (решение врача 20.11.2026, п. 1; rules-0.3): режим совпадает с текстом п. 6 (каждые 12 ч), но расходится
+  // с таблицей стр. 18 (каждые 8 ч) — CF-006, SEP-005-A3; логика дозы (три величины) при этом не меняется.
   const r = ev('SEP-005', BP({ benzylpenicillin_dose_mg_kg: '25' }));
-  assert.equal(r.observation, O.CONSISTENT);
+  assert.equal(r.observation, O.AMBIGUOUS_PENDING);
+  assert.deepEqual(r.active_ambiguities, ['SEP-005-A3']);
   assert.equal(lab(r, 'dose_recorded_basis').text, 'Расчёт по актуальной массе не подтверждён — оценка по записанной дозе в мг/кг');
 });
 test('D8: масса другого дня, записано «25» — оценка по записанной дозе с подписью', () => {
@@ -272,8 +286,11 @@ test('D8: масса другого дня, записано «25» — оцен
   const o = run(d);
   assert.equal(o.derived.values.benzylpenicillin_weight_confirmed_for_calc, false);
   assert.equal(o.derived.values.benzylpenicillin_dose_basis, 'recorded');
+  // Третий круг (решение врача 20.11.2026, п. 1; rules-0.3): режим совпадает с текстом п. 6 (каждые 12 ч), но расходится
+  // с таблицей стр. 18 (каждые 8 ч) — CF-006, SEP-005-A3; логика дозы (три величины) при этом не меняется.
   const r = res(o, 'SEP-005');
-  assert.equal(r.observation, O.CONSISTENT);
+  assert.equal(o.derived.values.benzylpenicillin_text_regimen_match, true);
+  assert.deepEqual(r.active_ambiguities, ['SEP-005-A3']);
   assert.ok(ids(r).includes('dose_recorded_basis'));
 });
 test('D9: масса другого дня, записанной дозы нет — «Недостаточно данных»', () => {
@@ -325,7 +342,9 @@ test('D15: Q24 открыт; промежуточный режим — точн�
 test('D16: записи не согласованы и масса не подтверждена — оценка по записанной, обе подписи', () => {
   const r = ev('SEP-005', BP({ benzylpenicillin_dose_mg: 30.5, benzylpenicillin_dose_mg_kg: '25,0', weight_measured_at: '2025-12-31T08:00+05:00' }));
   assert.ok(ids(r).includes('dose_recorded_basis') && ids(r).includes('dose_records_inconsistent'));
-  assert.equal(r.observation, O.CONSISTENT);
+  // Третий круг (решение врача 20.11.2026, п. 1; rules-0.3): режим совпадает с текстом п. 6 (каждые 12 ч), но расходится
+  // с таблицей стр. 18 (каждые 8 ч) — CF-006, SEP-005-A3; логика дозы (три величины) при этом не меняется.
+  assert.deepEqual(r.active_ambiguities, ['SEP-005-A3']);
 });
 const basis = d => dv(d).benzylpenicillin_dose_basis;
 test('D17: взвешивание 08:00, назначение 10:00 — расчёт по вычисленной дозе', () => {
@@ -491,24 +510,39 @@ test('N3: ребёнок в хирургическом отделении — с
 });
 
 // =================== Инварианты V1–V10 ===================
-test('V1: восемь подтверждённых правил побайтово неизменны (sha256 записи правила)', () => {
+test('V1: подтверждённые правила — RDS-001, 002, 004, 005, 006 побайтово неизменны; RDS-003, 008, 009 — только по решению врача 20.11.2026', () => {
   const sha = ED.confirmed_unchanged.sha256_at_baseline;
   assert.deepEqual(ED.confirmed_unchanged.rules, ['RDS-001', 'RDS-002', 'RDS-003', 'RDS-004', 'RDS-005', 'RDS-006', 'RDS-008', 'RDS-009']);
+  const changed = ED.round3.protected_rules_changed_by_physician_decision;
+  assert.deepEqual(changed, ['RDS-003', 'RDS-008', 'RDS-009']);
   for (const id of ED.confirmed_unchanged.rules) {
     const r = DB.rules.find(x => x.rule_id === id);
-    assert.equal(crypto.createHash('sha256').update(JSON.stringify(r, null, 1)).digest('hex'), sha[id], id);
-    assert.ok(!('card_labels' in r) && !('revision' in r), id);
+    const h = crypto.createHash('sha256').update(JSON.stringify(r, null, 1)).digest('hex');
+    if (changed.includes(id)) { assert.notEqual(h, sha[id], id); assert.equal(r.revision_round3.round3_decision, 'Изменить', id); }
+    else assert.equal(h, sha[id], id);
+    assert.ok(!('revision' in r), id);
   }
 });
-test('V2: 25 блокирующих неоднозначностей и их условия совпадают с d314a58', () => {
+// Третий круг: изменения блокировок — только по явному перечню (решения врача); ни одна не удалена; новых — 3.
+const R3_AMB_CHANGED = { 'RDS-003-A2': ['blocks_when', 'machine_note'], 'RDS-009-A1': ['blocking', 'blocks_when', 'machine_note'], 'NEC-003-A1': ['part'],
+  'NEC-004-A1': ['blocking', 'blocks_when', 'part', 'machine_note'], 'SEP-010-A1': ['blocking', 'blocks_when', 'machine_note'] };
+test('V2: 25 блокировок d314a58 сохранены (изменения — только по перечню третьего круга) + 3 новые = 28', () => {
   const cur = Object.fromEntries(DB.rules.flatMap(r => r.ambiguities).filter(a => a.blocking !== 'no').map(a => [a.id, a]));
-  assert.equal(Object.keys(cur).length, 25);
-  assert.deepEqual(cur, FX.blocking_ambiguities);
+  assert.equal(Object.keys(cur).length, 28);
+  assert.deepEqual(Object.keys(cur).filter(id => !(id in FX.blocking_ambiguities)).sort(), ['SEP-005-A3', 'SEP-006-A4', 'SEP-008-A3']);
+  for (const [id, a] of Object.entries(FX.blocking_ambiguities)) {
+    assert.ok(cur[id], id);
+    const strip = x => { const y = clone(x); for (const k of (R3_AMB_CHANGED[id] || [])) delete y[k]; delete y.round3_changes; return y; };
+    assert.deepEqual(strip(cur[id]), strip(a), id);
+    if (R3_AMB_CHANGED[id]) assert.ok(Array.isArray(cur[id].round3_changes) && cur[id].round3_changes.length, id);
+    else assert.ok(!('round3_changes' in cur[id]), id);
+  }
 });
-test('V3: конфликты CF-001–CF-005 не изменены (2239c52 и d314a58)', () => {
-  assert.deepEqual(DB.protocol_conflicts, BASE.protocol_conflicts);
-  assert.deepEqual(DB.protocol_conflicts, FX.protocol_conflicts);
-  assert.deepEqual(DB.protocol_conflicts.map(c => c.id), ['CF-001', 'CF-002', 'CF-003', 'CF-004', 'CF-005']);
+test('V3: конфликты CF-001–CF-005 не изменены (2239c52 и d314a58); CF-006, CF-007 — предлагаемые, добавлены в конец', () => {
+  assert.deepEqual(DB.protocol_conflicts.slice(0, 5), BASE.protocol_conflicts);
+  assert.deepEqual(DB.protocol_conflicts.slice(0, 5), FX.protocol_conflicts);
+  assert.deepEqual(DB.protocol_conflicts.map(c => c.id), ['CF-001', 'CF-002', 'CF-003', 'CF-004', 'CF-005', 'CF-006', 'CF-007']);
+  for (const c of DB.protocol_conflicts.slice(5)) assert.match(c.status, /^предлагаемое противоречие/);
 });
 test('V4: Q01–Q23 дословно прежние, добавлен только Q24; все открыты; статус «подтверждено» не присвоен', () => {
   assert.deepEqual(ED.open_questions.slice(0, 23), FX.open_questions);

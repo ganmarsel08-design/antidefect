@@ -17,6 +17,13 @@ BASE_PATH = os.path.join(HERE, 'build', 'baseline-2239c52.json')
 REG = json.load(open(os.path.join(ROOT, 'registry', 'protocols-registry.json'), encoding='utf-8'))
 PDF_DIR = os.environ.get('ANTIDEFECT_PDF_DIR')
 CONFIRMED = ['RDS-001', 'RDS-002', 'RDS-003', 'RDS-004', 'RDS-005', 'RDS-006', 'RDS-008', 'RDS-009']
+# Третий круг (rules-0.3, решения врача 20.11.2026): из восьми подтверждённых правил побайтово неизменны пять;
+# RDS-003, RDS-008, RDS-009 изменены только по решению врача (revision_round3).
+UNTOUCHED = ['RDS-001', 'RDS-002', 'RDS-004', 'RDS-005', 'RDS-006']
+R3_PROTECTED_CHANGED = ['RDS-003', 'RDS-008', 'RDS-009']
+R3_NEW_BLOCKING = ['SEP-005-A3', 'SEP-006-A4', 'SEP-008-A3']
+R3_AMB_CHANGED = {'RDS-003-A2': ['blocks_when', 'machine_note'], 'RDS-009-A1': ['blocking', 'blocks_when', 'machine_note'], 'NEC-003-A1': ['part'],
+                  'NEC-004-A1': ['blocking', 'blocks_when', 'part', 'machine_note'], 'SEP-010-A1': ['blocking', 'blocks_when', 'machine_note']}
 NEW_BLOCKING = ['RDS-007-A2', 'RDS-010-A2', 'NEC-005-A1', 'NEC-006-A2', 'NEC-009-A1', 'NEC-010-A4', 'SEP-003-A2', 'SEP-006-A3']
 
 
@@ -72,12 +79,16 @@ class ConfirmedUnchanged(unittest.TestCase):
         base = self.ed['confirmed_unchanged']['sha256_at_baseline']
         self.assertEqual(sorted(base), CONFIRMED)
         for r in self.db['rules']:
-            if r['rule_id'] in CONFIRMED:
+            if r['rule_id'] in UNTOUCHED:
                 self.assertEqual(rule_sha(r), base[r['rule_id']], r['rule_id'])
+            elif r['rule_id'] in R3_PROTECTED_CHANGED:
+                self.assertNotEqual(rule_sha(r), base[r['rule_id']], r['rule_id'])
+                self.assertEqual(r['revision_round3']['round3_decision'], 'Изменить', r['rule_id'])
+                self.assertNotIn('revision', r)
 
     def test_eight_rules_bytes_present_verbatim_in_file(self):
         for r in self.db['rules']:
-            if r['rule_id'] in CONFIRMED:
+            if r['rule_id'] in UNTOUCHED:
                 self.assertIn(rule_text_in_file(r), self.raw, r['rule_id'])
 
     def test_eight_rules_identical_to_commit_2239c52(self):
@@ -89,7 +100,8 @@ class ConfirmedUnchanged(unittest.TestCase):
         for r in odb['rules']:
             if r['rule_id'] in CONFIRMED:
                 self.assertIn(rule_text_in_file(r), old, r['rule_id'])
-                self.assertIn(rule_text_in_file(r), self.raw, r['rule_id'])
+                if r['rule_id'] in UNTOUCHED:
+                    self.assertIn(rule_text_in_file(r), self.raw, r['rule_id'])
                 self.assertEqual(rule_sha(r), self.ed['confirmed_unchanged']['sha256_at_baseline'][r['rule_id']])
 
     def test_baseline_fixture_matches_commit(self):
@@ -128,20 +140,22 @@ class SchemaV2(unittest.TestCase):
         self.assertEqual(self.errs(self.db, pdf=True), [])
         rq = sum(len(r['source']['quotes']) for r in self.db['rules'])
         cq = sum(len(c.get('quotes', [])) for r in self.db['rules'] for c in r.get('card_labels', []))
-        self.assertEqual((rq, cq), (68, 3))  # 44 цитаты этапа 5 + 24 добавленные к правилам; 3 цитаты в подписях карточек
+        self.assertEqual((rq, cq), (74, 13))  # 68 этапа 6 + 6 цитат таблицы стр. 18 (SEP-005, SEP-006); 3 + 10 цитат в подписях CF-006/CF-007
 
     @unittest.skipUnless(PDF_DIR, 'ANTIDEFECT_PDF_DIR не задан')
     def test_card_quote_wrong_page_detected(self):
         db = copy.deepcopy(self.db)
         r = next(x for x in db['rules'] if x['rule_id'] == 'SEP-010')
-        r['card_labels'][-1]['quotes'][0]['page'] = 14
+        next(c for c in r['card_labels'] if c['id'] == 'shorter_than_7')['quotes'][0]['page'] = 14
         self.assertTrue(any('текст не найден на стр. 14' in e for e in self.errs(db, pdf=True)))
 
     def test_new_blocking_exactly_eight(self):
         now = [a['id'] for r in self.db['rules'] for a in r['ambiguities'] if a['blocking'] != 'no']
-        self.assertEqual(len(now), 25)
-        added = [a['id'] for r in self.db['rules'] for a in r['ambiguities'] if a.get('added')]
+        self.assertEqual(len(now), 28)  # 25 + 3 третьего круга
+        added = [a['id'] for r in self.db['rules'] for a in r['ambiguities'] if a.get('added', '').startswith('rules-0.2')]
         self.assertEqual(sorted(added), sorted(NEW_BLOCKING))
+        added3 = [a['id'] for r in self.db['rules'] for a in r['ambiguities'] if a.get('added', '').startswith('rules-0.3')]
+        self.assertEqual(sorted(added3), sorted(R3_NEW_BLOCKING))
 
     def test_part_errors_detected(self):
         db = copy.deepcopy(self.db)
@@ -196,7 +210,12 @@ class ExpertDecisions(unittest.TestCase):
         self.assertTrue(all(q['status'] == 'открыт' and q['answer'] is None for q in ed['open_questions']))
         self.assertEqual(sorted(c['rule_id'] for c in ed['clinical_comments']), ['RDS-008', 'SEP-004', 'SEP-005', 'SEP-006'])
         self.assertTrue(all(d['rule_status_after'] == V.CANDIDATE for d in ed['decisions']))
-        self.assertEqual([c['id'] for c in ed['protocol_conflicts']], ['CF-001', 'CF-002', 'CF-003', 'CF-004', 'CF-005'])
+        self.assertEqual([c['id'] for c in ed['protocol_conflicts']], ['CF-001', 'CF-002', 'CF-003', 'CF-004', 'CF-005', 'CF-006', 'CF-007'])
+        r3 = ed['round3']
+        self.assertEqual(r3['totals'], {'Утвердить поведение': 18, 'Изменить': 12, 'Нужно обсуждение': 0})
+        self.assertEqual(r3['open_questions_closed'], [])
+        self.assertEqual(r3['blocking_ambiguities']['removed'], [])
+        self.assertTrue(all(q['status'] == 'предложение' for q in r3['proposed_new_questions']))
 
 
 class InvariantsAfterStage6Corrections(unittest.TestCase):
@@ -208,12 +227,22 @@ class InvariantsAfterStage6Corrections(unittest.TestCase):
         cls.ed = json.load(open(ED_PATH, encoding='utf-8'))
 
     def test_25_blockers_identical_to_d314a58(self):
+        # Третий круг: все 25 сохранены; отличия — только ключи из явного перечня R3_AMB_CHANGED; новые — 3.
         cur = {a['id']: a for r in self.db['rules'] for a in r['ambiguities'] if a['blocking'] != 'no'}
-        self.assertEqual(len(cur), 25)
-        self.assertEqual(cur, self.fx['blocking_ambiguities'])
+        self.assertEqual(len(cur), 28)
+        self.assertEqual(sorted(set(cur) - set(self.fx['blocking_ambiguities'])), sorted(R3_NEW_BLOCKING))
+        for aid, a in self.fx['blocking_ambiguities'].items():
+            def strip(x):
+                y = copy.deepcopy(x)
+                for k in R3_AMB_CHANGED.get(aid, []) + ['round3_changes']:
+                    y.pop(k, None)
+                return y
+            self.assertEqual(strip(cur[aid]), strip(a), aid)
+            self.assertNotEqual(cur[aid]['blocking'], 'no', aid)
 
     def test_conflicts_identical(self):
-        self.assertEqual(self.db['protocol_conflicts'], self.fx['protocol_conflicts'])
+        self.assertEqual(self.db['protocol_conflicts'][:5], self.fx['protocol_conflicts'])
+        self.assertEqual([c['id'] for c in self.db['protocol_conflicts'][5:]], ['CF-006', 'CF-007'])
 
     def test_q01_q23_unchanged(self):
         self.assertEqual(self.ed['open_questions'][:23], self.fx['open_questions'])

@@ -13,6 +13,10 @@
  * через derive.js (M2), «неизвестно» ≠ «нет» и источник факта (M3), категории обоснования (M4),
  * карточка эксперта (M5), клинические комментарии врача из отдельного файла решений (M6).
  * Ни одно из этих добавлений не создаёт нового исхода и не снимает запрет на окончательный вывод.
+ *
+ * Третий круг (схема rules-0.3, решения врача 20.11.2026): подписи карточки — только у применимого правила (Т1;
+ * исключение — подпись с show_when_not_applicable), скрытие подписи при активной неоднозначности (hide_when_ambiguity),
+ * пробелы данных за неоднозначностью — только поля, от которых зависит ответ (Т3). Исходы не добавлялись.
  */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory(require('./derive.js'));
@@ -20,7 +24,7 @@
 })(typeof self !== 'undefined' ? self : this, function (Derive) {
   'use strict';
 
-  const VERSION = '0.4.1-stage6';
+  const VERSION = '0.5.0-round3';
   const CANDIDATE = 'кандидат, ожидает экспертного подтверждения';
   const STATUS = Object.freeze({ EXPERT: 'Требуется оценка эксперта', INSUFFICIENT: 'Недостаточно данных' });
   const ALLOWED_STATUSES = Object.freeze([STATUS.EXPERT, STATUS.INSUFFICIENT]);
@@ -295,7 +299,13 @@
   }
   function buildCard(out, r, c, data, ctx) {
     const labels = [];
+    // Третий круг (Т1): подписи правила показываются, только когда правило применимо к случаю
+    // (или применимость зависит от неоднозначности); исключение — подпись с show_when_not_applicable.
+    // Подпись с hide_when_ambiguity не показывается, когда названная неоднозначность активна в случае.
+    const ruleApplies = out.applicability === 'применимо' || out.applicability === 'зависит_от_неоднозначности';
     for (const cl of r.card_labels || []) {
+      if (!ruleApplies && cl.show_when_not_applicable !== true) continue;
+      if (Array.isArray(cl.hide_when_ambiguity) && cl.hide_when_ambiguity.some(id => out.active_ambiguities.includes(id))) continue;
       const on = cl.when ? evalNode(cl.when, data, new Set()) === true : true;
       if (!on) continue;
       const text = fillTemplate(cl.label, data);
@@ -329,8 +339,12 @@
     // для неё — без какого-либо исхода (никакого скрытого результата).
     let gaps = [];
     if (out.observation === OBS.AMBIGUOUS_PENDING && !(out.parts && out.parts.length)) {
+      // Третий круг (Т3): пробелом считается только поле, от которого зависит ответ проверки
+      // (трёхзначная логика evalNode); поле ветки, которая на исход не влияет, не перечисляется.
       const checks = Array.isArray(r.requirement.parts) ? r.requirement.parts.map(p => p.check) : [r.requirement.check];
-      gaps = [...new Set(checks.flatMap(fieldsOf))].filter(f => !present(f)).sort().map(f => ({ field: f, reason: reasonOf(f), needs: sourcesOf(f) }));
+      const need = new Set();
+      for (const ch of checks) { const m = new Set(); if (evalNode(ch, data, m) === null) m.forEach(f => need.add(f)); }
+      gaps = [...need].filter(f => !present(f)).sort().map(f => ({ field: f, reason: reasonOf(f), needs: sourcesOf(f) }));
     }
     if (gaps.length) labels.push({ id: 'gaps_behind_ambiguity', text: 'Кроме неоднозначности, для проверки не хватает данных: ' + gaps.map(g => g.field + ' — ' + g.reason).join('; '), first: false, quotes: [] });
     const comments = ctx.comments[r.rule_id] || [];

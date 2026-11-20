@@ -92,12 +92,20 @@ test('РДС-003: ГВ ровно 26 нед. не попадает ни в од�
 });
 
 test('РДС-009: сравнительное положение о порактанте не превращается в обязательную дозу (п. 5 замечаний)', () => {
-  for (const dose of [100, 200]) {
+  // Решение врача 20.11.2026, п. 5 (rules-0.3): RDS-009-A1 условная — доза, отличная от 200 мг/кг, остаётся неоднозначностью;
+  // ровно 200 мг/кг — без блокировки; без дозы — «Недостаточно данных».
+  for (const dose of [100, 199.5, 250]) {
     const r = res(run({ rds_diagnosed: true, surfactant_drug: 'порактант альфа', surfactant_initial_dose_mg_kg: dose }), 'RDS-009');
     assert.equal(r.observation, E.OBS.AMBIGUOUS_PENDING, String(dose));
+    assert.deepEqual(r.active_ambiguities, ['RDS-009-A1']);
     assert.equal(r.kind, 'сравнительное_положение');
     assert.equal(r.observation_weight, null);
   }
+  const ok = res(run({ rds_diagnosed: true, surfactant_drug: 'порактант альфа', surfactant_initial_dose_mg_kg: 200 }), 'RDS-009');
+  assert.equal(ok.observation, E.OBS.CONSISTENT);
+  const none = res(run({ rds_diagnosed: true, surfactant_drug: 'порактант альфа' }), 'RDS-009');
+  assert.equal(none.observation, E.OBS.NOT_ASSESSED);
+  assert.deepEqual(none.active_ambiguities, []);
   const rule = DB.rules.find(x => x.rule_id === 'RDS-009');
   assert.notEqual(rule.normativity, 'обязательно');
   assert.equal(rule.evidence_level.value, 'А');
@@ -243,8 +251,13 @@ test('Сепсис: иммуноглобулин без отдельного п�
 });
 
 test('Сепсис: бензилпенициллин 25 мг/кг каждые 8 ч при очень тяжёлом состоянии — допускается оговоркой', () => {
-  const r = res(run({ early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg_kg: 25, benzylpenicillin_interval_h: 8, very_severe_condition: true }), 'SEP-005');
-  assert.equal(r.observation, E.OBS.CONSISTENT);
+  // Решение врача 20.11.2026, п. 1 (rules-0.3): режим совпадает с текстом п. 6, но доза в мг/кг не сопоставима
+  // с таблицей стр. 18 (Ед/кг) — CF-006, неоднозначность SEP-005-A3, а не «совпадает».
+  const out = run({ early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg_kg: 25, benzylpenicillin_interval_h: 8, very_severe_condition: true });
+  const r = res(out, 'SEP-005');
+  assert.equal(r.observation, E.OBS.AMBIGUOUS_PENDING);
+  assert.deepEqual(r.active_ambiguities, ['SEP-005-A3']);
+  assert.ok(out.conflicts.some(c => c.id === 'CF-006'));
 });
 
 test('Сепсис: доза гентамицина 4 мг/кг без НЭК — неоднозначность п. 7a/7b (SEP-006-A3), 3 мг/кг — отличие; при НЭК — неоднозначность доз и противоречие протоколов', () => {

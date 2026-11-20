@@ -1,6 +1,6 @@
 'use strict';
 // Регрессия: 117 синтетических сценариев архива экспертизы (90 базовых T1–T3 + 27 граничных EDGE-01…27)
-// на базе rules-0.2. Только синтетические данные.
+// на базе rules-0.3 (изменения третьего круга отмечены в ожиданиях). Только синтетические данные.
 // T1 — полные данные: «совпадает» или сохранённая блокировка.
 // T2 — критические поля не указаны: «Недостаточно данных» или блокировка; «нет данных» не подменяется на «нет».
 // T3 — отличие с обоснованием: «отличается» с сохранённым обоснованием или блокировка.
@@ -84,12 +84,14 @@ const R22 = {
     t1: { nec_stage: '1б', gi_passage_restored: false, enteral_feeding_stopped: true },
     t2: { nec_stage: '1б' },
     t3: { nec_stage: '1б', gi_passage_restored: false, enteral_feeding_stopped: false, enteral_feeding_resumed_at: at(4, '10:00') },
-    exp: [O.AMBIGUOUS_PENDING, O.NOT_ASSESSED, O.AMBIGUOUS_PENDING] },
+    // Третий круг (решение врача 20.11.2026, п. 2): A1 — только часть «возобновление»; T1 без возобновления — «совпадает».
+    exp: [O.CONSISTENT, O.NOT_ASSESSED, O.AMBIGUOUS_PENDING] },
   'NEC-004': {
     t1: { nec_stage: '2а', nec_onset_at: at(1, '10:00'), nec_confirmed_at: at(1, '18:00'), enteral_feeding_resumed_at: at(8, '10:00'), improvement_signs: Object.fromEntries(['abdomen_not_distended_not_tender', 'no_pathological_gastric_residuals', 'ileus_resolved', 'spontaneous_stool', 'labs_normalized', 'no_us_bowel_wall_inflammation', 'no_ascites', 'peristalsis_restored'].map(k => [k, true])) },
     t2: { nec_stage: '2а' },
     t3: { nec_stage: '2а', nec_onset_at: at(1, '10:00'), nec_confirmed_at: at(1, '18:00'), enteral_feeding_resumed_at: at(4, '10:00') },
-    exp: [O.AMBIGUOUS_PENDING, O.AMBIGUOUS_PENDING, O.AMBIGUOUS_PENDING] },
+    // Третий круг (п. 3): A1 условная — оба отсчёта согласны; улучшение не записано — «нет данных» (T1), срок < 7 — «отличается» (T3).
+    exp: [O.NOT_ASSESSED, O.NOT_ASSESSED, O.DIFFERS] },
   'NEC-005': {
     t1: { nec_stage: '2б', pn_type: 'full', pn_running_at_nec_onset: true },
     t2: { nec_stage: '2б', pn_running_at_nec_onset: true },
@@ -144,7 +146,8 @@ const R22 = {
     t1: { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg: 30, weight_kg: 1.2, benzylpenicillin_interval_h: 12, ...WT('benzylpenicillin') },
     t2: { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg: 30, benzylpenicillin_interval_h: 12, ...WT('benzylpenicillin') },
     t3: { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg: 60, weight_kg: 1.2, benzylpenicillin_interval_h: 12, ...WT('benzylpenicillin') },
-    exp: [O.CONSISTENT, O.NOT_ASSESSED, O.DIFFERS] },
+    // Третий круг (п. 1): T1 совпадает с текстом п. 6, но расходится с таблицей стр. 18 — SEP-005-A3 (CF-006).
+    exp: [O.AMBIGUOUS_PENDING, O.NOT_ASSESSED, O.DIFFERS] },
   'SEP-006': {
     t1: { early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_dose_mg: 6, weight_kg: 1.2, gentamicin_interval_h: 36, ...WT('gentamicin') },
     t2: { early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_dose_mg: 6, weight_kg: 1.2, ...WT('gentamicin') },
@@ -172,11 +175,14 @@ const R22 = {
     exp: [O.AMBIGUOUS_PENDING, O.NOT_ASSESSED, O.AMBIGUOUS_PENDING] },
 };
 
+const FROZEN = Object.fromEntries(JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'cases-171.json'), 'utf8')).cases.map(c => [c.id, c.data]));
 const SC = [];
 for (const r of DB.rules) {
   const id = r.rule_id;
   if (CONFIRMED.includes(id)) {
-    const g = generated(r);
+    // Входы сценариев подтверждённых правил заморожены на коммите 2eeb6ae (fixtures/cases-171.json): после изменения
+    // проверки RDS-008 (третий круг) генератор по условию дал бы другой вход, а сценарий архива должен оставаться прежним.
+    const g = FROZEN ? { t1: FROZEN[`${id}-T1`], t2: FROZEN[`${id}-T2`], t3: FROZEN[`${id}-T3`] } : generated(r);
     SC.push({ id: `${id}-T1`, rule: id, data: g.t1, ok: o => [O.CONSISTENT, O.AMBIGUOUS_PENDING].includes(o) });
     SC.push({ id: `${id}-T2`, rule: id, data: g.t2, ok: o => [O.NOT_ASSESSED, O.AMBIGUOUS_PENDING].includes(o) });
     SC.push({ id: `${id}-T3`, rule: id, data: g.t3, just: J(id), ok: o => [O.DIFFERS, O.AMBIGUOUS_PENDING, O.NOT_APPLIED_ALLOWED].includes(o) });
@@ -220,10 +226,12 @@ const EDGES = [
   ['EDGE-07', 'NEC-002', { nec_suspected: true, uvc_present: true, uvc_removed: false, uac_present: true, uac_removed: true, uac_removed_at: at(3, '11:00'), alternative_access_available: false, retention_reason: 'единственный доступ' },
     (r) => { assert.equal(part(r, 'uac').observation, O.CONSISTENT); assert.equal(part(r, 'uvc').observation, O.DIFFERS); assert.equal(r.observation, O.DIFFERS); assert.equal(r.justification_complete, true); }, null, J('NEC-002', { category: 'clinical_indication' })],
   ['EDGE-08', 'NEC-003', { nec_stage: '1б', gi_passage_restored: false, enteral_feeding_stopped: true, nec_onset_at: at(1, '10:00') },
-    (r, o) => { assert.equal(r.observation, O.AMBIGUOUS_PENDING); assert.ok(r.active_ambiguities.includes('NEC-003-A1')); assert.ok(cfs(o).includes('CF-003')); }],
+    // Третий круг (п. 2): A1 только для «возобновления»; кормление прекращено, возобновления нет — «совпадает», CF-003 показан.
+    (r, o) => { assert.equal(r.observation, O.CONSISTENT); assert.equal(part(r, 'stop').observation, O.CONSISTENT); assert.equal(part(r, 'resume').observation, O.NOT_APPLICABLE); assert.ok(cfs(o).includes('CF-003')); }],
   ['EDGE-09', 'NEC-004', { nec_stage: '2а', nec_onset_at: at(1, '10:00'), nec_confirmed_at: at(2, '10:00'), enteral_feeding_resumed_at: at(7, '10:00'), improvement_signs: { abdomen_not_distended_not_tender: false } },
     // Исправление этапа 6, п. 8: признаки стр. 12 — информационный блок, а не критерий; подписи «нет улучшения» нет.
-    (r, o) => { assert.equal(r.observation, O.AMBIGUOUS_PENDING); assert.ok(!r.card.labels.some(l => l.id === 'no_improvement'));
+    // Третий круг (п. 3): отсчёты расходятся (7-й и 6-й день) — NEC-004-A1 на части «срок».
+    (r, o) => { assert.equal(r.observation, O.AMBIGUOUS_PENDING); assert.deepEqual(part(r, 'term').active_ambiguities, ['NEC-004-A1']); assert.ok(!r.card.labels.some(l => l.id === 'no_improvement'));
       assert.ok(r.card.labels.some(l => l.id === 'improvement_signs_info' && /«нет» — 1/.test(l.text) && /не указано — 7/.test(l.text))); assert.equal(o.derived.values.nec_day_from_onset_at_feeding_resumption, 7); assert.equal(o.derived.values.nec_day_from_confirmation_at_feeding_resumption, 6); }],
   ['EDGE-10', 'NEC-005', { nec_stage: '2а', pn_type: 'full', pn_running_at_nec_onset: true },
     (r) => { assert.equal(r.observation, O.CONSISTENT); }],
@@ -261,7 +269,10 @@ const EDGES = [
   ['EDGE-26', 'SEP-010', { antibiotics_started: true, empirical_regimen: 'ampicillin+gentamicin', improving: true, blood_culture_result: 'положительный', meningitis: false, ...COURSE(1, 10) },
     (r, o) => { assert.equal(r.observation, O.AMBIGUOUS_PENDING); assert.ok(r.active_ambiguities.includes('SEP-010-A1')); assert.ok(cfs(o).includes('CF-002')); }],
   ['EDGE-27', 'SEP-010', { antibiotics_started: true, blood_culture_result: 'отрицательный', high_risk_factors: true, meningitis: false, nec_stage: '2а', ...COURSE(1, 12), extension_reason: ['nec'], extension_justification_status: 'found' },
-    (r) => { assert.equal(r.observation, O.AMBIGUOUS_PENDING); assert.ok(r.card.labels.some(l => l.text === 'Продление документировано. Требуется экспертная оценка клинического обоснования')); assert.ok(r.card.facts.find(f => f.field === 'extension_reason').value.includes('nec')); }],
+    // Третий круг (Т2): причина и обоснование — раздельные подписи; отрицательный посев — SEP-010-A1 не активна, A2 остаётся.
+    (r) => { assert.equal(r.observation, O.AMBIGUOUS_PENDING); assert.deepEqual(r.active_ambiguities, ['SEP-010-A2']);
+      assert.ok(r.card.labels.some(l => l.id === 'extension_documented' && /^Указана причина продления/.test(l.text))); assert.ok(r.card.labels.some(l => l.id === 'extension_justification_found'));
+      assert.ok(r.card.facts.find(f => f.field === 'extension_reason').value.includes('nec')); }],
 ];
 
 for (const [id, rule, data, judge, limitation, just] of EDGES) {

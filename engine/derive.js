@@ -12,6 +12,11 @@
  *  - значения вычисляемых полей, введённые вручную, не используются.
  *
  * Модуль не меняет входные данные.
+ *
+ * Третий круг (rules-0.3): сверка назначений бензилпенициллина и гентамицина с текстом протокола и таблицей препаратов
+ * (стр. 18) — CF-006/CF-007; доза в Ед/кг хранится в исходных единицах и не пересчитывается; два отсчёта NEC-004;
+ * хронология ПП с pn_stopped_at; три состояния интубации (RDS-003) и осмотра (SEP-010); «посев до первой дозы» для
+ * RDS-008 — ручная запись или вычисление по отметкам, противоречие — нет данных.
  */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
@@ -19,7 +24,7 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.4.1-stage6';
+  const VERSION = '0.5.0-round3';
   const REASON = Object.freeze({
     NO_TS: 'нет отметки времени',
     DATE_ONLY: 'только дата без времени',
@@ -386,8 +391,147 @@
       set('hours_first_dose_to_control_crp', hours(g, first.d));
     })();
 
+    // ===== Третий круг (решения врача 20.11.2026) =====
+    roundThree(data, unknown, set, why, T);
+
     const timeline = buildTimeline(src);
     return { data, derived, reasons, unknown, ignored, timeline, version: VERSION };
+  }
+
+  // Трёхзначные И / ИЛИ: true / false / null (нет данных).
+  const and3 = (...v) => (v.includes(false) ? false : v.includes(null) ? null : true);
+  const or3 = (...v) => (v.includes(true) ? true : v.includes(null) ? null : false);
+  const num = (d, k) => (typeof d[k] === 'number' && Number.isFinite(d[k]) ? d[k] : null);
+  const eqn = (x, y) => (x === null ? null : round(x, 6) === round(y, 6));
+  const bool = (d, k) => (d[k] === true ? true : d[k] === false ? false : null);
+
+  // Таблица препаратов протокола сепсиса, стр. 18 (гентамицин): режимы по ГВ и постнатальному возрасту.
+  // Возраст и ГВ берутся в полных единицах. Пересекающиеся или неопределённые границы (ровно 28 сут при ГВ ≤29 нед —
+  // «8 – 28 суток» и «28 суток и старше»; ровно 7 сут при ГВ 30–34 нед — «младше 7 суток» / «старше 7 суток»)
+  // дают оба соседних режима и признак границы; выбор режима программа не делает.
+  const GENT_TABLE = Object.freeze([
+    { ga: [0, 29], pna: [0, 7], dose: 5, interval: 48, text: '29 недель и меньше, 0 – 7 суток: 5 мг/кг каждые 48 часов' },
+    { ga: [0, 29], pna: [8, 28], dose: 4, interval: 36, text: '29 недель и меньше, 8 – 28 суток: 4 мг/кг каждые 36 часов' },
+    { ga: [0, 29], pna: [28, Infinity], dose: 4, interval: 24, text: '29 недель и меньше, 28 суток и старше: 4 мг/кг каждые 24 часа' },
+    { ga: [30, 34], pna: [0, 6], dose: 4.5, interval: 36, text: '30–34 недели, младше 7 суток: 4,5 мг/кг каждые 36 часов' },
+    { ga: [30, 34], pna: [8, Infinity], dose: 4, interval: 24, text: '30–34 недели, старше 7 суток: 4 мг/кг каждые 24 часа' },
+    { ga: [35, Infinity], pna: [0, Infinity], dose: 4, interval: 24, text: '35 недель и старше: 4 мг/кг каждые 24 часа' }
+  ]);
+  function gentamicinTableRows(ga, pna) {
+    const g = Math.floor(ga), p = Math.floor(pna);
+    let rows = GENT_TABLE.filter(r => g >= r.ga[0] && g <= r.ga[1] && p >= r.pna[0] && p <= r.pna[1]);
+    let boundary = rows.length > 1;
+    if (!rows.length && g >= 30 && g <= 34 && p === 7) { rows = GENT_TABLE.filter(r => r.ga[0] === 30); boundary = true; } // ровно 7 суток
+    return { rows, boundary };
+  }
+  const BENZ_TABLE = Object.freeze({ units_per_kg: 50000, interval: 8, text: 'Сепсис: младше 7 суток и старше 7 суток — 50 000 Ед/кг/доза в/в каждые 8 часов' });
+
+  function roundThree(data, unknown, set, why, T) {
+    // --- SEP-005 / CF-006: бензилпенициллин — текст п. 6 (стр. 12) и таблица препаратов (стр. 18).
+    // Доза в Ед/кг хранится в исходных единицах; в мг/кг без проверенного коэффициента не пересчитывается.
+    (function () {
+      const dose = num(data, 'benzylpenicillin_dose_per_kg'), iv = num(data, 'benzylpenicillin_interval_h');
+      const units = num(data, 'benzylpenicillin_dose_units_per_kg');
+      const textM = and3(eqn(dose, 25), or3(eqn(iv, 12), and3(bool(data, 'very_severe_condition'), eqn(iv, 8))));
+      if (textM === null) why('benzylpenicillin_text_regimen_match', 'нет дозы в мг/кг или интервала для сверки с текстом п. 6'); else set('benzylpenicillin_text_regimen_match', textM);
+      let table = null;
+      if (iv === null) why('benzylpenicillin_table_regimen_status', 'нет интервала введения');
+      else if (iv !== BENZ_TABLE.interval) table = 'differs';
+      else if (units !== null) table = units === BENZ_TABLE.units_per_kg ? 'matches' : 'differs';
+      else table = 'not_comparable'; // интервал как в таблице, доза записана не в Ед/кг
+      if (table) set('benzylpenicillin_table_regimen_status', table);
+      let dv = null;
+      if ((textM === true && table && table !== 'matches') || (table === 'matches' && textM !== true) || (textM === false && table === 'not_comparable')) dv = true;
+      else if (textM !== null && table) dv = false;
+      if (dv === null) why('benzylpenicillin_regimen_sources_diverge', 'недостаточно данных для сверки текста п. 6 и таблицы стр. 18');
+      else set('benzylpenicillin_regimen_sources_diverge', dv);
+    })();
+
+    // --- SEP-006 / CF-007: гентамицин — текст п. 7 (стр. 12–13) и возрастные режимы таблицы (стр. 18).
+    (function () {
+      const dose = num(data, 'gentamicin_dose_per_kg'), iv = num(data, 'gentamicin_interval_h');
+      const textM = and3(eqn(dose, 5), or3(eqn(iv, 36), and3(iv === null ? null : iv < 36, bool(data, 'very_ill'), bool(data, 'gram_negative_culture'))));
+      if (textM === null) why('gentamicin_text_regimen_match', 'нет дозы в мг/кг или интервала для сверки с текстом п. 7'); else set('gentamicin_text_regimen_match', textM);
+      const ga = num(data, 'gestational_age_weeks'), pna = num(data, 'postnatal_age_days');
+      if (ga === null || pna === null || pna < 0) {
+        set('gentamicin_table_check_status', 'no_age_data');
+        const r = 'нет гестационного или постнатального возраста — сверка с таблицей стр. 18 не выполняется';
+        for (const f of ['gentamicin_table_band', 'gentamicin_table_boundary', 'gentamicin_table_regimen_match', 'gentamicin_regimen_sources_diverge']) why(f, r);
+        return;
+      }
+      const { rows, boundary } = gentamicinTableRows(ga, pna);
+      set('gentamicin_table_band', rows.map(r => r.text).join(' или '));
+      set('gentamicin_table_boundary', boundary);
+      if (dose === null || iv === null) {
+        set('gentamicin_table_check_status', 'no_regimen_data');
+        why('gentamicin_table_regimen_match', 'нет дозы в мг/кг или интервала'); why('gentamicin_regimen_sources_diverge', 'нет дозы в мг/кг или интервала');
+        return;
+      }
+      set('gentamicin_table_check_status', 'checked');
+      const tableM = rows.some(r => round(dose, 6) === r.dose && iv === r.interval);
+      set('gentamicin_table_regimen_match', tableM);
+      // Расхождение — только когда сверка с таблицей выполнена: назначение совпадает с одним положением и не совпадает с другим.
+      if ((textM === true && tableM === false) || (tableM === true && textM !== true)) set('gentamicin_regimen_sources_diverge', true);
+      else if (textM !== null) set('gentamicin_regimen_sources_diverge', false);
+      else why('gentamicin_regimen_sources_diverge', 'недостаточно данных для сверки с текстом п. 7');
+    })();
+
+    // --- NEC-004: два отсчёта «не ранее 7-го дня» (от начала и от подтверждения НЭК).
+    (function () {
+      const a = num(data, 'nec_day_from_onset_at_feeding_resumption'), b = num(data, 'nec_day_from_confirmation_at_feeding_resumption');
+      if (a === null && b === null) { why('nec_day_counts_disagree', 'нет ни одного отсчёта'); return; }
+      if (a === null || b === null) { set('nec_day_counts_disagree', true); return; } // один отсчёт неизвестен — оценки не совпадают
+      set('nec_day_counts_disagree', (a >= 7) !== (b >= 7));
+    })();
+
+    // --- NEC-005: время прекращения ПП (pn_stopped_at).
+    (function () {
+      const st = T('pn_stopped_at');
+      if (st.reason) { why('pn_stopped_before_nec_onset', st.reason); return; }
+      const on = T('nec_onset_at'), pn = T('pn_started_at');
+      if (!pn.reason && st.ms < pn.ms) {
+        // прекращено раньше начала — хронология противоречива
+        why('pn_stopped_before_nec_onset', REASON.CONTRADICTORY);
+        if (has(data, 'pn_start_illness_day')) { delete data.pn_start_illness_day; why('pn_start_illness_day', REASON.CONTRADICTORY); }
+        return;
+      }
+      if (on.reason) { why('pn_stopped_before_nec_onset', on.reason); return; }
+      const before = st.ms <= on.ms;
+      set('pn_stopped_before_nec_onset', before);
+      if (before) {
+        const r = 'записанный курс ПП прекращён до начала НЭК — на момент заболевания не проводился; новый курс не записан';
+        if (has(data, 'pn_start_illness_day')) { delete data.pn_start_illness_day; why('pn_start_illness_day', r); }
+        if (data.pn_running_at_nec_onset === true) { delete data.pn_running_at_nec_onset; why('pn_running_at_nec_onset', REASON.CONTRADICTORY); }
+      }
+    })();
+
+    // --- SEP-010: ежедневный клинический осмотр при продлении — три состояния (отсутствие записи ≠ «не документирован»).
+    (function () {
+      const v = data.daily_clinical_exam_documented;
+      set('daily_clinical_exam_status', v === true ? 'documented' : v === false ? 'not_documented' : 'no_record');
+    })();
+
+    // --- RDS-003: интубация для стабилизации — три состояния; FiO₂-показание — отдельно.
+    (function () {
+      const v = data.intubation_needed_for_stabilization;
+      set('intubation_needed_status', v === true ? 'required' : v === false ? 'not_required' : 'no_record');
+      const ga = num(data, 'gestational_age_weeks'), f = num(data, 'fio2');
+      const met = or3(and3(ga === null ? null : ga < 26, f === null ? null : f > 0.3), and3(ga === null ? null : ga > 26, f === null ? null : f > 0.4));
+      set('surfactant_fio2_indication_status', met === true ? 'met' : met === false ? 'not_met' : 'unknown');
+    })();
+
+    // --- RDS-008: «посев до первой дозы» — ручная запись или вычисление по отметкам (как SEP-002).
+    // Ручное значение не перезаписывается; противоречие ручной записи и вычисления — нет данных с пояснением.
+    (function () {
+      const manual = data.blood_culture_before_antibiotics === true ? true : data.blood_culture_before_antibiotics === false ? false : null;
+      const computed = typeof data.culture_drawn_before_first_dose === 'boolean' ? data.culture_drawn_before_first_dose : null;
+      if (manual !== null && computed !== null && manual !== computed) {
+        set('blood_culture_before_antibiotics_basis', 'conflict');
+        why('blood_culture_before_antibiotics_resolved', 'ручная запись противоречит отметкам времени забора и введения первой дозы');
+      } else if (manual !== null) { set('blood_culture_before_antibiotics_resolved', manual); set('blood_culture_before_antibiotics_basis', 'manual'); }
+      else if (computed !== null) { set('blood_culture_before_antibiotics_resolved', computed); set('blood_culture_before_antibiotics_basis', 'computed'); }
+      else why('blood_culture_before_antibiotics_resolved', unknown.includes('blood_culture_before_antibiotics') ? REASON.UNKNOWN : 'нет ручной записи и нет полных отметок забора и введения первой дозы');
+    })();
   }
 
   const DERIVED_FIELDS = Object.freeze([
@@ -402,7 +546,13 @@
     'benzylpenicillin_dose_per_kg_calculated', 'benzylpenicillin_dose_records_consistent', 'benzylpenicillin_weight_confirmed_for_calc',
     'benzylpenicillin_dose_per_kg', 'benzylpenicillin_dose_basis',
     'gentamicin_dose_per_kg_calculated', 'gentamicin_dose_records_consistent', 'gentamicin_weight_confirmed_for_calc',
-    'gentamicin_dose_per_kg', 'gentamicin_dose_basis', 'hours_first_dose_to_control_crp'
+    'gentamicin_dose_per_kg', 'gentamicin_dose_basis', 'hours_first_dose_to_control_crp',
+    // третий круг
+    'benzylpenicillin_text_regimen_match', 'benzylpenicillin_table_regimen_status', 'benzylpenicillin_regimen_sources_diverge',
+    'gentamicin_text_regimen_match', 'gentamicin_table_check_status', 'gentamicin_table_band', 'gentamicin_table_boundary',
+    'gentamicin_table_regimen_match', 'gentamicin_regimen_sources_diverge', 'nec_day_counts_disagree', 'pn_stopped_before_nec_onset',
+    'intubation_needed_status', 'surfactant_fio2_indication_status', 'blood_culture_before_antibiotics_resolved', 'blood_culture_before_antibiotics_basis',
+    'daily_clinical_exam_status'
   ]);
 
   // Хронология для карточки эксперта: все поля *_at и отметки внутри списков.
@@ -421,5 +571,5 @@
     return ev.sort((a, b) => (a.ms === null) - (b.ms === null) || (a.ms || 0) - (b.ms || 0)).map(({ ms, ...e }) => e);
   }
 
-  return Object.freeze({ VERSION, REASON, DERIVED_FIELDS, IMPROVEMENT_SIGNS, EXTENSION_REASONS, parseTs, parseDoseRecord, facilityOffset, derive });
+  return Object.freeze({ VERSION, REASON, DERIVED_FIELDS, IMPROVEMENT_SIGNS, EXTENSION_REASONS, GENT_TABLE, BENZ_TABLE, gentamicinTableRows, parseTs, parseDoseRecord, facilityOffset, derive });
 });

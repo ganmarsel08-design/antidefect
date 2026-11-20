@@ -17,7 +17,7 @@ SCOPES = {'applicability', 'requirement'}
 CONFLICT_TYPES = {'противоречие', 'неоднозначность_маршрутизации'}
 OPS = {'eq', 'gt', 'gte', 'lt', 'lte', 'in', 'is_true', 'is_false', 'present'}
 FIELD_TYPES = {'tri', 'enum', 'number', 'text', 'datetime', 'date', 'list', 'object', 'derived'}
-SCHEMAS = {'rules-0.1', 'rules-0.2'}
+SCHEMAS = {'rules-0.1', 'rules-0.2', 'rules-0.3'}
 RULE_ID = re.compile(r'^(RDS|NEC|SEP)-\d{3}$')
 PREFIX = {'rds': 'RDS', 'nek': 'NEC', 'sepsis': 'SEP'}
 _BULLETS = re.compile('[-•●▪‣⁃]')
@@ -98,7 +98,7 @@ def check(db, registry=None, pdf_dir=None):
     errs, warns = [], []
     if db.get('schema_version') not in SCHEMAS:
         errs.append(f'неизвестная версия схемы {db.get("schema_version")}')
-    v2 = db.get('schema_version') == 'rules-0.2'
+    v2 = db.get('schema_version') in ('rules-0.2', 'rules-0.3')
     ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if v2:
         dd0 = db.get('data_dictionary', {})
@@ -196,7 +196,7 @@ def check(db, registry=None, pdf_dir=None):
         part_ids = set()
         if parts is not None:
             if not v2:
-                errs.append(f'{rid}: части проверки (requirement.parts) — только в схеме rules-0.2')
+                errs.append(f'{rid}: части проверки (requirement.parts) — только в схемах rules-0.2 и rules-0.3')
             if 'check' in r['requirement']:
                 errs.append(f'{rid}: одновременно requirement.check и requirement.parts')
             if not parts:
@@ -246,7 +246,9 @@ def check(db, registry=None, pdf_dir=None):
             errs.append(f'{rid}: уровень доказательности без страницы-источника')
         if r.get('kind') == 'сравнительное_положение' and r['normativity'] == 'обязательно':
             errs.append(f'{rid}: сравнительное положение не может быть обязательным требованием без решения эксперта')
-        if r.get('kind') == 'сравнительное_положение' and not any(a.get('blocking') == 'always' for a in r.get('ambiguities', [])):
+        # rules-0.3: условная блокировка допустима только по документированному решению врача (round3_changes).
+        if r.get('kind') == 'сравнительное_положение' and not any(a.get('blocking') == 'always' or (a.get('blocking') == 'when' and a.get('round3_changes'))
+                                                                    for a in r.get('ambiguities', [])):
             errs.append(f'{rid}: сравнительное положение должно ожидать решения эксперта (блокирующая неоднозначность)')
         for a in r.get('ambiguities', []):
             if a.get('decision') and not r.get('expert_confirmation'):

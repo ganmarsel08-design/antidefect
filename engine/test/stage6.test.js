@@ -24,6 +24,9 @@ const at = (d, hm) => `2026-01-${String(d).padStart(2, '0')}T${hm}+05:00`;
 const J = (id, extra) => ({ [id]: Object.assign({ text: 'синтетическое обоснование', author: 'врач-синтетик' }, extra || {}) });
 const COURSE = (d1, d2, extra) => Object.assign({ course_completed: true, abx_course_started_at: at(d1, '10:00'), abx_course_ended_at: at(d2, '10:00') }, extra || {});
 const CONFIRMED = ['RDS-001', 'RDS-002', 'RDS-003', 'RDS-004', 'RDS-005', 'RDS-006', 'RDS-008', 'RDS-009'];
+// Третий круг (решения врача 20.11.2026): ранее защищённые правила, изменённые по решению врача, и изменённые блокировки.
+const R3_PROTECTED_CHANGED = ['RDS-003', 'RDS-008', 'RDS-009'];
+const R3_AMB_KEYS = { 'RDS-003-A2': ['blocks_when'], 'RDS-009-A1': ['blocking', 'blocks_when'], 'NEC-004-A1': ['blocking', 'blocks_when'], 'SEP-010-A1': ['blocking', 'blocks_when'] };
 const NEW_BLOCKING = ['RDS-007-A2', 'RDS-010-A2', 'NEC-005-A1', 'NEC-006-A2', 'NEC-009-A1', 'NEC-010-A4', 'SEP-003-A2', 'SEP-006-A3'];
 const COURSE_RUNNING = 'Курс продолжается. Окончательная длительность пока не оценивается';
 const EXT_DOC = 'Продление документировано. Требуется экспертная оценка клинического обоснования';
@@ -36,23 +39,30 @@ const WT = drug => ({ weight_measured_at: at(1, '08:00'), [`${drug}_prescribed_a
 test('И1: 30 rule_id на месте; 22 правила исправлены, 8 подтверждённых не затронуты слоем правок', () => {
   const ids = DB.rules.map(r => r.rule_id);
   assert.deepEqual(ids, Object.keys(BASE.rules));
-  assert.equal(DB.schema_version, 'rules-0.2');
+  assert.equal(DB.schema_version, 'rules-0.3'); // третий круг (rules-0.3) поверх слоя этапа 6
   for (const r of DB.rules) {
     assert.equal(r.status, E.CANDIDATE, r.rule_id);
     assert.equal(r.expert_confirmation, null, r.rule_id);
-    if (CONFIRMED.includes(r.rule_id)) assert.ok(!('revision' in r) && !('card_labels' in r) && !('display_fields' in r), r.rule_id);
-    else assert.ok(r.revision && ['Утвердить', 'Изменить'].includes(r.revision.round2_decision), r.rule_id);
+    // Слой этапа 6 подтверждённые правила не затрагивает; RDS-003, 008, 009 изменены только слоем третьего круга (решение врача).
+    if (CONFIRMED.includes(r.rule_id)) {
+      assert.ok(!('revision' in r), r.rule_id);
+      if (!R3_PROTECTED_CHANGED.includes(r.rule_id)) assert.ok(!('card_labels' in r) && !('display_fields' in r) && !('revision_round3' in r), r.rule_id);
+      else assert.equal(r.revision_round3.round3_decision, 'Изменить', r.rule_id);
+    } else assert.ok(r.revision && ['Утвердить', 'Изменить'].includes(r.revision.round2_decision), r.rule_id);
   }
   assert.deepEqual(DB.rules.filter(r => r.revision && r.revision.round2_decision === 'Изменить').map(r => r.rule_id), ['NEC-001', 'NEC-008', 'NEC-010', 'SEP-003', 'SEP-010']);
 });
 
-test('И1: восемь подтверждённых правил структурно совпадают с 2239c52 (побайтовая проверка — rules/test_build.py)', () => {
+test('И1: восемь подтверждённых правил структурно совпадают с 2239c52, кроме изменений третьего круга по решению врача', () => {
   for (const id of CONFIRMED) {
     const r = DB.rules.find(x => x.rule_id === id), b = BASE.rules[id];
     assert.deepEqual(r.applicability, b.applicability, id);
-    assert.deepEqual(r.requirement, b.requirement, id);
+    if (id !== 'RDS-008') assert.deepEqual(r.requirement, b.requirement, id);
+    else assert.deepEqual(r.requirement.check, { field: 'blood_culture_before_antibiotics_resolved', op: 'is_true' }); // решение врача 20.11.2026, п. 8
     assert.deepEqual(r.source.quotes.map(q => ({ page: q.page, sha256: q.sha256 })), b.quotes, id);
-    assert.deepEqual(r.ambiguities.map(a => { const o = {}; for (const k of ['id', 'blocking', 'scope', 'blocks_when']) if (k in a) o[k] = a[k]; return o; }), b.ambiguities, id);
+    const pick = a => { const o = {}; for (const k of ['id', 'blocking', 'scope', 'blocks_when']) if (k in a && !(R3_AMB_KEYS[a.id] || []).includes(k)) o[k] = a[k]; return o; };
+    const pickB = a => { const o = {}; for (const k of ['id', 'blocking', 'scope', 'blocks_when']) if (k in a && !(R3_AMB_KEYS[a.id] || []).includes(k)) o[k] = a[k]; return o; };
+    assert.deepEqual(r.ambiguities.map(pick), b.ambiguities.map(pickB), id);
   }
 });
 
@@ -71,19 +81,21 @@ test('И2: 17 блокировок этапа 5 — с прежними усло
     const r = DB.rules.find(x => a.id.startsWith(x.rule_id + '-'));
     const n = r.ambiguities.find(x => x.id === a.id);
     assert.ok(n, a.id);
-    for (const k of ['blocking', 'scope', 'blocks_when']) assert.deepEqual(n[k], a[k], `${a.id}.${k}`);
+    for (const k of ['blocking', 'scope', 'blocks_when']) if (!(R3_AMB_KEYS[a.id] || []).includes(k)) assert.deepEqual(n[k], a[k], `${a.id}.${k}`);
+    if (R3_AMB_KEYS[a.id]) assert.notEqual(n.blocking, 'no', a.id); // по решению врача — условная, но не снята
   }
   for (const r of DB.rules) for (const a of r.ambiguities) if (a.blocking !== 'no') now.push(a.id);
-  assert.equal(now.length, 25);
-  assert.deepEqual(now.filter(id => !old.some(a => a.id === id)).sort(), NEW_BLOCKING.slice().sort());
+  assert.equal(now.length, 28); // 25 этапа 6 + 3 третьего круга
+  assert.deepEqual(now.filter(id => !old.some(a => a.id === id)).sort(), NEW_BLOCKING.concat(['SEP-005-A3', 'SEP-006-A4', 'SEP-008-A3']).sort());
   assert.deepEqual(ED.blocking_ambiguities.new_in_rules_0_2.slice().sort(), NEW_BLOCKING.slice().sort());
   for (const [id, b] of Object.entries(BASE.rules)) {
     const r = DB.rules.find(x => x.rule_id === id);
     for (const a of b.ambiguities) assert.equal(r.ambiguities.find(x => x.id === a.id).text !== undefined, true);
     assert.deepEqual(r.ambiguities.slice(0, b.ambiguities.length).map(a => a.id), b.ambiguities.map(a => a.id), id);
   }
-  assert.deepEqual(DB.protocol_conflicts, BASE.protocol_conflicts);
-  assert.ok(!DB.protocol_conflicts.some(c => c.id === 'CF-006'));
+  assert.deepEqual(DB.protocol_conflicts.slice(0, 5), BASE.protocol_conflicts);
+  // CF-006 (бензилпенициллин) и CF-007 (гентамицин) — предлагаемые противоречия третьего круга (решение врача 20.11.2026, п. 1).
+  assert.deepEqual(DB.protocol_conflicts.slice(5).map(c => [c.id, c.rules]), [['CF-006', ['SEP-005']], ['CF-007', ['SEP-006']]]);
   assert.ok(!DB.rules.find(r => r.rule_id === 'SEP-010').ambiguities.some(a => a.id === 'SEP-010-A4'));
 });
 
@@ -132,7 +144,8 @@ const CONSISTENT_SETS = {
   'NEC-010': { nec_stage: '2б', surgical_department_available: true, current_department: 'neonatal_surgery' },
   'SEP-002': { sepsis_suspected: true, antibiotics_started: true, blood_culture_drawn_at: at(1, '09:40'), first_abx_dose_administered_at: at(1, '10:00') },
   'SEP-004': { early_onset_sepsis_suspected: true, antibiotics_started: true, initial_empirical_regimen: 'benzylpenicillin+gentamicin' },
-  'SEP-005': { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg: 25, weight_kg: 1, benzylpenicillin_interval_h: 12, ...WT('benzylpenicillin') },
+  // SEP-005 исключено (третий круг, решение врача 20.11.2026, п. 1): режим по тексту п. 6 всегда расходится с таблицей стр. 18
+  // (интервал 8 ч / Ед/кг) — CF-006 и SEP-005-A3; «совпадает» для одного текста недостижимо.
   'SEP-006': { early_onset_sepsis_suspected: true, gentamicin_given: true, gentamicin_dose_mg: 5, weight_kg: 1, gentamicin_interval_h: 36, ...WT('gentamicin') },
   'SEP-007': { sepsis_suspected: true, antibiotics_started: true, first_abx_dose_administered_at: at(1, '11:00'), crp_samples: [{ drawn_at: at(2, '11:00'), purpose: 'control' }] },
   'SEP-008': { antibiotics_started: true, empirical_regimen: 'ampicillin+gentamicin', improving: true, blood_culture_result: 'отрицательный', high_risk_factors: false, ...COURSE(1, 5) },
@@ -360,7 +373,10 @@ test('§3.5 SEP-010-a (C3): 5-е сутки идущего курса — «Ку
 });
 test('§3.5 SEP-010-b (C4.1): 14 суток, продление из-за НЭК с записью — «Продление документировано…», неоднозначность, не «совпадает»', () => {
   const r = ev('SEP-010', { antibiotics_started: true, meningitis: false, blood_culture_result: 'отрицательный', high_risk_factors: true, ...COURSE(1, 14), extension_reason: ['nec'], extension_justification_status: 'found' });
-  assert.ok(labels(r).includes(EXT_DOC));
+  // Третий круг (Т2, решение врача 19.11.2026): причина продления и клиническое обоснование — раздельными подписями.
+  assert.ok(labels(r).includes('Указана причина продления (1 из перечня стр. 15) — запись причины не доказывает обоснованность выбранной длительности'));
+  assert.ok(r.card.labels.some(l => l.id === 'extension_justification_found'));
+  assert.ok(!labels(r).includes(EXT_DOC));
   assert.ok(!labels(r).includes(EXT_NF));
   assert.equal(r.observation, O.AMBIGUOUS_PENDING);
 });
@@ -461,11 +477,15 @@ test('NEC-002: только ПВК, удалён — совпадает; ПАК 
   assert.equal(ev('NEC-002', { nec_suspected: true, uvc_present: false, uac_present: true }).observation, O.NOT_ASSESSED);
   assert.equal(ev('NEC-002', { nec_suspected: true, uvc_present: false, uac_present: false }).observation, O.NOT_APPLICABLE);
 });
-test('NEC-003: стадия II — неприменимо; сведений о пассаже нет — нет данных; A1 «всегда» и CF-003', () => {
+test('NEC-003: стадия II — неприменимо; сведений о пассаже нет — нет данных; A1 «всегда» (часть «возобновление») и CF-003', () => {
   assert.equal(ev('NEC-003', { nec_stage: '2а', gi_passage_restored: false }).observation, O.NOT_APPLICABLE);
   assert.equal(ev('NEC-003', { nec_stage: '1а' }).observation, O.NOT_ASSESSED);
+  // Третий круг (решение врача 20.11.2026, п. 2): A1 действует только на часть «возобновление»; прекращение проверяется самостоятельно.
   const o = run({ nec_stage: '1а', gi_passage_restored: false, enteral_feeding_stopped: true });
-  assert.ok(res(o, 'NEC-003').active_ambiguities.includes('NEC-003-A1')); assert.ok(cfs(o).includes('CF-003'));
+  assert.ok(!res(o, 'NEC-003').active_ambiguities.includes('NEC-003-A1')); assert.ok(cfs(o).includes('CF-003'));
+  assert.equal(part(res(o, 'NEC-003'), 'stop').observation, O.CONSISTENT);
+  const o2 = run({ nec_stage: '1а', gi_passage_restored: false, enteral_feeding_stopped: true, enteral_feeding_resumed_at: at(5, '10:00') });
+  assert.deepEqual(part(res(o2, 'NEC-003'), 'resume').active_ambiguities, ['NEC-003-A1']);
 });
 test('NEC-004: дата подтверждения неизвестна — отсчёт «от подтверждения» не строится', () => {
   const o = run({ nec_stage: '2а', nec_onset_at: at(1, '10:00'), enteral_feeding_resumed_at: at(8, '10:00') });
@@ -501,7 +521,8 @@ test('SEP-005: менингит — неприменимо; масса неиз�
   const base = { early_onset_sepsis_suspected: true, benzylpenicillin_given: true, ...WT('benzylpenicillin') };
   assert.equal(ev('SEP-005', { ...base, meningitis: true, benzylpenicillin_dose_mg_kg: 50, benzylpenicillin_interval_h: 12 }).observation, O.NOT_APPLICABLE);
   assert.equal(ev('SEP-005', { ...base, meningitis: false, benzylpenicillin_dose_mg: 25, benzylpenicillin_interval_h: 12 }).observation, O.NOT_ASSESSED);
-  assert.equal(ev('SEP-005', { ...base, meningitis: false, benzylpenicillin_dose_mg: 30, weight_kg: 1.2, benzylpenicillin_interval_h: 8, very_severe_condition: true }).observation, O.CONSISTENT);
+  // Третий круг (решение врача 20.11.2026, п. 1): совпадает с текстом п. 6, но доза в мг/кг не сопоставима с таблицей стр. 18 — SEP-005-A3.
+  assert.deepEqual(ev('SEP-005', { ...base, meningitis: false, benzylpenicillin_dose_mg: 30, weight_kg: 1.2, benzylpenicillin_interval_h: 8, very_severe_condition: true }).active_ambiguities, ['SEP-005-A3']);
   // прежняя проверка «несогласованные записи → нет данных» заменена (уточнение 17:34): приоритет — у вычисленной дозы 50 мг/кг
   const inc = ev('SEP-005', { ...base, meningitis: false, benzylpenicillin_dose_mg: 60, weight_kg: 1.2, benzylpenicillin_dose_mg_kg: 25, benzylpenicillin_interval_h: 12 });
   assert.equal(inc.observation, O.DIFFERS);

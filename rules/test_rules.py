@@ -160,7 +160,7 @@ class NegativeScenarios(unittest.TestCase):
 
     def test_conflicts_declared_from_text(self):
         ids = {c['id'] for c in DB['protocol_conflicts']}
-        self.assertEqual(ids, {'CF-001', 'CF-002', 'CF-003', 'CF-004', 'CF-005'})
+        self.assertEqual(ids, {'CF-001', 'CF-002', 'CF-003', 'CF-004', 'CF-005', 'CF-006', 'CF-007'})  # CF-006, CF-007 — третий круг
         self.assertNotIn('conflicts_with', R['NEC-009'])
         cf1 = next(c for c in DB['protocol_conflicts'] if c['id'] == 'CF-001')
         self.assertEqual(cf1['type'], 'неоднозначность_маршрутизации')

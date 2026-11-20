@@ -71,6 +71,8 @@
    "round1": "Подтвердить",
    "round2": null,
    "implemented_in": null,
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -78,6 +80,8 @@
    "round1": "Подтвердить",
    "round2": null,
    "implemented_in": null,
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -85,6 +89,8 @@
    "round1": "Подтвердить",
    "round2": null,
    "implemented_in": null,
+   "round3": "Изменить",
+   "round3_implemented_in": "rules-0.3 (третий круг)",
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -92,6 +98,8 @@
    "round1": "Подтвердить",
    "round2": null,
    "implemented_in": null,
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -99,6 +107,8 @@
    "round1": "Подтвердить",
    "round2": null,
    "implemented_in": null,
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -106,6 +116,8 @@
    "round1": "Подтвердить",
    "round2": null,
    "implemented_in": null,
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -115,6 +127,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -122,6 +136,8 @@
    "round1": "Подтвердить",
    "round2": null,
    "implemented_in": null,
+   "round3": "Изменить",
+   "round3_implemented_in": "rules-0.3 (третий круг)",
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -129,6 +145,8 @@
    "round1": "Подтвердить",
    "round2": null,
    "implemented_in": null,
+   "round3": "Изменить",
+   "round3_implemented_in": "rules-0.3 (третий круг)",
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -138,6 +156,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -148,6 +168,8 @@
     "priority_of_physician_edit": "ТЗ §3.1"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -157,6 +179,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -166,6 +190,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Изменить",
+   "round3_implemented_in": "rules-0.3 (третий круг)",
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -175,6 +201,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Изменить",
+   "round3_implemented_in": "rules-0.3 (третий круг)",
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -184,6 +212,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Изменить",
+   "round3_implemented_in": "rules-0.3 (третий круг)",
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -193,6 +223,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -202,6 +234,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -212,6 +246,8 @@
     "priority_of_physician_edit": "ТЗ §3.2"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Изменить",
+   "round3_implemented_in": "rules-0.3 (третий круг)",
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -221,6 +257,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -231,6 +269,8 @@
     "priority_of_physician_edit": "ТЗ §3.3"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -240,6 +280,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -249,6 +291,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -259,6 +303,8 @@
     "priority_of_physician_edit": "ТЗ §3.4"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Изменить",
+   "round3_implemented_in": "rules-0.3 (третий круг)",
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -268,6 +314,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -277,6 +325,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Изменить",
+   "round3_implemented_in": "rules-0.3 (третий круг)",
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -286,6 +336,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Изменить",
+   "round3_implemented_in": "rules-0.3 (третий круг)",
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -295,6 +347,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -304,6 +358,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Изменить",
+   "round3_implemented_in": "rules-0.3 (третий круг)",
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -313,6 +369,8 @@
     "decision": "Утвердить"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Утвердить поведение",
+   "round3_implemented_in": null,
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   },
   {
@@ -323,6 +381,8 @@
     "priority_of_physician_edit": "ТЗ §3.5"
    },
    "implemented_in": "rules-0.2 (этап 6)",
+   "round3": "Изменить",
+   "round3_implemented_in": "rules-0.3 (третий круг)",
    "rule_status_after": "кандидат, ожидает экспертного подтверждения"
   }
  ],
@@ -702,8 +762,190 @@
   {
    "id": "CF-005",
    "status": "сохраняется"
+  },
+  {
+   "id": "CF-006",
+   "status": "предлагаемое (решение врача 20.11.2026, п. 1): бензилпенициллин — текст п. 6 ↔ таблица стр. 18"
+  },
+  {
+   "id": "CF-007",
+   "status": "предлагаемое (решение врача 20.11.2026, п. 1): гентамицин — текст п. 7 ↔ возрастные режимы таблицы стр. 18"
   }
  ],
+ "round3": {
+  "date": "2026-11-20",
+  "by": "Ислам М.И. (врач-эксперт); независимая проверка — ChatGPT",
+  "totals": {
+   "Утвердить поведение": 18,
+   "Изменить": 12,
+   "Нужно обсуждение": 0
+  },
+  "implementation_permission": "разрешение врача 20.11.2026 06:27: реализация пакета в PR №7 (ветка feature/stage5-rules-pilot); merge запрещён",
+  "implemented_rules": [
+   "NEC-003",
+   "NEC-004",
+   "NEC-005",
+   "NEC-008",
+   "RDS-003",
+   "RDS-008",
+   "RDS-009",
+   "SEP-003",
+   "SEP-005",
+   "SEP-006",
+   "SEP-008",
+   "SEP-009",
+   "SEP-010"
+  ],
+  "rule_records_changed": [
+   "NEC-003",
+   "NEC-004",
+   "NEC-005",
+   "NEC-008",
+   "RDS-003",
+   "RDS-008",
+   "RDS-009",
+   "SEP-005",
+   "SEP-006",
+   "SEP-008",
+   "SEP-009",
+   "SEP-010"
+  ],
+  "engine_only_changes": {
+   "SEP-003": "Т3 — пробелы данных за неоднозначностью считаются по трёхзначной логике",
+   "все правила": "Т1 — подписи только при применимом правиле"
+  },
+  "decisions": [
+   {
+    "rule_id": "RDS-003",
+    "decision": "Изменить",
+    "basis": "решение 20.11.2026, п. 6: RDS-003-A2 и при «сведений об интубации нет»; три состояния интубации"
+   },
+   {
+    "rule_id": "RDS-008",
+    "decision": "Изменить",
+    "basis": "решение 20.11.2026, п. 8: при отсутствии ручного поля — вычисление по отметкам (как SEP-002); противоречие — нет данных"
+   },
+   {
+    "rule_id": "RDS-009",
+    "decision": "Изменить",
+    "basis": "решение 20.11.2026, п. 5: RDS-009-A1 условная (доза ≠ 200 мг/кг)"
+   },
+   {
+    "rule_id": "NEC-003",
+    "decision": "Изменить",
+    "basis": "решение 20.11.2026, п. 2: NEC-003-A1 только часть «возобновление»"
+   },
+   {
+    "rule_id": "NEC-004",
+    "decision": "Изменить",
+    "basis": "решение 20.11.2026, п. 3: NEC-004-A1 условная (расхождение отсчётов); улучшение отдельно"
+   },
+   {
+    "rule_id": "NEC-005",
+    "decision": "Изменить",
+    "basis": "решение 20.11.2026, п. 7: pn_stopped_at, хронология ПП"
+   },
+   {
+    "rule_id": "NEC-008",
+    "decision": "Изменить",
+    "basis": "решение 20.11.2026, п. 4: A1 постоянная; показ суток, часов, первой и последней дозы; НЭК I — будущее расширение"
+   },
+   {
+    "rule_id": "SEP-003",
+    "decision": "Изменить",
+    "basis": "решение 19.11.2026 (пакет 21:23), Т3: строка «не хватает данных» без поля ветки, не влияющей на исход (исправление в engine/rules-engine.js; запись правила не меняется)"
+   },
+   {
+    "rule_id": "SEP-005",
+    "decision": "Изменить",
+    "basis": "решение 20.11.2026, п. 1: CF-006, SEP-005-A3, доза в Ед/кг"
+   },
+   {
+    "rule_id": "SEP-006",
+    "decision": "Изменить",
+    "basis": "решение 20.11.2026, п. 1: CF-007, SEP-006-A4, возрастные режимы таблицы стр. 18"
+   },
+   {
+    "rule_id": "SEP-008",
+    "decision": "Изменить",
+    "basis": "решение 19.11.2026 20:01/20:06: SEP-008-A3"
+   },
+   {
+    "rule_id": "SEP-009",
+    "decision": "Утвердить поведение",
+    "basis": "решение 19.11.2026 20:11; реализована информационная подпись SEP-009-A2 (без блокировки)"
+   },
+   {
+    "rule_id": "SEP-010",
+    "decision": "Изменить",
+    "basis": "решение 19.11.2026 (пакет 21:23): A1 условная, подписи, причина/обоснование, осмотр"
+   }
+  ],
+  "protected_rules_changed_by_physician_decision": [
+   "RDS-003",
+   "RDS-008",
+   "RDS-009"
+  ],
+  "protected_rules_unchanged": [
+   "RDS-001",
+   "RDS-002",
+   "RDS-004",
+   "RDS-005",
+   "RDS-006"
+  ],
+  "blocking_ambiguities": {
+   "before": 25,
+   "after": 28,
+   "new": [
+    "SEP-005-A3",
+    "SEP-006-A4",
+    "SEP-008-A3"
+   ],
+   "made_conditional": [
+    "NEC-004-A1",
+    "RDS-009-A1",
+    "SEP-010-A1"
+   ],
+   "scope_narrowed": [
+    "NEC-003-A1"
+   ],
+   "condition_widened": [
+    "RDS-003-A2"
+   ],
+   "removed": []
+  },
+  "protocol_conflicts_added": [
+   "CF-006",
+   "CF-007"
+  ],
+  "conflict_id_note": "Идентификатор CF-006, упомянутый в C4.2 этапа 6 (вопрос о сроках SEP-009/SEP-010), не использовался; в третьем круге CF-006 присвоен бензилпенициллину по решению врача.",
+  "open_questions_closed": [],
+  "proposed_new_questions": [
+   {
+    "id": "предложение-1",
+    "question": "Коэффициент пересчёта Ед → мг для конкретной формы бензилпенициллина (без него дозы в Ед/кг и мг/кг не сопоставляются).",
+    "status": "предложение"
+   },
+   {
+    "id": "предложение-2",
+    "question": "Приоритет положений протокола при CF-006 (бензилпенициллин) и CF-007 (гентамицин): текст или таблица препаратов.",
+    "status": "предложение"
+   },
+   {
+    "id": "предложение-3",
+    "question": "Толкование границ таблицы гентамицина: ровно 28 суток при ГВ ≤29 нед и ровно 7 суток при ГВ 30–34 нед.",
+    "status": "предложение"
+   },
+   {
+    "id": "предложение-4",
+    "question": "Учёт нескольких курсов парентерального питания (одно поле pn_stopped_at описывает один курс).",
+    "status": "предложение"
+   }
+  ],
+  "future_rule_base_extension": [
+   "НЭК I: антибактериальная терапия «в течение 5 дней» (стр. 14) — в пилот не добавлено"
+  ]
+ },
  "blocking_ambiguities": {
   "existing_kept": 17,
   "new_in_rules_0_2": [

@@ -1,8 +1,8 @@
 {
- "schema_version": "rules-0.2",
+ "schema_version": "rules-0.3",
  "name": "База медицинских правил — пилот (РДС, НЭК №185, сепсис №185)",
  "created": "2026-11-18",
- "revised": "2026-11-19",
+ "revised": "2026-11-20",
  "status": "кандидат, ожидает экспертного подтверждения",
  "authenticated": false,
  "authentication": "база не подписана; ни одно правило не подтверждено экспертом",
@@ -1704,6 +1704,213 @@
    "derived_from": [
     "extension_reason"
    ]
+  },
+  "benzylpenicillin_dose_units_per_kg": {
+   "description": "Разовая доза бензилпенициллина в Ед/кг (хранится в исходных единицах; в мг/кг без проверенного коэффициента не пересчитывается)",
+   "unit": "Ед/кг",
+   "type": "number",
+   "since": "rules-0.3"
+  },
+  "pn_stopped_at": {
+   "description": "Время прекращения парентерального питания (одного записанного курса)",
+   "unit": "дата-время",
+   "type": "datetime",
+   "since": "rules-0.3"
+  },
+  "benzylpenicillin_text_regimen_match": {
+   "description": "Назначение совпадает с текстом п. 6 (25 мг/кг каждые 12 ч; 8 ч при очень тяжёлом состоянии) (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "benzylpenicillin_dose_per_kg",
+    "benzylpenicillin_interval_h",
+    "very_severe_condition"
+   ],
+   "since": "rules-0.3"
+  },
+  "benzylpenicillin_table_regimen_status": {
+   "description": "Сверка с таблицей препаратов стр. 18 (50 000 Ед/кг/доза каждые 8 ч): matches — совпадает, differs — отличается, not_comparable — доза не в Ед/кг, сопоставить нельзя (вычисляется)",
+   "unit": "значение",
+   "type": "derived",
+   "values": [
+    "matches",
+    "differs",
+    "not_comparable"
+   ],
+   "derived_from": [
+    "benzylpenicillin_interval_h",
+    "benzylpenicillin_dose_units_per_kg"
+   ],
+   "since": "rules-0.3"
+  },
+  "benzylpenicillin_regimen_sources_diverge": {
+   "description": "Назначение соответствует одному положению протокола (текст п. 6 или таблица стр. 18) и расходится с другим либо не сопоставимо с ним (вычисляется; CF-006)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "benzylpenicillin_text_regimen_match",
+    "benzylpenicillin_table_regimen_status"
+   ],
+   "since": "rules-0.3"
+  },
+  "gentamicin_text_regimen_match": {
+   "description": "Назначение совпадает с текстом п. 7 (5 мг/кг; 36 ч, короче — при очень больном ребёнке с грамотрицательным посевом) (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "gentamicin_dose_per_kg",
+    "gentamicin_interval_h",
+    "very_ill",
+    "gram_negative_culture"
+   ],
+   "since": "rules-0.3"
+  },
+  "gentamicin_table_check_status": {
+   "description": "Сверка с таблицей стр. 18: checked — выполнена, no_age_data — нет ГВ или постнатального возраста, no_regimen_data — нет дозы или интервала (вычисляется)",
+   "unit": "значение",
+   "type": "derived",
+   "values": [
+    "checked",
+    "no_age_data",
+    "no_regimen_data"
+   ],
+   "derived_from": [
+    "gestational_age_weeks",
+    "postnatal_age_days",
+    "gentamicin_dose_per_kg",
+    "gentamicin_interval_h"
+   ],
+   "since": "rules-0.3"
+  },
+  "gentamicin_table_band": {
+   "description": "Режим(ы) таблицы стр. 18 для ГВ и постнатального возраста ребёнка (вычисляется, показывается)",
+   "unit": "текст",
+   "type": "derived",
+   "derived_from": [
+    "gestational_age_weeks",
+    "postnatal_age_days"
+   ],
+   "since": "rules-0.3"
+  },
+  "gentamicin_table_boundary": {
+   "description": "Возраст на пересекающейся или неопределённой границе групп таблицы (ровно 28 сут при ГВ ≤29 нед; ровно 7 сут при ГВ 30–34 нед) (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "gestational_age_weeks",
+    "postnatal_age_days"
+   ],
+   "since": "rules-0.3"
+  },
+  "gentamicin_table_regimen_match": {
+   "description": "Назначение совпадает с режимом таблицы стр. 18 для этого ребёнка (при границе — с любым из двух) (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "gestational_age_weeks",
+    "postnatal_age_days",
+    "gentamicin_dose_per_kg",
+    "gentamicin_interval_h"
+   ],
+   "since": "rules-0.3"
+  },
+  "gentamicin_regimen_sources_diverge": {
+   "description": "Назначение соответствует одному положению протокола (текст п. 7 или таблица стр. 18) и расходится с другим (вычисляется; только при выполненной сверке с таблицей; CF-007)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "gentamicin_text_regimen_match",
+    "gentamicin_table_regimen_match"
+   ],
+   "since": "rules-0.3"
+  },
+  "nec_day_counts_disagree": {
+   "description": "Отсчёты «не ранее 7-го дня» от начала и от подтверждения НЭК дают разную оценку или один неизвестен (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "nec_day_from_onset_at_feeding_resumption",
+    "nec_day_from_confirmation_at_feeding_resumption"
+   ],
+   "since": "rules-0.3"
+  },
+  "pn_stopped_before_nec_onset": {
+   "description": "Записанный курс ПП прекращён до начала НЭК (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "pn_stopped_at",
+    "nec_onset_at"
+   ],
+   "since": "rules-0.3"
+  },
+  "intubation_needed_status": {
+   "description": "Интубация для стабилизации: required — потребовалась, not_required — не потребовалась, no_record — сведений нет (вычисляется; отсутствие записи ≠ «нет»)",
+   "unit": "значение",
+   "type": "derived",
+   "values": [
+    "required",
+    "not_required",
+    "no_record"
+   ],
+   "derived_from": [
+    "intubation_needed_for_stabilization"
+   ],
+   "since": "rules-0.3"
+  },
+  "surfactant_fio2_indication_status": {
+   "description": "Самостоятельное показание по FiO₂ (ГВ <26 нед и FiO₂ >0,30; ГВ >26 нед и FiO₂ >0,40): met / not_met / unknown (вычисляется)",
+   "unit": "значение",
+   "type": "derived",
+   "values": [
+    "met",
+    "not_met",
+    "unknown"
+   ],
+   "derived_from": [
+    "gestational_age_weeks",
+    "fio2"
+   ],
+   "since": "rules-0.3"
+  },
+  "blood_culture_before_antibiotics_resolved": {
+   "description": "Посев крови взят до первой дозы: ручная запись, а при её отсутствии — вычисление по отметкам забора и введения (как SEP-002); противоречие — нет данных (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "blood_culture_before_antibiotics",
+    "culture_drawn_before_first_dose"
+   ],
+   "since": "rules-0.3"
+  },
+  "blood_culture_before_antibiotics_basis": {
+   "description": "Основа значения «посев до первой дозы»: manual — ручная запись, computed — вычислено по отметкам, conflict — ручная запись противоречит отметкам (вычисляется)",
+   "unit": "значение",
+   "type": "derived",
+   "values": [
+    "manual",
+    "computed",
+    "conflict"
+   ],
+   "derived_from": [
+    "blood_culture_before_antibiotics",
+    "culture_drawn_before_first_dose"
+   ],
+   "since": "rules-0.3"
+  },
+  "daily_clinical_exam_status": {
+   "description": "Ежедневный клинический осмотр при продлении: documented — документирован, not_documented — не документирован, no_record — нет записи (вычисляется)",
+   "unit": "значение",
+   "type": "derived",
+   "values": [
+    "documented",
+    "not_documented",
+    "no_record"
+   ],
+   "derived_from": [
+    "daily_clinical_exam_documented"
+   ],
+   "since": "rules-0.3"
   }
  },
  "protocol_conflicts": [
@@ -1923,6 +2130,100 @@
      "sha256": "239992b9b200c74f5228ad054b58558f9d17ae412f6c045926300a04b233f3cd"
     }
    ]
+  },
+  {
+   "id": "CF-006",
+   "type": "противоречие",
+   "rules": [
+    "SEP-005"
+   ],
+   "related_rules": [],
+   "description": "Бензилпенициллин при раннем сепсисе без менингита: текст п. 6 (стр. 12–13) — 25 мг/кг каждые 12 часов (8 часов при очень тяжёлом состоянии); таблица препаратов того же протокола (стр. 18) — 50 000 Ед/кг/доза в/в каждые 8 часов. Расхождение показывается, только когда назначение соответствует одному положению и расходится с другим (или доза не сопоставима по единицам), а не при каждом назначении бензилпенициллина.",
+   "active_when": {
+    "field": "benzylpenicillin_regimen_sources_diverge",
+    "op": "is_true"
+   },
+   "quotes": [
+    {
+     "protocol": "sepsis",
+     "page": 12,
+     "text": "Бензилпенициллин назначается в дозе 25 мг/кг через каждые 12 часов.",
+     "sha256": "6643c06f3fce7006c6dcb3aad38f1c143c14d138509a33e22d128abfba20d3cc"
+    },
+    {
+     "protocol": "sepsis",
+     "page": 13,
+     "text": "состояние ребенка оценивается очень тяжелым следует рассмотреть возможность сокращения интервала между дозами через каждые 8 часов.",
+     "sha256": "79559fda8fa9221034aaa554492659d7cafe2ab2c623083dc55a2662e62c03fa"
+    },
+    {
+     "protocol": "sepsis",
+     "page": 18,
+     "text": "Бензилпенициллин Сепсис",
+     "sha256": "454a5a80f5c150021d0a0726d437a5a4bb620ceee5767cc5d6ba60860bc23e6e"
+    },
+    {
+     "protocol": "sepsis",
+     "page": 18,
+     "text": "младше 7 суток 50 000",
+     "sha256": "8307786c1faa89177895cb674db0c672edda24be3a128da8876afbda7f4510c6"
+    },
+    {
+     "protocol": "sepsis",
+     "page": 18,
+     "text": "старше 7 суток 50 000 Ед/кг/доза в/в каждые 8 часов",
+     "sha256": "ffcab0bffb7da875cfa419df0a91c68d68f78a2b61c3917cee28f8ee35e852da"
+    }
+   ],
+   "status": "предлагаемое противоречие (решение врача 20.11.2026, п. 1); приоритет положений решает эксперт",
+   "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+  },
+  {
+   "id": "CF-007",
+   "type": "противоречие",
+   "rules": [
+    "SEP-006"
+   ],
+   "related_rules": [],
+   "description": "Гентамицин при раннем сепсисе: текст п. 7 (стр. 13) — начальная доза 5 мг/кг каждые 36 часов; таблица препаратов того же протокола (стр. 18) — режимы по гестационному и постнатальному возрасту (≤29 нед: 0–7 сут 5 мг/кг каждые 48 ч, 8–28 сут 4 мг/кг каждые 36 ч, 28 сут и старше 4 мг/кг каждые 24 ч; 30–34 нед: младше 7 сут 4,5 мг/кг каждые 36 ч, старше 7 сут 4 мг/кг каждые 24 ч; ≥35 нед 4 мг/кг каждые 24 ч). Расхождение показывается, только когда сверка с таблицей выполнена и назначение соответствует одному положению, но расходится с другим.",
+   "active_when": {
+    "field": "gentamicin_regimen_sources_diverge",
+    "op": "is_true"
+   },
+   "quotes": [
+    {
+     "protocol": "sepsis",
+     "page": 13,
+     "text": "Гентамицин вводится в начальной дозе 5 мг/кг, при этом следует помнить, что:",
+     "sha256": "8dc6f807558c94f0bc97272c3a41327ac82b550ea676ddeac706a730640d6e0e"
+    },
+    {
+     "protocol": "sepsis",
+     "page": 13,
+     "text": "данные, рассмотренные для руководства, поддерживают начальную дозу 5 мг/кг каждые 36 часов, вводимую однократно;",
+     "sha256": "d03effbcfb9a75defefcdf80104df56d674c9d4e18daca9706dc1dc6f702f07f"
+    },
+    {
+     "protocol": "sepsis",
+     "page": 18,
+     "text": "Гентамицин 29 недель и меньше:",
+     "sha256": "04ab52d3d917aa7892d981fd107c7c0bc2a8eeee3f332180da7b83539d6b4c9c"
+    },
+    {
+     "protocol": "sepsis",
+     "page": 18,
+     "text": "0 – 7 суток каждые 48 часов",
+     "sha256": "5732ea0b46a0484f40c3f4f6d35437da5091923cd2859a9e1e3f2f12e6b3c880"
+    },
+    {
+     "protocol": "sepsis",
+     "page": 18,
+     "text": "8 – 28 суток каждые 36 часов по 4 мг/кг в/в 28 суток и старше каждые 24 часа по 4 мг/кг 30-34 недель: младше 7 суток каждые 36 часов по 4,5 мг/кг старше 7 суток каждые 24 часа по 4 мг/кг 35 недель и старше: каждые 24 часа по 4 мг/кг",
+     "sha256": "392736d52d1f50776d5f50703d8e986e7b914cefd6dd9a8a2dc7818de8aadd39"
+    }
+   ],
+   "status": "предлагаемое противоречие (решение врача 20.11.2026, п. 1); приоритет положений решает эксперт",
+   "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
   }
  ],
  "rules": [
@@ -2290,17 +2591,58 @@
      "decision_by": "врач-эксперт",
      "decision": null,
      "blocks_when": {
-      "all": [
+      "any": [
        {
-        "field": "antenatal_steroids_given",
-        "op": "is_false"
+        "all": [
+         {
+          "field": "antenatal_steroids_given",
+          "op": "is_false"
+         },
+         {
+          "field": "intubation_needed_for_stabilization",
+          "op": "is_false"
+         }
+        ]
        },
        {
-        "field": "intubation_needed_for_stabilization",
-        "op": "is_false"
+        "all": [
+         {
+          "any": [
+           {
+            "field": "rds_risk",
+            "op": "is_true"
+           },
+           {
+            "field": "rds_diagnosed",
+            "op": "is_true"
+           }
+          ]
+         },
+         {
+          "field": "antenatal_steroids_given",
+          "op": "is_false"
+         },
+         {
+          "field": "intubation_needed_status",
+          "op": "eq",
+          "value": "no_record"
+         },
+         {
+          "field": "surfactant_fio2_indication_status",
+          "op": "in",
+          "value": [
+           "not_met",
+           "unknown"
+          ]
+         }
+        ]
        }
       ]
-     }
+     },
+     "machine_note": "С rules-0.3 неоднозначность действует и тогда, когда сведений о необходимости интубации нет (отсутствие записи не считается «не потребовалась»), если нет самостоятельного показания по FiO₂.",
+     "round3_changes": [
+      "blocks_when: + ветка «сведений об интубации нет» у ребёнка с РДС или риском РДС при отсутствии самостоятельного показания по FiO₂"
+     ]
     },
     {
      "id": "RDS-003-A3",
@@ -2326,6 +2668,37 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "intubation_needed_status",
+    "surfactant_fio2_indication_status"
+   ],
+   "card_labels": [
+    {
+     "id": "intubation_no_record",
+     "label": "Сведений о том, потребовалась ли интубация для стабилизации, нет — отсутствие записи не считается «не потребовалась»",
+     "when": {
+      "field": "intubation_needed_status",
+      "op": "eq",
+      "value": "no_record"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    }
+   ],
+   "revision_round3": {
+    "schema": "rules-0.3",
+    "date": "2026-11-20",
+    "round3_decision": "Изменить",
+    "decided_by": "Ислам М.И. (врач-эксперт)",
+    "basis": [
+     "решение врача 20.11.2026, п. 6",
+     "Т6"
+    ],
+    "changes": [
+     "RDS-003-A2: условие расширено на «сведений нет»",
+     "три состояния интубации",
+     "подпись карточки"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -2780,9 +3153,9 @@
     }
    },
    "requirement": {
-    "description": "посев крови взят до первой дозы",
+    "description": "посев крови взят до первой дозы (при отсутствии ручной записи — по отметкам времени забора и введения первой дозы, как SEP-002)",
     "check": {
-     "field": "blood_culture_before_antibiotics",
+     "field": "blood_culture_before_antibiotics_resolved",
      "op": "is_true"
     }
    },
@@ -2799,6 +3172,11 @@
     {
      "field": "blood_culture_before_antibiotics",
      "description": "Посев крови взят до первой дозы антибиотика",
+     "unit": "да/нет"
+    },
+    {
+     "field": "blood_culture_before_antibiotics_resolved",
+     "description": "Посев крови взят до первой дозы: ручная запись, а при её отсутствии — вычисление по отметкам забора и введения (как SEP-002); противоречие — нет данных (вычисляется)",
      "unit": "да/нет"
     }
    ],
@@ -2819,6 +3197,50 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "display_fields": [
+    "blood_culture_before_antibiotics",
+    "blood_culture_drawn_at",
+    "first_abx_dose_administered_at",
+    "culture_drawn_before_first_dose",
+    "blood_culture_before_antibiotics_basis"
+   ],
+   "card_labels": [
+    {
+     "id": "computed_from_timestamps",
+     "label": "Ручной записи нет — значение вычислено по отметкам забора крови ({blood_culture_drawn_at}) и введения первой дозы ({first_abx_dose_administered_at}), как в SEP-002",
+     "when": {
+      "field": "blood_culture_before_antibiotics_basis",
+      "op": "eq",
+      "value": "computed"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    },
+    {
+     "id": "manual_vs_timestamps_conflict",
+     "label": "Ручная запись «посев до первой дозы» противоречит отметкам забора крови ({blood_culture_drawn_at}) и введения первой дозы ({first_abx_dose_administered_at}) — «Недостаточно данных», требуется пояснение эксперту",
+     "when": {
+      "field": "blood_culture_before_antibiotics_basis",
+      "op": "eq",
+      "value": "conflict"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    }
+   ],
+   "revision_round3": {
+    "schema": "rules-0.3",
+    "date": "2026-11-20",
+    "round3_decision": "Изменить",
+    "decided_by": "Ислам М.И. (врач-эксперт)",
+    "basis": [
+     "решение врача 20.11.2026, п. 8",
+     "Т7"
+    ],
+    "changes": [
+     "проверка по blood_culture_before_antibiotics_resolved",
+     "вычисление по отметкам при отсутствии ручного поля",
+     "противоречие показывается"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -2898,10 +3320,28 @@
     {
      "id": "RDS-009-A1",
      "text": "Сравнительное утверждение, не прямое предписание: является ли доза 100 мг/кг отклонением — решает эксперт.",
-     "blocking": "always",
+     "blocking": "when",
      "scope": "requirement",
      "decision_by": "врач-эксперт",
-     "decision": null
+     "decision": null,
+     "blocks_when": {
+      "any": [
+       {
+        "field": "surfactant_initial_dose_mg_kg",
+        "op": "lt",
+        "value": 200
+       },
+       {
+        "field": "surfactant_initial_dose_mg_kg",
+        "op": "gt",
+        "value": 200
+       }
+      ]
+     },
+     "machine_note": "С rules-0.3 неоднозначность действует только при документированной дозе, отличной от 200 мг/кг; при дозе ровно 200 мг/кг блокировки нет; без достоверной дозы — «Недостаточно данных».",
+     "round3_changes": [
+      "blocking: always → when (доза ≠ 200 мг/кг)"
+     ]
     },
     {
      "id": "RDS-009-A2",
@@ -2915,6 +3355,18 @@
    "status": "кандидат, ожидает экспертного подтверждения",
    "expert_confirmation": null,
    "notes": null,
+   "revision_round3": {
+    "schema": "rules-0.3",
+    "date": "2026-11-20",
+    "round3_decision": "Изменить",
+    "decided_by": "Ислам М.И. (врач-эксперт)",
+    "basis": [
+     "решение врача 20.11.2026, п. 5"
+    ],
+    "changes": [
+     "RDS-009-A1: постоянная → условная"
+    ]
+   },
    "protocol_conflicts": []
   },
   {
@@ -3534,7 +3986,11 @@
      "blocking": "always",
      "scope": "requirement",
      "decision_by": "врач-эксперт",
-     "decision": null
+     "decision": null,
+     "part": "resume",
+     "round3_changes": [
+      "область: правило целиком → часть «resume»"
+     ]
     },
     {
      "id": "NEC-003-A2",
@@ -3580,6 +4036,18 @@
     ],
     "model_changes": [
      "M2"
+    ]
+   },
+   "revision_round3": {
+    "schema": "rules-0.3",
+    "date": "2026-11-20",
+    "round3_decision": "Изменить",
+    "decided_by": "Ислам М.И. (врач-эксперт)",
+    "basis": [
+     "решение врача 20.11.2026, п. 2"
+    ],
+    "changes": [
+     "NEC-003-A1 ограничена частью «возобновление»"
     ]
    },
    "protocol_conflicts": [
@@ -3709,11 +4177,19 @@
     {
      "id": "NEC-004-A1",
      "text": "Отсчёт 7 суток — от подозрения или от подтверждения диагноза; в протоколе не указано (машинно — день заболевания, как ввёл пользователь).",
-     "blocking": "always",
+     "blocking": "when",
      "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null,
-     "machine_note": "С rules-0.2 день считается программой по отметкам nec_onset_at и nec_confirmed_at (календарные дни, 1 — день события); показываются оба отсчёта."
+     "machine_note": "С rules-0.3: если отсчёты от начала заболевания и от подтверждения НЭК дают одинаковую оценку относительно 7-го дня, блокировки нет; разные оценки или один отсчёт неизвестен — неоднозначность. Улучшение — отдельная часть.",
+     "blocks_when": {
+      "field": "nec_day_counts_disagree",
+      "op": "is_true"
+     },
+     "part": "term",
+     "round3_changes": [
+      "blocking: always → when (отсчёты расходятся); область: часть «term»"
+     ]
     },
     {
      "id": "NEC-004-A2",
@@ -3732,7 +4208,8 @@
     "improvement_signs_yes_count",
     "improvement_signs_no_count",
     "improvement_signs_unspecified_count",
-    "facility_utc_offset"
+    "facility_utc_offset",
+    "nec_day_counts_disagree"
    ],
    "card_labels": [
     {
@@ -3755,6 +4232,18 @@
     ],
     "model_changes": [
      "M2"
+    ]
+   },
+   "revision_round3": {
+    "schema": "rules-0.3",
+    "date": "2026-11-20",
+    "round3_decision": "Изменить",
+    "decided_by": "Ислам М.И. (врач-эксперт)",
+    "basis": [
+     "решение врача 20.11.2026, п. 3"
+    ],
+    "changes": [
+     "NEC-004-A1: постоянная → условная, только часть «срок»"
     ]
    },
    "protocol_conflicts": []
@@ -3823,7 +4312,8 @@
    "normativity_marker": "«следует»",
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
    "exceptions_and_caveats": [
-    "Состав и объём ПП — по отдельному протоколу «Парентеральное питание новорожденных» (не входит в пилот)."
+    "Состав и объём ПП — по отдельному протоколу «Парентеральное питание новорожденных» (не входит в пилот).",
+    "Ограничение (rules-0.3): поле pn_stopped_at описывает один записанный курс ПП; при нескольких курсах одно время прекращения не описывает все эпизоды — хронологию оценивает эксперт."
    ],
    "required_data": [
     {
@@ -3891,7 +4381,9 @@
    "expert_confirmation": null,
    "notes": null,
    "display_fields": [
-    "facility_utc_offset"
+    "facility_utc_offset",
+    "pn_stopped_at",
+    "pn_stopped_before_nec_onset"
    ],
    "revision": {
     "schema": "rules-0.2",
@@ -3905,6 +4397,31 @@
     "model_changes": [
      "M2",
      "M4"
+    ]
+   },
+   "card_labels": [
+    {
+     "id": "pn_stopped_before_onset",
+     "label": "ПП прекращено ({pn_stopped_at}) до начала НЭК ({nec_onset_at}) — записанный курс на момент заболевания не проводился; начало нового курса не записано",
+     "when": {
+      "field": "pn_stopped_before_nec_onset",
+      "op": "is_true"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    }
+   ],
+   "revision_round3": {
+    "schema": "rules-0.3",
+    "date": "2026-11-20",
+    "round3_decision": "Изменить",
+    "decided_by": "Ислам М.И. (врач-эксперт)",
+    "basis": [
+     "решение врача 20.11.2026, п. 7",
+     "Т8"
+    ],
+    "changes": [
+     "поле pn_stopped_at",
+     "проверка хронологии ПП"
     ]
    },
    "protocol_conflicts": []
@@ -4303,7 +4820,8 @@
    "normativity_basis": "класс выставлен по формулировке цитаты; подлежит подтверждению экспертом",
    "exceptions_and_caveats": [
     "Для НЭК I указано «в течение 5 дней» — отдельная проверка в пилот не включена.",
-    "Для III стадии длительность не указана."
+    "Для III стадии длительность не указана.",
+    "Решение врача 20.11.2026: NEC-008-A1 остаётся постоянной — длительность курса не заменяет клиническую стабилизацию и восстановление функции ЖКТ. Правило для НЭК I «в течение 5 дней» (стр. 14) в пилот не добавлено — перечень будущего расширения базы."
    ],
    "required_data": [
     {
@@ -4374,7 +4892,9 @@
     "abx_drug_change_count",
     "abx_interruption_count",
     "stabilization_documented",
-    "gi_function_restored"
+    "gi_function_restored",
+    "abx_course_started_at",
+    "abx_course_ended_at"
    ],
    "card_labels": [
     {
@@ -4403,6 +4923,15 @@
       "op": "gte",
       "value": 1
      }
+    },
+    {
+     "id": "course_duration",
+     "label": "Длительность курса: {abx_course_days} календарных сут, {abx_course_hours} ч; первая доза — {abx_course_started_at}, последняя — {abx_course_ended_at}",
+     "when": {
+      "field": "abx_course_hours",
+      "op": "present"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
     }
    ],
    "revision": {
@@ -4415,6 +4944,18 @@
     ],
     "model_changes": [
      "M2"
+    ]
+   },
+   "revision_round3": {
+    "schema": "rules-0.3",
+    "date": "2026-11-20",
+    "round3_decision": "Изменить",
+    "decided_by": "Ислам М.И. (врач-эксперт)",
+    "basis": [
+     "решение врача 20.11.2026, п. 4"
+    ],
+    "changes": [
+     "показ календарных суток, часов, первой и последней дозы"
     ]
    },
    "protocol_conflicts": []
@@ -5443,6 +5984,21 @@
       "page": 16,
       "text": "бензилпенициллин 50 мг/кг каждые 12 часов, обычно в течение не менее 14 дней",
       "sha256": "47fb9024a2e86b9c63c93bf7e2050eab07755b49a5bf1e17f1cc06aab48ac01b"
+     },
+     {
+      "page": 18,
+      "text": "Бензилпенициллин Сепсис",
+      "sha256": "454a5a80f5c150021d0a0726d437a5a4bb620ceee5767cc5d6ba60860bc23e6e"
+     },
+     {
+      "page": 18,
+      "text": "младше 7 суток 50 000",
+      "sha256": "8307786c1faa89177895cb674db0c672edda24be3a128da8876afbda7f4510c6"
+     },
+     {
+      "page": 18,
+      "text": "старше 7 суток 50 000 Ед/кг/доза в/в каждые 8 часов",
+      "sha256": "ffcab0bffb7da875cfa419df0a91c68d68f78a2b61c3917cee28f8ee35e852da"
      }
     ]
    },
@@ -5566,7 +6122,11 @@
      "blocking": "no",
      "scope": "requirement",
      "decision_by": "врач-эксперт",
-     "decision": null
+     "decision": null,
+     "machine_note": "С rules-0.3 таблица препаратов (стр. 18) сверена: бензилпенициллин при сепсисе — 50 000 Ед/кг/доза каждые 8 часов (младше и старше 7 суток); расхождение с текстом п. 6 — CF-006 и SEP-005-A3.",
+     "round3_changes": [
+      "пояснение: таблица стр. 18 сверена в третьем круге"
+     ]
     },
     {
      "id": "SEP-005-A2",
@@ -5575,6 +6135,19 @@
      "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
+    },
+    {
+     "id": "SEP-005-A3",
+     "text": "Назначение соответствует одному положению протокола и расходится с другим либо не может быть с ним сопоставлено: текст п. 6 (стр. 12–13: 25 мг/кг каждые 12 ч, 8 ч — при очень тяжёлом состоянии) и таблица препаратов (стр. 18: сепсис — 50 000 Ед/кг/доза в/в каждые 8 часов). Доза в мг/кг и Ед/кг без проверенного коэффициента для конкретной формы препарата не пересчитывается. Какое положение применимо — решает эксперт (CF-006); до решения не выдаётся ни «совпадает», ни «отличается».",
+     "blocking": "when",
+     "scope": "requirement",
+     "decision_by": "врач-эксперт",
+     "decision": null,
+     "blocks_when": {
+      "field": "benzylpenicillin_regimen_sources_diverge",
+      "op": "is_true"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
     }
    ],
    "status": "кандидат, ожидает экспертного подтверждения",
@@ -5590,7 +6163,13 @@
     "benzylpenicillin_dose_records_consistent",
     "benzylpenicillin_weight_confirmed_for_calc",
     "benzylpenicillin_dose_basis",
-    "local_practice_ref"
+    "local_practice_ref",
+    "benzylpenicillin_interval_h",
+    "very_severe_condition",
+    "benzylpenicillin_dose_units_per_kg",
+    "benzylpenicillin_text_regimen_match",
+    "benzylpenicillin_table_regimen_status",
+    "benzylpenicillin_regimen_sources_diverge"
    ],
    "card_labels": [
     {
@@ -5627,6 +6206,66 @@
        }
       ]
      }
+    },
+    {
+     "id": "dose_units",
+     "label": "Доза записана в Ед/кг: {benzylpenicillin_dose_units_per_kg} Ед/кг — хранится в исходных единицах; с «25 мг/кг» без проверенного коэффициента не сопоставляется",
+     "when": {
+      "field": "benzylpenicillin_dose_units_per_kg",
+      "op": "present"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    },
+    {
+     "id": "sources_diverge",
+     "label": "Назначение соответствует одному положению протокола и расходится с другим (или не сопоставимо с ним): текст п. 6 (стр. 12–13) и таблица препаратов (стр. 18) — CF-006, решает эксперт",
+     "when": {
+      "field": "benzylpenicillin_regimen_sources_diverge",
+      "op": "is_true"
+     },
+     "quotes": [
+      {
+       "protocol": "sepsis",
+       "page": 12,
+       "text": "Бензилпенициллин назначается в дозе 25 мг/кг через каждые 12 часов.",
+       "sha256": "6643c06f3fce7006c6dcb3aad38f1c143c14d138509a33e22d128abfba20d3cc"
+      },
+      {
+       "protocol": "sepsis",
+       "page": 13,
+       "text": "состояние ребенка оценивается очень тяжелым следует рассмотреть возможность сокращения интервала между дозами через каждые 8 часов.",
+       "sha256": "79559fda8fa9221034aaa554492659d7cafe2ab2c623083dc55a2662e62c03fa"
+      },
+      {
+       "protocol": "sepsis",
+       "page": 18,
+       "text": "Бензилпенициллин Сепсис",
+       "sha256": "454a5a80f5c150021d0a0726d437a5a4bb620ceee5767cc5d6ba60860bc23e6e"
+      },
+      {
+       "protocol": "sepsis",
+       "page": 18,
+       "text": "младше 7 суток 50 000",
+       "sha256": "8307786c1faa89177895cb674db0c672edda24be3a128da8876afbda7f4510c6"
+      },
+      {
+       "protocol": "sepsis",
+       "page": 18,
+       "text": "старше 7 суток 50 000 Ед/кг/доза в/в каждые 8 часов",
+       "sha256": "ffcab0bffb7da875cfa419df0a91c68d68f78a2b61c3917cee28f8ee35e852da"
+      }
+     ],
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    },
+    {
+     "id": "table_not_comparable",
+     "label": "Интервал 8 ч совпадает с таблицей стр. 18, но доза записана не в Ед/кг — сопоставить дозу с таблицей нельзя",
+     "when": {
+      "field": "benzylpenicillin_table_regimen_status",
+      "op": "eq",
+      "value": "not_comparable"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
     }
    ],
    "revision": {
@@ -5645,7 +6284,25 @@
      "M6"
     ]
    },
-   "protocol_conflicts": []
+   "revision_round3": {
+    "schema": "rules-0.3",
+    "date": "2026-11-20",
+    "round3_decision": "Изменить",
+    "decided_by": "Ислам М.И. (врач-эксперт)",
+    "basis": [
+     "решение врача 20.11.2026, п. 1",
+     "К1",
+     "сценарии ТАБ-B1–B5"
+    ],
+    "changes": [
+     "CF-006",
+     "SEP-005-A3 (условная)",
+     "поле дозы в Ед/кг"
+    ]
+   },
+   "protocol_conflicts": [
+    "CF-006"
+   ]
   },
   {
    "rule_id": "SEP-006",
@@ -5678,6 +6335,21 @@
       "page": 13,
       "text": "при принятии решения о последующем режиме дозирования гентамицина необходимо учитывать его концентрацию в крови (при наличии возможности).",
       "sha256": "f6a9caa1e58325f264c0b421b373df62988adb1dc42894644f095cfe3987c323"
+     },
+     {
+      "page": 18,
+      "text": "Гентамицин 29 недель и меньше:",
+      "sha256": "04ab52d3d917aa7892d981fd107c7c0bc2a8eeee3f332180da7b83539d6b4c9c"
+     },
+     {
+      "page": 18,
+      "text": "0 – 7 суток каждые 48 часов",
+      "sha256": "5732ea0b46a0484f40c3f4f6d35437da5091923cd2859a9e1e3f2f12e6b3c880"
+     },
+     {
+      "page": 18,
+      "text": "8 – 28 суток каждые 36 часов по 4 мг/кг в/в 28 суток и старше каждые 24 часа по 4 мг/кг 30-34 недель: младше 7 суток каждые 36 часов по 4,5 мг/кг старше 7 суток каждые 24 часа по 4 мг/кг 35 недель и старше: каждые 24 часа по 4 мг/кг",
+      "sha256": "392736d52d1f50776d5f50703d8e986e7b914cefd6dd9a8a2dc7818de8aadd39"
      }
     ]
    },
@@ -5896,6 +6568,23 @@
       }
      },
      "added": "rules-0.2 (этап 6)"
+    },
+    {
+     "id": "SEP-006-A4",
+     "text": "Назначение соответствует одному положению протокола и расходится с другим: текст п. 7 (стр. 13: начальная доза 5 мг/кг, каждые 36 часов) и возрастные режимы таблицы препаратов (стр. 18: по гестационному и постнатальному возрасту). На пересекающейся или неопределённой границе групп таблицы (ровно 28 суток при ГВ ≤29 нед, ровно 7 суток при ГВ 30–34 нед) возможны оба соседних режима. Какое положение применимо — решает эксперт (CF-007); соответствие тексту не подтверждается автоматически, если применимая таблица даёт другой режим.",
+     "blocking": "when",
+     "scope": "requirement",
+     "decision_by": "врач-эксперт",
+     "decision": null,
+     "blocks_when": {
+      "field": "gentamicin_regimen_sources_diverge",
+      "op": "is_true"
+     },
+     "parts": [
+      "dose",
+      "interval"
+     ],
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
     }
    ],
    "status": "кандидат, ожидает экспертного подтверждения",
@@ -5914,7 +6603,14 @@
     "gentamicin_dose_per_kg_calculated",
     "gentamicin_dose_records_consistent",
     "gentamicin_weight_confirmed_for_calc",
-    "gentamicin_dose_basis"
+    "gentamicin_dose_basis",
+    "gentamicin_interval_h",
+    "gentamicin_text_regimen_match",
+    "gentamicin_table_check_status",
+    "gentamicin_table_band",
+    "gentamicin_table_boundary",
+    "gentamicin_table_regimen_match",
+    "gentamicin_regimen_sources_diverge"
    ],
    "card_labels": [
     {
@@ -5950,7 +6646,79 @@
         "value": 5
        }
       ]
-     }
+     },
+     "hide_when_ambiguity": [
+      "SEP-006-A1"
+     ]
+    },
+    {
+     "id": "table_band",
+     "label": "Таблица препаратов (стр. 18) для ГВ {gestational_age_weeks} нед и возраста {postnatal_age_days} сут: {gentamicin_table_band}",
+     "when": {
+      "field": "gentamicin_table_band",
+      "op": "present"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    },
+    {
+     "id": "table_boundary",
+     "label": "Возраст {postnatal_age_days} сут — на границе групп таблицы, где формулировки пересекаются или не определяют этот день: возможны оба режима, выбор делает эксперт",
+     "when": {
+      "field": "gentamicin_table_boundary",
+      "op": "is_true"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    },
+    {
+     "id": "table_not_checked",
+     "label": "Сверка с таблицей препаратов (стр. 18) не выполнена: не указан гестационный или постнатальный возраст",
+     "when": {
+      "field": "gentamicin_table_check_status",
+      "op": "eq",
+      "value": "no_age_data"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    },
+    {
+     "id": "sources_diverge",
+     "label": "Назначение соответствует одному положению протокола и расходится с другим: текст п. 7 (стр. 13) и возрастной режим таблицы препаратов (стр. 18) — CF-007, решает эксперт",
+     "when": {
+      "field": "gentamicin_regimen_sources_diverge",
+      "op": "is_true"
+     },
+     "quotes": [
+      {
+       "protocol": "sepsis",
+       "page": 13,
+       "text": "Гентамицин вводится в начальной дозе 5 мг/кг, при этом следует помнить, что:",
+       "sha256": "8dc6f807558c94f0bc97272c3a41327ac82b550ea676ddeac706a730640d6e0e"
+      },
+      {
+       "protocol": "sepsis",
+       "page": 13,
+       "text": "данные, рассмотренные для руководства, поддерживают начальную дозу 5 мг/кг каждые 36 часов, вводимую однократно;",
+       "sha256": "d03effbcfb9a75defefcdf80104df56d674c9d4e18daca9706dc1dc6f702f07f"
+      },
+      {
+       "protocol": "sepsis",
+       "page": 18,
+       "text": "Гентамицин 29 недель и меньше:",
+       "sha256": "04ab52d3d917aa7892d981fd107c7c0bc2a8eeee3f332180da7b83539d6b4c9c"
+      },
+      {
+       "protocol": "sepsis",
+       "page": 18,
+       "text": "0 – 7 суток каждые 48 часов",
+       "sha256": "5732ea0b46a0484f40c3f4f6d35437da5091923cd2859a9e1e3f2f12e6b3c880"
+      },
+      {
+       "protocol": "sepsis",
+       "page": 18,
+       "text": "8 – 28 суток каждые 36 часов по 4 мг/кг в/в 28 суток и старше каждые 24 часа по 4 мг/кг 30-34 недель: младше 7 суток каждые 36 часов по 4,5 мг/кг старше 7 суток каждые 24 часа по 4 мг/кг 35 недель и старше: каждые 24 часа по 4 мг/кг",
+       "sha256": "392736d52d1f50776d5f50703d8e986e7b914cefd6dd9a8a2dc7818de8aadd39"
+      }
+     ],
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
     }
    ],
    "revision": {
@@ -5969,8 +6737,26 @@
      "M6"
     ]
    },
+   "revision_round3": {
+    "schema": "rules-0.3",
+    "date": "2026-11-20",
+    "round3_decision": "Изменить",
+    "decided_by": "Ислам М.И. (врач-эксперт)",
+    "basis": [
+     "решение врача 20.11.2026, п. 1",
+     "К2",
+     "Т5",
+     "сценарии ТАБ-G1–G9"
+    ],
+    "changes": [
+     "CF-007",
+     "SEP-006-A4 (условная)",
+     "подпись Q24 скрыта при активной SEP-006-A1"
+    ]
+   },
    "protocol_conflicts": [
-    "CF-005"
+    "CF-005",
+    "CF-007"
    ]
   },
   {
@@ -6235,6 +7021,29 @@
      "scope": "requirement",
      "decision_by": "врач-эксперт",
      "decision": null
+    },
+    {
+     "id": "SEP-008-A3",
+     "text": "Курс завершён, длительность больше 5 календарных суток, но не больше 120 часов (время первой и последней дозы документировано): оценки по календарным суткам и по часам расходятся. Автоматического «отличается» нет — требуется экспертное решение; методика подсчёта длительности — Q14.",
+     "blocking": "when",
+     "scope": "requirement",
+     "decision_by": "врач-эксперт",
+     "decision": null,
+     "blocks_when": {
+      "all": [
+       {
+        "field": "abx_course_days",
+        "op": "gt",
+        "value": 5
+       },
+       {
+        "field": "abx_course_hours",
+        "op": "lte",
+        "value": 120
+       }
+      ]
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
     }
    ],
    "status": "кандидат, ожидает экспертного подтверждения",
@@ -6249,7 +7058,9 @@
     "drug_changes",
     "interruptions",
     "abx_drug_change_count",
-    "abx_interruption_count"
+    "abx_interruption_count",
+    "abx_course_started_at",
+    "abx_course_ended_at"
    ],
    "card_labels": [
     {
@@ -6263,6 +7074,34 @@
        "late"
       ]
      }
+    },
+    {
+     "id": "course_duration",
+     "label": "Длительность курса: {abx_course_days} календарных сут, {abx_course_hours} ч; первая доза — {abx_course_started_at}, последняя — {abx_course_ended_at}",
+     "when": {
+      "field": "abx_course_hours",
+      "op": "present"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    },
+    {
+     "id": "days_hours_diverge",
+     "label": "Расхождение способов подсчёта: {abx_course_days} календарных сут, но {abx_course_hours} ч (не более 120 ч) — экспертное решение, методика — Q14",
+     "when": {
+      "all": [
+       {
+        "field": "abx_course_days",
+        "op": "gt",
+        "value": 5
+       },
+       {
+        "field": "abx_course_hours",
+        "op": "lte",
+        "value": 120
+       }
+      ]
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
     }
    ],
    "revision": {
@@ -6276,6 +7115,19 @@
     "model_changes": [
      "M1",
      "M2"
+    ]
+   },
+   "revision_round3": {
+    "schema": "rules-0.3",
+    "date": "2026-11-20",
+    "round3_decision": "Изменить",
+    "decided_by": "Ислам М.И. (врач-эксперт)",
+    "basis": [
+     "решение врача 19.11.2026 20:01 и 20:06"
+    ],
+    "changes": [
+     "SEP-008-A3 (условная)",
+     "показ суток, часов и отметок"
     ]
    },
    "protocol_conflicts": []
@@ -6435,7 +7287,9 @@
     "drug_changes",
     "interruptions",
     "abx_drug_change_count",
-    "abx_interruption_count"
+    "abx_interruption_count",
+    "abx_course_started_at",
+    "abx_course_ended_at"
    ],
    "revision": {
     "schema": "rules-0.2",
@@ -6447,6 +7301,50 @@
     ],
     "model_changes": [
      "M2"
+    ]
+   },
+   "card_labels": [
+    {
+     "id": "a2_benzylpenicillin_info",
+     "label": "Схема бензилпенициллин + гентамицин: правило машинно применяется только к ампициллину + гентамицину; распространяется ли положение на эту схему — вопрос SEP-009-A2 (информационно, без блокировки)",
+     "when": {
+      "all": [
+       {
+        "field": "empirical_regimen",
+        "op": "eq",
+        "value": "benzylpenicillin+gentamicin"
+       },
+       {
+        "field": "blood_culture_result",
+        "op": "eq",
+        "value": "положительный"
+       }
+      ]
+     },
+     "show_when_not_applicable": true,
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    },
+    {
+     "id": "course_duration",
+     "label": "Длительность курса: {abx_course_days} календарных сут, {abx_course_hours} ч; первая доза — {abx_course_started_at}, последняя — {abx_course_ended_at}",
+     "when": {
+      "field": "abx_course_hours",
+      "op": "present"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    }
+   ],
+   "revision_round3": {
+    "schema": "rules-0.3",
+    "date": "2026-11-20",
+    "round3_decision": "Утвердить поведение (реализована информационная подпись)",
+    "decided_by": "Ислам М.И. (врач-эксперт)",
+    "basis": [
+     "решение врача 19.11.2026 20:11"
+    ],
+    "changes": [
+     "информационная подпись SEP-009-A2",
+     "показ суток, часов и отметок"
     ]
    },
    "protocol_conflicts": [
@@ -6544,7 +7442,8 @@
    "exceptions_and_caveats": [
     "Положение относится к разделу «без менингита»; при неизвестном статусе менингита правило не оценивается.",
     "Продолжение более 7 дней «может быть рассмотрено» (ребёнок не выздоровел; возбудитель; сопутствующие НЭК, остеомиелит, катетер-ассоциированная инфекция) — стр. 15.",
-    "Редакция врача (19.11.2026): запись о причине продления не равна доказанной обоснованности выбранной длительности; отсутствие текста обоснования в доступных материалах — «Обоснование не найдено в доступной документации», а не «показаний не было»."
+    "Редакция врача (19.11.2026): запись о причине продления не равна доказанной обоснованности выбранной длительности; отсутствие текста обоснования в доступных материалах — «Обоснование не найдено в доступной документации», а не «показаний не было».",
+    "Решение врача 19.11.2026: продление более 7 суток не утверждается при расхождении календарных суток и часов до решения Q14; показываются сутки, часы, первая и последняя доза."
    ],
    "required_data": [
     {
@@ -6601,10 +7500,19 @@
     {
      "id": "SEP-010-A1",
      "text": "См. SEP-009 (10 дней при положительном посеве).",
-     "blocking": "always",
+     "blocking": "when",
      "scope": "requirement",
      "decision_by": "врач-эксперт",
-     "decision": null
+     "decision": null,
+     "blocks_when": {
+      "field": "blood_culture_result",
+      "op": "eq",
+      "value": "положительный"
+     },
+     "machine_note": "С rules-0.3 неоднозначность 7/10 суток (CF-002) действует только при положительном посеве; A2 («ровно 7 или не более 7») остаётся постоянной.",
+     "round3_changes": [
+      "blocking: always → when (положительный посев)"
+     ]
     },
     {
      "id": "SEP-010-A2",
@@ -6636,7 +7544,10 @@
     "drug_changes",
     "interruptions",
     "abx_drug_change_count",
-    "abx_interruption_count"
+    "abx_interruption_count",
+    "abx_course_started_at",
+    "abx_course_ended_at",
+    "daily_clinical_exam_status"
    ],
    "card_labels": [
     {
@@ -6650,7 +7561,7 @@
     },
     {
      "id": "extension_documented",
-     "label": "Продление документировано. Требуется экспертная оценка клинического обоснования",
+     "label": "Указана причина продления ({extension_reason_count} из перечня стр. 15) — запись причины не доказывает обоснованность выбранной длительности",
      "when": {
       "all": [
        {
@@ -6664,7 +7575,10 @@
         "value": 1
        }
       ]
-     }
+     },
+     "round3_changes": [
+      "подпись разделена: причина продления отдельно от клинического обоснования (Т2)"
+     ]
     },
     {
      "id": "extension_not_found",
@@ -6686,7 +7600,7 @@
     },
     {
      "id": "daily_exam",
-     "label": "Продление более 7 суток при отрицательном посеве: показано, документирован ли клинический осмотр не реже 1 раза в 24 ч",
+     "label": "Продление более 7 суток при отрицательном посеве: ежедневный клинический осмотр (не реже 1 раза в 24 ч) — документирован",
      "when": {
       "all": [
        {
@@ -6698,9 +7612,17 @@
         "field": "blood_culture_result",
         "op": "eq",
         "value": "отрицательный"
+       },
+       {
+        "field": "daily_clinical_exam_status",
+        "op": "eq",
+        "value": "documented"
        }
       ]
-     }
+     },
+     "round3_changes": [
+      "осмотр: три состояния (Т2)"
+     ]
     },
     {
      "id": "shorter_than_7",
@@ -6724,6 +7646,82 @@
        "sha256": "9ee95d1a2c134ce15f72f84d4cc363b3f2f8769fc10b15452007c60c16066b73"
       }
      ]
+    },
+    {
+     "id": "extension_justification_found",
+     "label": "Клиническое обоснование продления найдено в документации — его достаточность оценивает эксперт",
+     "when": {
+      "all": [
+       {
+        "field": "abx_course_days",
+        "op": "gt",
+        "value": 7
+       },
+       {
+        "field": "extension_justification_status",
+        "op": "eq",
+        "value": "found"
+       }
+      ]
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    },
+    {
+     "id": "daily_exam_not_documented",
+     "label": "Продление более 7 суток при отрицательном посеве: ежедневный клинический осмотр (не реже 1 раза в 24 ч) — не документирован",
+     "when": {
+      "all": [
+       {
+        "field": "abx_course_days",
+        "op": "gt",
+        "value": 7
+       },
+       {
+        "field": "blood_culture_result",
+        "op": "eq",
+        "value": "отрицательный"
+       },
+       {
+        "field": "daily_clinical_exam_status",
+        "op": "eq",
+        "value": "not_documented"
+       }
+      ]
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    },
+    {
+     "id": "daily_exam_no_record",
+     "label": "Продление более 7 суток при отрицательном посеве: о ежедневном клиническом осмотре нет записи",
+     "when": {
+      "all": [
+       {
+        "field": "abx_course_days",
+        "op": "gt",
+        "value": 7
+       },
+       {
+        "field": "blood_culture_result",
+        "op": "eq",
+        "value": "отрицательный"
+       },
+       {
+        "field": "daily_clinical_exam_status",
+        "op": "eq",
+        "value": "no_record"
+       }
+      ]
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    },
+    {
+     "id": "course_duration",
+     "label": "Длительность курса: {abx_course_days} календарных сут, {abx_course_hours} ч; первая доза — {abx_course_started_at}, последняя — {abx_course_ended_at}",
+     "when": {
+      "field": "abx_course_hours",
+      "op": "present"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
     }
    ],
    "revision": {
@@ -6738,6 +7736,23 @@
     ],
     "model_changes": [
      "M2"
+    ]
+   },
+   "revision_round3": {
+    "schema": "rules-0.3",
+    "date": "2026-11-20",
+    "round3_decision": "Изменить",
+    "decided_by": "Ислам М.И. (врач-эксперт)",
+    "basis": [
+     "решение врача 19.11.2026 (пакет 21:23)",
+     "Т1",
+     "Т2"
+    ],
+    "changes": [
+     "SEP-010-A1: постоянная → условная (положительный посев)",
+     "причина и обоснование продления раздельно",
+     "осмотр: три состояния",
+     "подписи только при применимости (engine)"
     ]
    },
    "protocol_conflicts": [
