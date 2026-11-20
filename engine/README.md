@@ -6,6 +6,18 @@
 - `audit.html` — интерфейс аудита. Открыть в браузере (рядом должен лежать `deviation-engine.js`). Кнопка «Загрузить синтетический пример» показывает весь сценарий.
 - `test/deviation.test.js` — 34 синтетических случая и проверки порогов, подтверждений, полноты реестра, черновика, устаревания, валидации, журнала, неизменности входа (55 тестов).
 
+## Применение базы правил (этапы 5–6)
+
+- `rules-engine.js` — применяет `rules/pilot-rules.json` к синтетическому случаю; никогда не выдаёт окончательного вывода (`final_conclusion: null`). В браузере сначала подключить `derive.js` (`window.RulesDerive`), затем `rules-engine.js` (`window.RulesEngine`).
+- `derive.js` — вычисляемые поля и хронология по отметкам времени (этап 6, M2/M3).
+- `test/rules.test.js` (этап 5), `test/stage6.test.js` (инварианты и приёмочные тесты этапа 6), `test/scenarios-117.test.js` (117 сценариев архива экспертизы).
+- Третий круг: `test/round3.test.js` (приёмочные тесты решений врача 20.11.2026), `test/regression-171.test.js` (171 случай: неперечисленные — как на 2eeb6ae, перечисленные — по явному списку), `test/fixtures/cases-171.json` и `baseline-171-2eeb6ae.json` (замороженные входы и отпечатки), `test/mutation-check.js` (31 мутация), `test/regression-b6b9999.test.js` + `test/fixtures/baseline-171-b6b9999.json` (снимок 171 случая по всем 30 правилам, снятый кодом коммита b6b9999 через `test/tools/freeze-baseline-171.js`; тест воспроизводит снимок из истории git), `test/ui/rules-card.scenario.js` (карточки базы правил в браузере; `audit.html` их не показывает — это интерфейс модуля отклонений).
+
+```js
+const out = RulesEngine.evaluate(db, { synthetic: true, data, sources, justifications }, { expert_decisions });
+// out.results[i].observation, .parts, .card (карточка эксперта: подписи, цитаты, факты, хронология, недостающие данные)
+```
+
 ## Запуск тестов
 
 ```
