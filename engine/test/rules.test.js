@@ -252,12 +252,14 @@ test('Сепсис: иммуноглобулин без отдельного п�
 
 test('Сепсис: бензилпенициллин 25 мг/кг каждые 8 ч при очень тяжёлом состоянии — допускается оговоркой', () => {
   // Решение врача 20.11.2026, п. 1 (rules-0.3): режим совпадает с текстом п. 6, но доза в мг/кг не сопоставима
-  // с таблицей стр. 18 (Ед/кг) — CF-006, неоднозначность SEP-005-A3, а не «совпадает».
+  // с таблицей стр. 18 (Ед/кг) — неоднозначность SEP-005-A3, а не «совпадает».
   const out = run({ early_onset_sepsis_suspected: true, benzylpenicillin_given: true, meningitis: false, benzylpenicillin_dose_mg_kg: 25, benzylpenicillin_interval_h: 8, very_severe_condition: true });
   const r = res(out, 'SEP-005');
   assert.equal(r.observation, E.OBS.AMBIGUOUS_PENDING);
   assert.deepEqual(r.active_ambiguities, ['SEP-005-A3']);
-  assert.ok(out.conflicts.some(c => c.id === 'CF-006'));
+  // исправление после проверки (п. 3): единицы несопоставимы — расхождение не установлено; CF-006 только связано с правилом
+  assert.ok(!out.conflicts.some(c => c.id === 'CF-006'));
+  assert.ok(r.protocol_conflicts.includes('CF-006'));
 });
 
 test('Сепсис: доза гентамицина 4 мг/кг без НЭК — неоднозначность п. 7a/7b (SEP-006-A3), 3 мг/кг — отличие; при НЭК — неоднозначность доз и противоречие протоколов', () => {

@@ -60,28 +60,42 @@ test('контроль: изменены записи ровно 12 правил
   for (const id of ['RDS-001', 'RDS-002', 'RDS-004', 'RDS-005', 'RDS-006']) assert.ok(!('revision_round3' in DB.rules.find(r => r.rule_id === id)), id);
 });
 
-test('контроль: новых нормативных порогов длительности нет (Q14) — единственный порог в часах — 120 ч SEP-008-A3 по решению врача', () => {
+test('контроль: новых нормативных порогов длительности нет (Q14) — порог в часах для исхода только 120 ч SEP-008-A3; 168 ч — только выбор подписи SEP-010', () => {
   const hits = [];
-  const walk = (n, where) => { if (!n) return; if (n.all || n.any) (n.all || n.any).forEach(x => walk(x, where)); else if (/_hours$|_days$/.test(n.field) && /^abx_course/.test(n.field)) hits.push([where, n.field, n.op, n.value]); };
+  const walk = (n, where) => { if (!n) return; if (n.all || n.any) (n.all || n.any).forEach(x => walk(x, where)); else if (/_hours(_exact)?$|_days$/.test(n.field) && /^abx_course/.test(n.field)) hits.push([where, n.field, n.op, n.value]); };
   for (const r of DB.rules) {
     walk(r.requirement.check, r.rule_id); (r.requirement.parts || []).forEach(p => walk(p.check, r.rule_id));
     r.ambiguities.forEach(a => walk(a.blocks_when, a.id)); (r.card_labels || []).forEach(c => walk(c.when, r.rule_id + ':' + c.id));
   }
-  const hourHits = hits.filter(h => h[1] === 'abx_course_hours' && h[3] !== undefined);
-  assert.deepEqual([...new Set(hourHits.map(h => h[3]))], [120]);
-  assert.ok(hourHits.every(h => /^SEP-008/.test(h[0])));
+  const hourHits = hits.filter(h => /^abx_course_hours/.test(h[1]) && h[3] !== undefined);
+  assert.deepEqual([...new Set(hourHits.map(h => h[3]))].sort((a, b) => a - b), [120, 168]);
+  assert.ok(hourHits.filter(h => h[3] === 120).every(h => /^SEP-008/.test(h[0])));
+  assert.ok(hourHits.filter(h => h[3] === 168).every(h => /^SEP-010:/.test(h[0]))); // только условия подписей карточки
+  assert.ok(hourHits.every(h => h[1] === 'abx_course_hours_exact')); // точная, неокруглённая длительность
 });
 
 // =================== Р1: SEP-005 / CF-006 (бензилпенициллин) ===================
-test('Р1 SEP-005: ТАБ-B1–B5 — ни «отличается», ни «совпадает»: SEP-005-A3 и CF-006', () => {
+test('Р1 SEP-005: ТАБ-B1–B5 — ни «отличается», ни «совпадает»: SEP-005-A3; CF-006 активно только при установленном расхождении', () => {
   for (const id of ['ТАБ-B1', 'ТАБ-B2', 'ТАБ-B3', 'ТАБ-B4', 'ТАБ-B5']) {
     const o = tab(id), r = res(o, 'SEP-005');
     assert.equal(r.observation, O.AMBIGUOUS_PENDING, id);
     assert.deepEqual(r.active_ambiguities, ['SEP-005-A3'], id);
+    assert.ok(r.protocol_conflicts.includes('CF-006'), id); // связанное противоречие показано всегда
+  }
+  // B4 (25 мг/кг каждые 12 ч) и B5 (50 000 Ед/кг каждые 8 ч) — расхождение установлено по интервалу: CF-006 активно
+  for (const id of ['ТАБ-B4', 'ТАБ-B5']) {
+    const o = tab(id), r = res(o, 'SEP-005');
     assert.ok(cfs(o).includes('CF-006'), id);
-    assert.ok(ids(r).includes('sources_diverge'), id);
-    const q = lab(r, 'sources_diverge').quotes;
-    assert.deepEqual([...new Set(q.map(x => x.page))].sort((a, b) => a - b), [12, 13, 18], id);
+    assert.ok(ids(r).includes('sources_diverge') && !ids(r).includes('table_not_comparable'), id);
+    assert.deepEqual([...new Set(lab(r, 'sources_diverge').quotes.map(x => x.page))].sort((a, b) => a - b), [12, 13, 18], id);
+  }
+  // B1–B3 (доза только в мг/кг при интервале таблицы) — единицы несопоставимы: расхождение не утверждается, CF-006 не активно
+  for (const id of ['ТАБ-B1', 'ТАБ-B2', 'ТАБ-B3']) {
+    const o = tab(id), r = res(o, 'SEP-005');
+    assert.ok(!cfs(o).includes('CF-006'), id);
+    assert.ok(ids(r).includes('table_not_comparable') && !ids(r).includes('sources_diverge'), id);
+    assert.equal(o.derived.values.benzylpenicillin_dose_units_not_comparable, true, id);
+    assert.equal(o.derived.values.benzylpenicillin_regimen_sources_diverge, false, id);
   }
 });
 
@@ -109,11 +123,22 @@ test('Р1 SEP-005: CF-006 — не постоянная блокировка: р
   assert.equal(res(o4, 'SEP-005').observation, O.NOT_APPLICABLE); assert.ok(!cfs(o4).includes('CF-006'));
 });
 
-test('Р1 SEP-005: совпадение и с текстом, и с таблицей (25 мг/кг и 50 000 Ед/кг каждые 8 ч при очень тяжёлом) — расхождения нет', () => {
+test('Проверка п. 3 SEP-005: 25 мг/кг и 50 000 Ед/кг каждые 8 ч при очень тяжёлом — эквивалентность записей не подтверждается', () => {
   const o = run(BZ({ benzylpenicillin_dose_mg: 75, benzylpenicillin_dose_units_per_kg: 50000, benzylpenicillin_interval_h: 8, very_severe_condition: true }));
+  const r = res(o, 'SEP-005');
+  assert.equal(r.observation, O.AMBIGUOUS_PENDING);
+  assert.deepEqual(r.active_ambiguities, ['SEP-005-A3']);
+  assert.notEqual(r.observation, O.CONSISTENT);
+  assert.ok(!cfs(o).includes('CF-006')); assert.ok(r.protocol_conflicts.includes('CF-006'));
   assert.equal(o.derived.values.benzylpenicillin_regimen_sources_diverge, false);
-  assert.equal(res(o, 'SEP-005').observation, O.CONSISTENT);
-  assert.ok(!cfs(o).includes('CF-006'));
+  assert.equal(o.derived.values.benzylpenicillin_dose_units_not_comparable, true);
+  assert.equal(o.derived.values.benzylpenicillin_dose_units_equivalence, 'не подтверждена');
+  assert.equal(lab(r, 'dose_units_equivalence_unverified').text, 'Доза записана и в мг/кг (25 мг/кг), и в Ед/кг (50000 Ед/кг): эквивалентность записей без проверенного коэффициента не подтверждается, пересчёт не выполняется');
+  assert.equal(o.derived.values.benzylpenicillin_dose_per_kg, 25); // мг/кг не заменены пересчётом из Ед/кг
+  // обе единицы, интервал 12 ч: совпадение с текстом по интервалу и дозе в мг/кг, таблица (8 ч) противоречит — расхождение установлено
+  const o2 = run(BZ({ benzylpenicillin_dose_mg: 75, benzylpenicillin_dose_units_per_kg: 50000, benzylpenicillin_interval_h: 12 }));
+  assert.ok(cfs(o2).includes('CF-006'));
+  assert.notEqual(res(o2, 'SEP-005').observation, O.CONSISTENT);
 });
 
 // =================== Р1: SEP-006 / CF-007 (гентамицин) ===================
@@ -358,4 +383,69 @@ test('словарь: новые поля описаны; вычисляемые
   assert.deepEqual(dict, [...D.DERIVED_FIELDS].sort());
   const o = run(BZ({ benzylpenicillin_dose_mg: 90, benzylpenicillin_interval_h: 12, benzylpenicillin_regimen_sources_diverge: false }));
   assert.ok(o.derived.manual_values_ignored.includes('benzylpenicillin_regimen_sources_diverge'));
+});
+
+// =================== Исправления после независимой проверки (20.11.2026, пп. 1–5) ===================
+test('Проверка п. 1 SEP-006-A4: блокируется только расходящаяся часть; CF-007 и общий осторожный исход сохраняются (G1–G9)', () => {
+  const EXP = { // [доза, интервал]: 'ok' — совпадает; иначе список неоднозначностей части
+    'ТАБ-G1': ['ok', ['SEP-006-A4']], 'ТАБ-G2': ['ok', ['SEP-006-A4']],
+    'ТАБ-G3': [['SEP-006-A3', 'SEP-006-A4'], 'ok'], 'ТАБ-G4': [['SEP-006-A3', 'SEP-006-A4'], 'ok'],
+    'ТАБ-G5': [['SEP-006-A3', 'SEP-006-A4'], ['SEP-006-A3', 'SEP-006-A4']], 'ТАБ-G6': [['SEP-006-A3', 'SEP-006-A4'], 'ok'],
+    'ТАБ-G7': [['SEP-006-A3', 'SEP-006-A4'], ['SEP-006-A3', 'SEP-006-A4']], 'ТАБ-G8': [['SEP-006-A3', 'SEP-006-A4'], ['SEP-006-A3', 'SEP-006-A4']],
+    'ТАБ-G9': [['SEP-006-A4'], ['SEP-006-A4']] };
+  for (const [id, [d, i]] of Object.entries(EXP)) {
+    const o = tab(id), r = res(o, 'SEP-006');
+    assert.equal(r.observation, O.AMBIGUOUS_PENDING, id);
+    assert.ok(cfs(o).includes('CF-007'), id);
+    for (const [pid, exp] of [['dose', d], ['interval', i]]) {
+      const p = part(r, pid);
+      if (exp === 'ok') { assert.equal(p.observation, O.CONSISTENT, `${id} ${pid}`); assert.deepEqual(p.active_ambiguities, [], `${id} ${pid}`); }
+      else { assert.equal(p.observation, O.AMBIGUOUS_PENDING, `${id} ${pid}`); assert.deepEqual(p.active_ambiguities, exp, `${id} ${pid}`); }
+    }
+  }
+  // вне фиксированных случаев: расходится только доза (4,5 мг/кг при 32 нед, 3 сут) — интервал 36 ч оценивается и совпадает
+  const r2 = ev('SEP-006', GM({ gentamicin_dose_mg: 4.5, weight_kg: 1, gentamicin_interval_h: 36, gestational_age_weeks: 32, postnatal_age_days: 3 }));
+  assert.equal(part(r2, 'interval').observation, O.CONSISTENT);
+});
+
+const S10X = (end) => S10(Object.assign({ blood_culture_result: 'отрицательный', high_risk_factors: true, extension_reason: ['nec'], extension_justification_status: 'found' }, COURSE(at(1, '10:00'), end)));
+test('Проверка п. 2 SEP-010: 168 ч при 8 календарных датах — нейтральная подпись с обоими значениями и Q14, без «Продление более 7 суток»', () => {
+  const r = ev('SEP-010', S10X(at(8, '10:00')));
+  assert.equal(r.observation, O.AMBIGUOUS_PENDING); assert.deepEqual(r.active_ambiguities, ['SEP-010-A2']);
+  for (const id of ['extension_documented', 'extension_not_found', 'extension_justification_found', 'daily_exam', 'daily_exam_not_documented', 'daily_exam_no_record'])
+    assert.ok(!ids(r).includes(id), id);
+  assert.ok(!r.card.labels.some(l => /Продление более 7 суток/.test(l.text)));
+  assert.equal(lab(r, 'counts_diverge_7').text, 'По календарным суткам — 8 сут, по часам — 168 ч (не более 168 ч = 7 × 24): превышение 7 суток не установлено, нарушение или обоснованность продления не оцениваются — методика подсчёта, Q14');
+  // 168 ч 10 с (точная длительность) — обе оценки больше 7 суток: подписи о продлении показываются
+  const r2 = ev('SEP-010', S10X('2026-01-08T10:00:10+05:00'));
+  assert.ok(!ids(r2).includes('counts_diverge_7'));
+  assert.ok(ids(r2).includes('extension_documented') && ids(r2).includes('daily_exam_no_record'));
+  assert.equal(r2.observation, O.AMBIGUOUS_PENDING);
+});
+
+test('Проверка п. 4 NEC-005: прекращение ПП и начало НЭК в одно время — порядок не установлен, «Недостаточно данных», без подписи «до НЭК»', () => {
+  const o = run(PN({ pn_started_at: at(1, '10:00'), pn_stopped_at: at(5, '10:00') }));
+  const r = res(o, 'NEC-005');
+  assert.equal(r.observation, O.NOT_ASSESSED);
+  assert.ok(!ids(r).includes('pn_stopped_before_onset'));
+  assert.ok(ids(r).includes('pn_stop_onset_same_time'));
+  assert.equal(o.derived.reasons.pn_stopped_before_nec_onset, D.REASON.SAME_TIME);
+  // и при ручной отметке «ПП шло на момент НЭК» — не «совпадает»
+  assert.notEqual(ev('NEC-005', PN({ pn_running_at_nec_onset: true, pn_started_at: at(1, '10:00'), pn_stopped_at: at(5, '10:00') })).observation, O.CONSISTENT);
+  // на минуту раньше — прекращено до начала НЭК (как раньше); на минуту позже — проводилось
+  assert.ok(ids(ev('NEC-005', PN({ pn_started_at: at(1, '10:00'), pn_stopped_at: at(5, '09:59') }))).includes('pn_stopped_before_onset'));
+  assert.equal(ev('NEC-005', PN({ pn_started_at: at(1, '10:00'), pn_stopped_at: at(5, '10:01') })).observation, O.CONSISTENT);
+});
+
+test('Проверка п. 5 SEP-008-A3: ровно 120 ч — экспертное решение; 120 ч 10 с — предварительное «отличается»; показ — 4 знака', () => {
+  const e120 = run(S8(COURSE(at(1, '18:00'), at(6, '18:00'))));
+  assert.equal(e120.derived.values.abx_course_days, 6); assert.equal(e120.derived.values.abx_course_hours_exact, 120);
+  assert.deepEqual(res(e120, 'SEP-008').active_ambiguities, ['SEP-008-A3']);
+  const e120s = run(S8(COURSE(at(1, '18:00'), '2026-01-06T18:00:10+05:00')));
+  const r = res(e120s, 'SEP-008');
+  assert.ok(e120s.derived.values.abx_course_hours_exact > 120);
+  assert.deepEqual(r.active_ambiguities, []); assert.equal(r.observation, O.DIFFERS);
+  assert.equal(e120s.derived.values.abx_course_hours, 120.0028);
+  assert.match(lab(r, 'course_duration').text, /6 календарных сут, 120,0028 ч/);
+  assert.ok(!ids(r).includes('days_hours_diverge'));
 });

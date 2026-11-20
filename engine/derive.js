@@ -287,14 +287,16 @@
     // Курс АБТ (NEC-008, SEP-008, SEP-009, SEP-010): календарные сутки от первой до последней дозы
     // (Q14 открыт; по умолчанию — календарные сутки, перерывы и смены препарата только показываются).
     (function () {
-      const names = ['abx_course_days', 'abx_course_hours'];
+      const names = ['abx_course_days', 'abx_course_hours', 'abx_course_hours_exact'];
       const a = T('abx_course_started_at'), b = T('abx_course_ended_at');
       if (data.course_completed === false) names.forEach(n => why(n, REASON.COURSE_RUNNING));
       else if (data.course_completed !== true) names.forEach(n => why(n, REASON.COURSE_STATUS_UNKNOWN));
       else if (a.reason || b.reason) names.forEach(n => why(n, a.reason || b.reason));
       else if (b.ms < a.ms) names.forEach(n => why(n, REASON.CONTRADICTORY));
       else {
-        set('abx_course_hours', hours(a, b));
+        // Исправление после проверки (20.11.2026, п. 5): условия сравнивают точную длительность; показ — 4 знака.
+        set('abx_course_hours_exact', (b.ms - a.ms) / 3600000);
+        set('abx_course_hours', round((b.ms - a.ms) / 3600000, 4));
         const dp = dayPair(a, b, data);
         if (dp.reason) why('abx_course_days', dp.reason); else set('abx_course_days', dp.b - dp.a + 1);
       }
@@ -440,11 +442,32 @@
       else if (units !== null) table = units === BENZ_TABLE.units_per_kg ? 'matches' : 'differs';
       else table = 'not_comparable'; // интервал как в таблице, доза записана не в Ед/кг
       if (table) set('benzylpenicillin_table_regimen_status', table);
-      let dv = null;
-      if ((textM === true && table && table !== 'matches') || (table === 'matches' && textM !== true) || (textM === false && table === 'not_comparable')) dv = true;
-      else if (textM !== null && table) dv = false;
-      if (dv === null) why('benzylpenicillin_regimen_sources_diverge', 'недостаточно данных для сверки текста п. 6 и таблицы стр. 18');
-      else set('benzylpenicillin_regimen_sources_diverge', dv);
+      // Исправление после проверки (20.11.2026, п. 3): расхождение положений считается УСТАНОВЛЕННЫМ (CF-006 активно)
+      // только по интервалу — назначение полностью совпадает с одним положением, а интервал другого ему противоречит.
+      // Невозможность сопоставить дозу (не те единицы или записаны обе без проверенного коэффициента) — отдельный признак:
+      // экспертная неоднозначность SEP-005-A3 без утверждения о доказанном расхождении.
+      if (iv === null) {
+        why('benzylpenicillin_regimen_sources_diverge', 'нет интервала введения');
+        why('benzylpenicillin_dose_units_not_comparable', 'нет интервала введения');
+        return;
+      }
+      const textInt = or3(eqn(iv, 12), and3(bool(data, 'very_severe_condition'), eqn(iv, 8)));
+      const tableInt = iv === BENZ_TABLE.interval;
+      const textDose = dose === null ? null : eqn(dose, 25);
+      const tableDose = units === null ? null : units === BENZ_TABLE.units_per_kg;
+      const both = dose !== null && units !== null;
+      const textAll = both ? null : and3(textDose, textInt), tableAll = both ? null : and3(tableDose, tableInt);
+      const established = (textAll === true && tableInt === false) || (tableAll === true && textInt === false) ||
+        (both && textDose === true && textInt === true && tableInt === false) || (both && tableDose === true && tableInt === true && textInt === false);
+      set('benzylpenicillin_regimen_sources_diverge', established);
+      let nc = false;
+      if (!established) {
+        if (both) nc = (textDose === true && textInt !== false) || (tableDose === true && tableInt);
+        else if (dose !== null) nc = tableInt && (textAll !== false || units === null); // интервал таблицы, доза только в мг/кг
+        else if (units !== null) nc = textInt === true; // интервал текста, доза только в Ед/кг
+      }
+      set('benzylpenicillin_dose_units_not_comparable', nc);
+      if (both) set('benzylpenicillin_dose_units_equivalence', 'не подтверждена');
     })();
 
     // --- SEP-006 / CF-007: гентамицин — текст п. 7 (стр. 12–13) и возрастные режимы таблицы (стр. 18).
@@ -471,9 +494,16 @@
       const tableM = rows.some(r => round(dose, 6) === r.dose && iv === r.interval);
       set('gentamicin_table_regimen_match', tableM);
       // Расхождение — только когда сверка с таблицей выполнена: назначение совпадает с одним положением и не совпадает с другим.
-      if ((textM === true && tableM === false) || (tableM === true && textM !== true)) set('gentamicin_regimen_sources_diverge', true);
+      const diverge = (textM === true && tableM === false) || (tableM === true && textM !== true);
+      if (diverge) set('gentamicin_regimen_sources_diverge', true);
       else if (textM !== null) set('gentamicin_regimen_sources_diverge', false);
       else why('gentamicin_regimen_sources_diverge', 'недостаточно данных для сверки с текстом п. 7');
+      // Исправление после проверки (20.11.2026, п. 1): по частям — параметр расходится, если совпадает ровно с одним положением.
+      const textDoseOk = eqn(dose, 5);
+      const textIvOk = or3(eqn(iv, 36), and3(iv < 36, bool(data, 'very_ill'), bool(data, 'gram_negative_culture')));
+      const tDose = rows.some(r => round(dose, 6) === r.dose), tIv = rows.some(r => iv === r.interval);
+      set('gentamicin_dose_sources_diverge', diverge && textDoseOk !== null && textDoseOk !== tDose);
+      set('gentamicin_interval_sources_diverge', diverge && textIvOk !== null && textIvOk !== tIv);
     })();
 
     // --- NEC-004: два отсчёта «не ранее 7-го дня» (от начала и от подтверждения НЭК).
@@ -496,7 +526,15 @@
         return;
       }
       if (on.reason) { why('pn_stopped_before_nec_onset', on.reason); return; }
-      const before = st.ms <= on.ms;
+      // Исправление после проверки (20.11.2026, п. 4): одинаковые отметки — порядок событий не установлен.
+      if (st.ms === on.ms) {
+        why('pn_stopped_before_nec_onset', REASON.SAME_TIME);
+        set('pn_stop_onset_same_time', true);
+        if (has(data, 'pn_start_illness_day')) { delete data.pn_start_illness_day; why('pn_start_illness_day', REASON.SAME_TIME); }
+        if (has(data, 'pn_running_at_nec_onset')) { delete data.pn_running_at_nec_onset; why('pn_running_at_nec_onset', REASON.SAME_TIME); }
+        return;
+      }
+      const before = st.ms < on.ms;
       set('pn_stopped_before_nec_onset', before);
       if (before) {
         const r = 'записанный курс ПП прекращён до начала НЭК — на момент заболевания не проводился; новый курс не записан';
@@ -552,7 +590,8 @@
     'gentamicin_text_regimen_match', 'gentamicin_table_check_status', 'gentamicin_table_band', 'gentamicin_table_boundary',
     'gentamicin_table_regimen_match', 'gentamicin_regimen_sources_diverge', 'nec_day_counts_disagree', 'pn_stopped_before_nec_onset',
     'intubation_needed_status', 'surfactant_fio2_indication_status', 'blood_culture_before_antibiotics_resolved', 'blood_culture_before_antibiotics_basis',
-    'daily_clinical_exam_status'
+    'daily_clinical_exam_status', 'benzylpenicillin_dose_units_not_comparable', 'benzylpenicillin_dose_units_equivalence', 'abx_course_hours_exact',
+    'pn_stop_onset_same_time', 'gentamicin_dose_sources_diverge', 'gentamicin_interval_sources_diverge'
   ]);
 
   // Хронология для карточки эксперта: все поля *_at и отметки внутри списков.

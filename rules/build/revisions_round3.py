@@ -54,6 +54,18 @@ R3_DATA = {
      ['blood_culture_before_antibiotics', 'culture_drawn_before_first_dose'], None),
  'blood_culture_before_antibiotics_basis': ('Основа значения «посев до первой дозы»: manual — ручная запись, computed — вычислено по отметкам, conflict — ручная запись противоречит отметкам (вычисляется)', 'значение', 'derived',
      ['blood_culture_before_antibiotics', 'culture_drawn_before_first_dose'], ['manual', 'computed', 'conflict']),
+ 'benzylpenicillin_dose_units_not_comparable': ('Назначение нельзя сопоставить с текстом п. 6 и таблицей стр. 18 из-за единиц дозы (мг/кг против Ед/кг или записаны обе без проверенного коэффициента); расхождение не установлено (вычисляется)', 'да/нет', 'derived',
+     ['benzylpenicillin_dose_per_kg', 'benzylpenicillin_dose_units_per_kg', 'benzylpenicillin_interval_h', 'very_severe_condition'], None),
+ 'benzylpenicillin_dose_units_equivalence': ('Эквивалентность записей дозы в мг/кг и Ед/кг: «не подтверждена» — без проверенного коэффициента (вычисляется, показывается)', 'текст', 'derived',
+     ['benzylpenicillin_dose_per_kg', 'benzylpenicillin_dose_units_per_kg'], None),
+ 'gentamicin_dose_sources_diverge': ('Часть «доза»: доза совпадает ровно с одним положением (текст п. 7 или таблица стр. 18) при установленном расхождении режима (вычисляется)', 'да/нет', 'derived',
+     ['gentamicin_text_regimen_match', 'gentamicin_table_regimen_match'], None),
+ 'gentamicin_interval_sources_diverge': ('Часть «интервал»: интервал совпадает ровно с одним положением (текст п. 7 или таблица стр. 18) при установленном расхождении режима (вычисляется)', 'да/нет', 'derived',
+     ['gentamicin_text_regimen_match', 'gentamicin_table_regimen_match'], None),
+ 'abx_course_hours_exact': ('Длительность курса в часах без округления — для условий (вычисляется; показывается abx_course_hours, 4 знака)', 'часы', 'derived',
+     ['abx_course_started_at', 'abx_course_ended_at', 'course_completed'], None),
+ 'pn_stop_onset_same_time': ('Время прекращения ПП совпадает со временем начала НЭК — порядок событий не установлен (вычисляется)', 'да/нет', 'derived',
+     ['pn_stopped_at', 'nec_onset_at'], None),
  'daily_clinical_exam_status': ('Ежедневный клинический осмотр при продлении: documented — документирован, not_documented — не документирован, no_record — нет записи (вычисляется)', 'значение', 'derived',
      ['daily_clinical_exam_documented'], ['documented', 'not_documented', 'no_record']),
 }
@@ -178,7 +190,9 @@ r3_display('NEC-004', 'nec_day_counts_disagree')
 r3_revise('NEC-004', 'Изменить', ['решение врача 20.11.2026, п. 3'], ['NEC-004-A1: постоянная → условная, только часть «срок»'])
 
 # NEC-005 — решение 7: время прекращения ПП; хронология начало → прекращение → начало НЭК. Новой блокировки нет.
-r3_display('NEC-005', 'pn_stopped_at', 'pn_stopped_before_nec_onset')
+r3_display('NEC-005', 'pn_stopped_at', 'pn_stopped_before_nec_onset', 'pn_stop_onset_same_time')
+r3_card('NEC-005', 'pn_stop_onset_same_time', 'Время прекращения ПП ({pn_stopped_at}) совпадает со временем начала НЭК — порядок событий не установлен, проводилось ли ПП на момент заболевания, не определяется',
+        when=F('pn_stop_onset_same_time', 'is_true'))
 r3_card('NEC-005', 'pn_stopped_before_onset', 'ПП прекращено ({pn_stopped_at}) до начала НЭК ({nec_onset_at}) — записанный курс на момент заболевания не проводился; начало нового курса не записано',
         when=F('pn_stopped_before_nec_onset', 'is_true'))
 RB['NEC-005']['exceptions_and_caveats'].append('Ограничение (rules-0.3): поле pn_stopped_at описывает один записанный курс ПП; при нескольких курсах одно время прекращения не описывает все эпизоды — хронологию оценивает эксперт.')
@@ -193,24 +207,32 @@ r3_revise('NEC-008', 'Изменить', ['решение врача 20.11.2026,
 # ======================= Сепсис =======================
 # SEP-005 — решение 1: CF-006, условная SEP-005-A3, доза в Ед/кг в исходных единицах.
 r3_amb_new('SEP-005', 'SEP-005-A3', 'Назначение соответствует одному положению протокола и расходится с другим либо не может быть с ним сопоставлено: текст п. 6 (стр. 12–13: 25 мг/кг каждые 12 ч, 8 ч — при очень тяжёлом состоянии) и таблица препаратов (стр. 18: сепсис — 50 000 Ед/кг/доза в/в каждые 8 часов). Доза в мг/кг и Ед/кг без проверенного коэффициента для конкретной формы препарата не пересчитывается. Какое положение применимо — решает эксперт (CF-006); до решения не выдаётся ни «совпадает», ни «отличается».',
-           F('benzylpenicillin_regimen_sources_diverge', 'is_true'))
+           ANY(F('benzylpenicillin_regimen_sources_diverge', 'is_true'), F('benzylpenicillin_dose_units_not_comparable', 'is_true')))
 r3_amb('SEP-005', 'SEP-005-A1', 'пояснение: таблица стр. 18 сверена в третьем круге',
        machine_note='С rules-0.3 таблица препаратов (стр. 18) сверена: бензилпенициллин при сепсисе — 50 000 Ед/кг/доза каждые 8 часов (младше и старше 7 суток); расхождение с текстом п. 6 — CF-006 и SEP-005-A3.')
 r3_quotes('SEP-005', *[(p, t) for _, p, t in T_BENZ])
-r3_display('SEP-005', 'benzylpenicillin_interval_h', 'very_severe_condition', 'benzylpenicillin_dose_units_per_kg', 'benzylpenicillin_text_regimen_match', 'benzylpenicillin_table_regimen_status', 'benzylpenicillin_regimen_sources_diverge')
+r3_display('SEP-005', 'benzylpenicillin_interval_h', 'very_severe_condition', 'benzylpenicillin_dose_units_per_kg', 'benzylpenicillin_text_regimen_match', 'benzylpenicillin_table_regimen_status', 'benzylpenicillin_regimen_sources_diverge',
+            'benzylpenicillin_dose_units_not_comparable', 'benzylpenicillin_dose_units_equivalence')
 r3_card('SEP-005', 'dose_units', 'Доза записана в Ед/кг: {benzylpenicillin_dose_units_per_kg} Ед/кг — хранится в исходных единицах; с «25 мг/кг» без проверенного коэффициента не сопоставляется',
         when=F('benzylpenicillin_dose_units_per_kg', 'present'))
 r3_card('SEP-005', 'sources_diverge', 'Назначение соответствует одному положению протокола и расходится с другим (или не сопоставимо с ним): текст п. 6 (стр. 12–13) и таблица препаратов (стр. 18) — CF-006, решает эксперт',
         when=F('benzylpenicillin_regimen_sources_diverge', 'is_true'), quotes=X_BENZ + T_BENZ)
-r3_card('SEP-005', 'table_not_comparable', 'Интервал 8 ч совпадает с таблицей стр. 18, но доза записана не в Ед/кг — сопоставить дозу с таблицей нельзя',
-        when=F('benzylpenicillin_table_regimen_status', 'eq', 'not_comparable'))
+r3_card('SEP-005', 'table_not_comparable', 'Сопоставить назначение с текстом п. 6 (стр. 12–13) и таблицей препаратов (стр. 18) нельзя: доза записана в других единицах или в обеих без проверенного коэффициента — связанное противоречие CF-006; расхождение в этом случае не установлено, решает эксперт',
+        when=F('benzylpenicillin_dose_units_not_comparable', 'is_true'))
+r3_card('SEP-005', 'dose_units_equivalence_unverified', 'Доза записана и в мг/кг ({benzylpenicillin_dose_per_kg} мг/кг), и в Ед/кг ({benzylpenicillin_dose_units_per_kg} Ед/кг): эквивалентность записей без проверенного коэффициента не подтверждается, пересчёт не выполняется',
+        when=F('benzylpenicillin_dose_units_equivalence', 'present'))
 r3_revise('SEP-005', 'Изменить', ['решение врача 20.11.2026, п. 1', 'К1', 'сценарии ТАБ-B1–B5'], ['CF-006', 'SEP-005-A3 (условная)', 'поле дозы в Ед/кг'])
 
 # SEP-006 — решение 1: CF-007, условная SEP-006-A4; все возрастные интервалы и границы 7 и 28 суток; Q24 — не при A1.
 r3_amb_new('SEP-006', 'SEP-006-A4', 'Назначение соответствует одному положению протокола и расходится с другим: текст п. 7 (стр. 13: начальная доза 5 мг/кг, каждые 36 часов) и возрастные режимы таблицы препаратов (стр. 18: по гестационному и постнатальному возрасту). На пересекающейся или неопределённой границе групп таблицы (ровно 28 суток при ГВ ≤29 нед, ровно 7 суток при ГВ 30–34 нед) возможны оба соседних режима. Какое положение применимо — решает эксперт (CF-007); соответствие тексту не подтверждается автоматически, если применимая таблица даёт другой режим.',
            F('gentamicin_regimen_sources_diverge', 'is_true'), parts=['dose', 'interval'])
+# Исправление после проверки (20.11.2026, п. 1): блокируется только часть, по которой расходятся положения.
+RB['SEP-006']['ambiguities'][-1]['blocks_when_by_part'] = {
+    'dose': ALL(F('gentamicin_regimen_sources_diverge', 'is_true'), F('gentamicin_dose_sources_diverge', 'is_true')),
+    'interval': ALL(F('gentamicin_regimen_sources_diverge', 'is_true'), F('gentamicin_interval_sources_diverge', 'is_true'))}
 r3_quotes('SEP-006', *[(p, t) for _, p, t in T_GENT])
-r3_display('SEP-006', 'gentamicin_interval_h', 'gentamicin_text_regimen_match', 'gentamicin_table_check_status', 'gentamicin_table_band', 'gentamicin_table_boundary', 'gentamicin_table_regimen_match', 'gentamicin_regimen_sources_diverge')
+r3_display('SEP-006', 'gentamicin_interval_h', 'gentamicin_text_regimen_match', 'gentamicin_table_check_status', 'gentamicin_table_band', 'gentamicin_table_boundary', 'gentamicin_table_regimen_match', 'gentamicin_regimen_sources_diverge',
+            'gentamicin_dose_sources_diverge', 'gentamicin_interval_sources_diverge')
 r3_card('SEP-006', 'table_band', 'Таблица препаратов (стр. 18) для ГВ {gestational_age_weeks} нед и возраста {postnatal_age_days} сут: {gentamicin_table_band}',
         when=F('gentamicin_table_band', 'present'))
 r3_card('SEP-006', 'table_boundary', 'Возраст {postnatal_age_days} сут — на границе групп таблицы, где формулировки пересекаются или не определяют этот день: возможны оба режима, выбор делает эксперт',
@@ -224,11 +246,11 @@ r3_revise('SEP-006', 'Изменить', ['решение врача 20.11.2026,
 
 # SEP-008 — решение 19.11 (20:01, 20:06): SEP-008-A3; показ суток, часов и отметок.
 r3_amb_new('SEP-008', 'SEP-008-A3', 'Курс завершён, длительность больше 5 календарных суток, но не больше 120 часов (время первой и последней дозы документировано): оценки по календарным суткам и по часам расходятся. Автоматического «отличается» нет — требуется экспертное решение; методика подсчёта длительности — Q14.',
-           ALL(F('abx_course_days', 'gt', 5), F('abx_course_hours', 'lte', 120)))
+           ALL(F('abx_course_days', 'gt', 5), F('abx_course_hours_exact', 'lte', 120)))
 r3_display('SEP-008', 'abx_course_started_at', 'abx_course_ended_at')
 r3_card('SEP-008', 'course_duration', COURSE_DURATION, when=F('abx_course_hours', 'present'))
 r3_card('SEP-008', 'days_hours_diverge', 'Расхождение способов подсчёта: {abx_course_days} календарных сут, но {abx_course_hours} ч (не более 120 ч) — экспертное решение, методика — Q14',
-        when=ALL(F('abx_course_days', 'gt', 5), F('abx_course_hours', 'lte', 120)))
+        when=ALL(F('abx_course_days', 'gt', 5), F('abx_course_hours_exact', 'lte', 120)))
 r3_revise('SEP-008', 'Изменить', ['решение врача 19.11.2026 20:01 и 20:06'], ['SEP-008-A3 (условная)', 'показ суток, часов и отметок'])
 
 # SEP-009 — решение 19.11 (20:11): A1 без изменений; информационная подпись SEP-009-A2 без блокировки.
@@ -256,6 +278,15 @@ r3_card('SEP-010', 'daily_exam_no_record', 'Продление более 7 су
         when=ALL(F('abx_course_days', 'gt', 7), F('blood_culture_result', 'eq', 'отрицательный'), F('daily_clinical_exam_status', 'eq', 'no_record')))
 r3_card('SEP-010', 'course_duration', COURSE_DURATION, when=F('abx_course_hours', 'present'))
 r3_display('SEP-010', 'abx_course_started_at', 'abx_course_ended_at', 'daily_clinical_exam_status')
+# Исправление после проверки (20.11.2026, п. 2): подписи о продлении более 7 суток — только когда больше 7 суток и по календарным
+# датам, и по точным часам (> 168 ч = 7 × 24). Граница 168 ч выбирает подпись и не является нормативным порогом (Q14 открыт).
+for cid in ('extension_documented', 'extension_not_found', 'extension_justification_found', 'daily_exam', 'daily_exam_not_documented', 'daily_exam_no_record'):
+    cl = r3_card_get('SEP-010', cid)
+    assert cl['when']['all'][0] == F('abx_course_days', 'gt', 7), cid
+    cl['when']['all'].insert(1, F('abx_course_hours_exact', 'gt', 168))
+    cl.setdefault('round3_changes', []).append('показ только при > 7 календарных суток и > 168 ч (исправление после проверки, п. 2)')
+r3_card('SEP-010', 'counts_diverge_7', 'По календарным суткам — {abx_course_days} сут, по часам — {abx_course_hours} ч (не более 168 ч = 7 × 24): превышение 7 суток не установлено, нарушение или обоснованность продления не оцениваются — методика подсчёта, Q14',
+        when=ALL(F('abx_course_days', 'gt', 7), F('abx_course_hours_exact', 'lte', 168)))
 RB['SEP-010']['exceptions_and_caveats'].append('Решение врача 19.11.2026: продление более 7 суток не утверждается при расхождении календарных суток и часов до решения Q14; показываются сутки, часы, первая и последняя доза.')
 r3_revise('SEP-010', 'Изменить', ['решение врача 19.11.2026 (пакет 21:23)', 'Т1', 'Т2'], ['SEP-010-A1: постоянная → условная (положительный посев)', 'причина и обоснование продления раздельно', 'осмотр: три состояния', 'подписи только при применимости (engine)'])
 

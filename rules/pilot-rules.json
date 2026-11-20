@@ -1898,6 +1898,69 @@
    ],
    "since": "rules-0.3"
   },
+  "benzylpenicillin_dose_units_not_comparable": {
+   "description": "Назначение нельзя сопоставить с текстом п. 6 и таблицей стр. 18 из-за единиц дозы (мг/кг против Ед/кг или записаны обе без проверенного коэффициента); расхождение не установлено (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "benzylpenicillin_dose_per_kg",
+    "benzylpenicillin_dose_units_per_kg",
+    "benzylpenicillin_interval_h",
+    "very_severe_condition"
+   ],
+   "since": "rules-0.3"
+  },
+  "benzylpenicillin_dose_units_equivalence": {
+   "description": "Эквивалентность записей дозы в мг/кг и Ед/кг: «не подтверждена» — без проверенного коэффициента (вычисляется, показывается)",
+   "unit": "текст",
+   "type": "derived",
+   "derived_from": [
+    "benzylpenicillin_dose_per_kg",
+    "benzylpenicillin_dose_units_per_kg"
+   ],
+   "since": "rules-0.3"
+  },
+  "gentamicin_dose_sources_diverge": {
+   "description": "Часть «доза»: доза совпадает ровно с одним положением (текст п. 7 или таблица стр. 18) при установленном расхождении режима (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "gentamicin_text_regimen_match",
+    "gentamicin_table_regimen_match"
+   ],
+   "since": "rules-0.3"
+  },
+  "gentamicin_interval_sources_diverge": {
+   "description": "Часть «интервал»: интервал совпадает ровно с одним положением (текст п. 7 или таблица стр. 18) при установленном расхождении режима (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "gentamicin_text_regimen_match",
+    "gentamicin_table_regimen_match"
+   ],
+   "since": "rules-0.3"
+  },
+  "abx_course_hours_exact": {
+   "description": "Длительность курса в часах без округления — для условий (вычисляется; показывается abx_course_hours, 4 знака)",
+   "unit": "часы",
+   "type": "derived",
+   "derived_from": [
+    "abx_course_started_at",
+    "abx_course_ended_at",
+    "course_completed"
+   ],
+   "since": "rules-0.3"
+  },
+  "pn_stop_onset_same_time": {
+   "description": "Время прекращения ПП совпадает со временем начала НЭК — порядок событий не установлен (вычисляется)",
+   "unit": "да/нет",
+   "type": "derived",
+   "derived_from": [
+    "pn_stopped_at",
+    "nec_onset_at"
+   ],
+   "since": "rules-0.3"
+  },
   "daily_clinical_exam_status": {
    "description": "Ежедневный клинический осмотр при продлении: documented — документирован, not_documented — не документирован, no_record — нет записи (вычисляется)",
    "unit": "значение",
@@ -4383,7 +4446,8 @@
    "display_fields": [
     "facility_utc_offset",
     "pn_stopped_at",
-    "pn_stopped_before_nec_onset"
+    "pn_stopped_before_nec_onset",
+    "pn_stop_onset_same_time"
    ],
    "revision": {
     "schema": "rules-0.2",
@@ -4400,6 +4464,15 @@
     ]
    },
    "card_labels": [
+    {
+     "id": "pn_stop_onset_same_time",
+     "label": "Время прекращения ПП ({pn_stopped_at}) совпадает со временем начала НЭК — порядок событий не установлен, проводилось ли ПП на момент заболевания, не определяется",
+     "when": {
+      "field": "pn_stop_onset_same_time",
+      "op": "is_true"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    },
     {
      "id": "pn_stopped_before_onset",
      "label": "ПП прекращено ({pn_stopped_at}) до начала НЭК ({nec_onset_at}) — записанный курс на момент заболевания не проводился; начало нового курса не записано",
@@ -6144,8 +6217,16 @@
      "decision_by": "врач-эксперт",
      "decision": null,
      "blocks_when": {
-      "field": "benzylpenicillin_regimen_sources_diverge",
-      "op": "is_true"
+      "any": [
+       {
+        "field": "benzylpenicillin_regimen_sources_diverge",
+        "op": "is_true"
+       },
+       {
+        "field": "benzylpenicillin_dose_units_not_comparable",
+        "op": "is_true"
+       }
+      ]
      },
      "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
     }
@@ -6169,7 +6250,9 @@
     "benzylpenicillin_dose_units_per_kg",
     "benzylpenicillin_text_regimen_match",
     "benzylpenicillin_table_regimen_status",
-    "benzylpenicillin_regimen_sources_diverge"
+    "benzylpenicillin_regimen_sources_diverge",
+    "benzylpenicillin_dose_units_not_comparable",
+    "benzylpenicillin_dose_units_equivalence"
    ],
    "card_labels": [
     {
@@ -6259,11 +6342,19 @@
     },
     {
      "id": "table_not_comparable",
-     "label": "Интервал 8 ч совпадает с таблицей стр. 18, но доза записана не в Ед/кг — сопоставить дозу с таблицей нельзя",
+     "label": "Сопоставить назначение с текстом п. 6 (стр. 12–13) и таблицей препаратов (стр. 18) нельзя: доза записана в других единицах или в обеих без проверенного коэффициента — связанное противоречие CF-006; расхождение в этом случае не установлено, решает эксперт",
      "when": {
-      "field": "benzylpenicillin_table_regimen_status",
-      "op": "eq",
-      "value": "not_comparable"
+      "field": "benzylpenicillin_dose_units_not_comparable",
+      "op": "is_true"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    },
+    {
+     "id": "dose_units_equivalence_unverified",
+     "label": "Доза записана и в мг/кг ({benzylpenicillin_dose_per_kg} мг/кг), и в Ед/кг ({benzylpenicillin_dose_units_per_kg} Ед/кг): эквивалентность записей без проверенного коэффициента не подтверждается, пересчёт не выполняется",
+     "when": {
+      "field": "benzylpenicillin_dose_units_equivalence",
+      "op": "present"
      },
      "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
     }
@@ -6584,7 +6675,33 @@
       "dose",
       "interval"
      ],
-     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)",
+     "blocks_when_by_part": {
+      "dose": {
+       "all": [
+        {
+         "field": "gentamicin_regimen_sources_diverge",
+         "op": "is_true"
+        },
+        {
+         "field": "gentamicin_dose_sources_diverge",
+         "op": "is_true"
+        }
+       ]
+      },
+      "interval": {
+       "all": [
+        {
+         "field": "gentamicin_regimen_sources_diverge",
+         "op": "is_true"
+        },
+        {
+         "field": "gentamicin_interval_sources_diverge",
+         "op": "is_true"
+        }
+       ]
+      }
+     }
     }
    ],
    "status": "кандидат, ожидает экспертного подтверждения",
@@ -6610,7 +6727,9 @@
     "gentamicin_table_band",
     "gentamicin_table_boundary",
     "gentamicin_table_regimen_match",
-    "gentamicin_regimen_sources_diverge"
+    "gentamicin_regimen_sources_diverge",
+    "gentamicin_dose_sources_diverge",
+    "gentamicin_interval_sources_diverge"
    ],
    "card_labels": [
     {
@@ -7037,7 +7156,7 @@
         "value": 5
        },
        {
-        "field": "abx_course_hours",
+        "field": "abx_course_hours_exact",
         "op": "lte",
         "value": 120
        }
@@ -7095,7 +7214,7 @@
         "value": 5
        },
        {
-        "field": "abx_course_hours",
+        "field": "abx_course_hours_exact",
         "op": "lte",
         "value": 120
        }
@@ -7570,6 +7689,11 @@
         "value": 7
        },
        {
+        "field": "abx_course_hours_exact",
+        "op": "gt",
+        "value": 168
+       },
+       {
         "field": "extension_reason_count",
         "op": "gte",
         "value": 1
@@ -7577,7 +7701,8 @@
       ]
      },
      "round3_changes": [
-      "подпись разделена: причина продления отдельно от клинического обоснования (Т2)"
+      "подпись разделена: причина продления отдельно от клинического обоснования (Т2)",
+      "показ только при > 7 календарных суток и > 168 ч (исправление после проверки, п. 2)"
      ]
     },
     {
@@ -7591,12 +7716,20 @@
         "value": 7
        },
        {
+        "field": "abx_course_hours_exact",
+        "op": "gt",
+        "value": 168
+       },
+       {
         "field": "extension_justification_status",
         "op": "eq",
         "value": "not_found_in_documentation"
        }
       ]
-     }
+     },
+     "round3_changes": [
+      "показ только при > 7 календарных суток и > 168 ч (исправление после проверки, п. 2)"
+     ]
     },
     {
      "id": "daily_exam",
@@ -7607,6 +7740,11 @@
         "field": "abx_course_days",
         "op": "gt",
         "value": 7
+       },
+       {
+        "field": "abx_course_hours_exact",
+        "op": "gt",
+        "value": 168
        },
        {
         "field": "blood_culture_result",
@@ -7621,7 +7759,8 @@
       ]
      },
      "round3_changes": [
-      "осмотр: три состояния (Т2)"
+      "осмотр: три состояния (Т2)",
+      "показ только при > 7 календарных суток и > 168 ч (исправление после проверки, п. 2)"
      ]
     },
     {
@@ -7658,13 +7797,21 @@
         "value": 7
        },
        {
+        "field": "abx_course_hours_exact",
+        "op": "gt",
+        "value": 168
+       },
+       {
         "field": "extension_justification_status",
         "op": "eq",
         "value": "found"
        }
       ]
      },
-     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)",
+     "round3_changes": [
+      "показ только при > 7 календарных суток и > 168 ч (исправление после проверки, п. 2)"
+     ]
     },
     {
      "id": "daily_exam_not_documented",
@@ -7675,6 +7822,11 @@
         "field": "abx_course_days",
         "op": "gt",
         "value": 7
+       },
+       {
+        "field": "abx_course_hours_exact",
+        "op": "gt",
+        "value": 168
        },
        {
         "field": "blood_culture_result",
@@ -7688,7 +7840,10 @@
        }
       ]
      },
-     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)",
+     "round3_changes": [
+      "показ только при > 7 календарных суток и > 168 ч (исправление после проверки, п. 2)"
+     ]
     },
     {
      "id": "daily_exam_no_record",
@@ -7699,6 +7854,11 @@
         "field": "abx_course_days",
         "op": "gt",
         "value": 7
+       },
+       {
+        "field": "abx_course_hours_exact",
+        "op": "gt",
+        "value": 168
        },
        {
         "field": "blood_culture_result",
@@ -7712,7 +7872,10 @@
        }
       ]
      },
-     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)",
+     "round3_changes": [
+      "показ только при > 7 календарных суток и > 168 ч (исправление после проверки, п. 2)"
+     ]
     },
     {
      "id": "course_duration",
@@ -7720,6 +7883,25 @@
      "when": {
       "field": "abx_course_hours",
       "op": "present"
+     },
+     "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
+    },
+    {
+     "id": "counts_diverge_7",
+     "label": "По календарным суткам — {abx_course_days} сут, по часам — {abx_course_hours} ч (не более 168 ч = 7 × 24): превышение 7 суток не установлено, нарушение или обоснованность продления не оцениваются — методика подсчёта, Q14",
+     "when": {
+      "all": [
+       {
+        "field": "abx_course_days",
+        "op": "gt",
+        "value": 7
+       },
+       {
+        "field": "abx_course_hours_exact",
+        "op": "lte",
+        "value": 168
+       }
+      ]
      },
      "added": "rules-0.3 (третий круг, решение врача 20.11.2026)"
     }

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /*
- * Мутационная проверка тестов (V11; третий круг — ещё 12 мутаций): каждая намеренная поломка кода или базы правил должна быть поймана
+ * Мутационная проверка тестов (V11; третий круг — ещё 12 мутаций; исправления после проверки — ещё 5): каждая намеренная поломка кода или базы правил должна быть поймана
  * хотя бы одним тестом engine/test/*.test.js. Запуск: node engine/test/mutation-check.js
  * Работает на временной копии репозитория; исходные файлы не меняются. Только синтетические данные.
  */
@@ -51,9 +51,9 @@ const MUTATIONS = [
   ['дозы: «25,0» становится 25 (точность записи теряется)', [[DERIVE, sub('decimals: m[2] ? m[2].length : 0', 'decimals: 0')]]],
   ['дозы: записанная доза вместо вычисленной', [[DERIVE, sub('if (calc !== null && wok) {', 'if (false) {')]]],
   // --- третий круг (решения врача 20.11.2026) ---
-  ['CF-006: постоянная блокировка всех назначений бензилпенициллина', [[DERIVE, sub("      if (dv === null) why('benzylpenicillin_regimen_sources_diverge'", "      dv = true;\n      if (dv === null) why('benzylpenicillin_regimen_sources_diverge'")]]],
+  ['CF-006: постоянная блокировка всех назначений бензилпенициллина', [[DERIVE, sub("set('benzylpenicillin_regimen_sources_diverge', established);", "set('benzylpenicillin_regimen_sources_diverge', true);")]]],
   ['Ед/кг автоматически пересчитаны в мг/кг', [[DERIVE, sub("      const units = num(data, 'benzylpenicillin_dose_units_per_kg');", "      const units = num(data, 'benzylpenicillin_dose_units_per_kg');\n      if (units !== null && !has(data, 'benzylpenicillin_dose_per_kg')) set('benzylpenicillin_dose_per_kg', round(units / 2000, 6));")]]],
-  ['CF-007: соответствие тексту подтверждается при другом режиме таблицы (G9)', [[DERIVE, sub('if ((textM === true && tableM === false) || (tableM === true && textM !== true))', 'if (tableM === true && textM !== true)')]]],
+  ['CF-007: соответствие тексту подтверждается при другом режиме таблицы (G9)', [[DERIVE, sub('const diverge = (textM === true && tableM === false) || (tableM === true && textM !== true);', 'const diverge = (tableM === true && textM !== true);')]]],
   ['граница 28 суток: только один режим таблицы', [[DERIVE, sub("pna: [28, Infinity], dose: 4, interval: 24, text: '29 недель и меньше, 28 суток и старше", "pna: [29, Infinity], dose: 4, interval: 24, text: '29 недель и меньше, 28 суток и старше")]]],
   ['удалена SEP-006-A4', [[RULES, json(d => { const r = rule(d, 'SEP-006'); r.ambiguities = r.ambiguities.filter(a => a.id !== 'SEP-006-A4'); })]]],
   ['удалена SEP-008-A3', [[RULES, json(d => { const r = rule(d, 'SEP-008'); r.ambiguities = r.ambiguities.filter(a => a.id !== 'SEP-008-A3'); })]]],
@@ -62,6 +62,12 @@ const MUTATIONS = [
   ['RDS-003: «сведений нет» превращено в «не потребовалась»', [[DERIVE, sub("set('intubation_needed_status', v === true ? 'required' : v === false ? 'not_required' : 'no_record');", "set('intubation_needed_status', v === true ? 'required' : 'not_required');")]]],
   ['RDS-008: вычисление перезаписывает ручную запись', [[DERIVE, sub("      if (manual !== null && computed !== null && manual !== computed) {", "      if (computed !== null) { set('blood_culture_before_antibiotics_resolved', computed); set('blood_culture_before_antibiotics_basis', 'computed'); } else if (manual !== null && computed !== null && manual !== computed) {")]]],
   ['NEC-005: прекращение ПП до НЭК не учитывается', [[DERIVE, sub('      if (before) {', '      if (false) {')]]],
+  // --- исправления после независимой проверки (20.11.2026) ---
+  ['п. 1: SEP-006-A4 снова блокирует обе части', [[RULES, json(d => { delete rule(d, 'SEP-006').ambiguities.find(a => a.id === 'SEP-006-A4').blocks_when_by_part; })]]],
+  ['п. 2: подписи «Продление более 7 суток» при 168 ч', [[RULES, json(d => { for (const c of rule(d, 'SEP-010').card_labels) if (c.when && c.when.all) c.when.all = c.when.all.filter(x => !(x.field === 'abx_course_hours_exact' && x.op === 'gt')); })]]],
+  ['п. 3: записи в мг/кг и Ед/кг считаются эквивалентными', [[DERIVE, sub('const both = dose !== null && units !== null;', 'const both = false;')]]],
+  ['п. 4: одинаковые отметки ПП и НЭК — «прекращено до НЭК»', [[DERIVE, sub('      if (st.ms === on.ms) {', '      if (false) {')], [DERIVE, sub('const before = st.ms < on.ms;', 'const before = st.ms <= on.ms;')]]],
+  ['п. 5: условие 120 ч по округлённым часам', [[DERIVE, sub("set('abx_course_hours_exact', (b.ms - a.ms) / 3600000);", "set('abx_course_hours_exact', round((b.ms - a.ms) / 3600000, 2));")]]],
   ['Т1: подписи показываются у неприменимого правила', [[ENGINE, sub('      if (!ruleApplies && cl.show_when_not_applicable !== true) continue;', '')]]],
 ];
 
