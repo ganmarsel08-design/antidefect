@@ -1,0 +1,713 @@
+{
+ "schema": "stage7-clinical-assessment-0.3",
+ "note": "Уровень 3. Независимые врачебные оценки ключевых исходов. Заполняет врач-эксперт; программа и Claude поля оценки не заполняют.",
+ "allowed_values": [
+  "соответствие",
+  "отличие",
+  "недостаточно данных",
+  "неоднозначность",
+  "применимость не установлена",
+  "неприменимо"
+ ],
+ "value_notes": {
+  "применимость не установлена": "по данным истории нельзя решить, относится ли правило к случаю",
+  "неприменимо": "правило к случаю не относится"
+ },
+ "histories": [
+  {
+   "id": "СИН-РДС-01",
+   "protocol": "РДС",
+   "author_design_intent": "соответствие (замысел автора синтетической истории, не экспертиза)",
+   "key_items": [
+    {
+     "rule_id": "RDS-001",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-002",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-003",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-004",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-005",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-006",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-007",
+     "technical_result": "неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-008",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-009",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-010",
+     "technical_result": "неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    }
+   ]
+  },
+  {
+   "id": "СИН-РДС-02",
+   "protocol": "РДС",
+   "author_design_intent": "предварительное отличие (замысел автора синтетической истории, не экспертиза)",
+   "key_items": [
+    {
+     "rule_id": "RDS-001",
+     "technical_result": "предварительное отличие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-002",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-003",
+     "technical_result": "неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-004",
+     "technical_result": "предварительное отличие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-005",
+     "technical_result": "предварительное отличие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-006",
+     "technical_result": "предварительное отличие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-007",
+     "technical_result": "недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-009",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-010",
+     "technical_result": "недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    }
+   ]
+  },
+  {
+   "id": "СИН-РДС-03",
+   "protocol": "РДС",
+   "author_design_intent": "недостаточно данных (замысел автора синтетической истории, не экспертиза)",
+   "key_items": [
+    {
+     "rule_id": "RDS-001",
+     "technical_result": "недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-002",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-003",
+     "technical_result": "применимость не установлена",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-004",
+     "technical_result": "недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-005",
+     "technical_result": "недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-006",
+     "technical_result": "применимость не установлена",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-007",
+     "technical_result": "недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-008",
+     "technical_result": "недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-009",
+     "technical_result": "недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "RDS-010",
+     "technical_result": "недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    }
+   ]
+  },
+  {
+   "id": "СИН-НЭК-01",
+   "protocol": "НЭК",
+   "author_design_intent": "соответствие (замысел автора синтетической истории, не экспертиза)",
+   "key_items": [
+    {
+     "rule_id": "RDS-008",
+     "technical_result": "недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-001",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-002",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-004",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-005",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-006",
+     "technical_result": "неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-007",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-008",
+     "technical_result": "неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-010",
+     "technical_result": "неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    }
+   ]
+  },
+  {
+   "id": "СИН-НЭК-02",
+   "protocol": "НЭК",
+   "author_design_intent": "предварительное отличие (замысел автора синтетической истории, не экспертиза)",
+   "key_items": [
+    {
+     "rule_id": "RDS-008",
+     "technical_result": "недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-001",
+     "technical_result": "предварительное отличие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-002",
+     "technical_result": "предварительное отличие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-004",
+     "technical_result": "предварительное отличие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-005",
+     "technical_result": "предварительное отличие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-006",
+     "technical_result": "неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-007",
+     "technical_result": "предварительное отличие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-008",
+     "technical_result": "неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-010",
+     "technical_result": "предварительное отличие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    }
+   ]
+  },
+  {
+   "id": "СИН-НЭК-03",
+   "protocol": "НЭК",
+   "author_design_intent": "неоднозначность (замысел автора синтетической истории, не экспертиза)",
+   "key_items": [
+    {
+     "rule_id": "RDS-008",
+     "technical_result": "A: недостаточно данных; B: недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-001",
+     "technical_result": "A: недостаточно данных; B: недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-002",
+     "technical_result": "A: применимость не установлена; B: применимость не установлена",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-003",
+     "technical_result": "A: неоднозначность; B: неприменимо",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-005",
+     "technical_result": "A: неоднозначность; B: неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-007",
+     "technical_result": "A: неоднозначность; B: неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "NEC-009",
+     "technical_result": "A: неоднозначность; B: неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    }
+   ]
+  },
+  {
+   "id": "СИН-СЕП-01",
+   "protocol": "Сепсис",
+   "author_design_intent": "соответствие (замысел автора синтетической истории, не экспертиза)",
+   "key_items": [
+    {
+     "rule_id": "RDS-008",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-001",
+     "technical_result": "неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-002",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-004",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-005",
+     "technical_result": "неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-006",
+     "technical_result": "неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-007",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    }
+   ]
+  },
+  {
+   "id": "СИН-СЕП-02",
+   "protocol": "Сепсис",
+   "author_design_intent": "предварительное отличие (замысел автора синтетической истории, не экспертиза)",
+   "key_items": [
+    {
+     "rule_id": "RDS-008",
+     "technical_result": "предварительное отличие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-001",
+     "technical_result": "неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-002",
+     "technical_result": "предварительное отличие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-003",
+     "technical_result": "предварительное отличие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-004",
+     "technical_result": "предварительное отличие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-005",
+     "technical_result": "применимость не установлена",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-006",
+     "technical_result": "применимость не установлена",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-007",
+     "technical_result": "предварительное отличие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-010",
+     "technical_result": "неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    }
+   ]
+  },
+  {
+   "id": "СИН-СЕП-03",
+   "protocol": "Сепсис",
+   "author_design_intent": "недостаточно данных (замысел автора синтетической истории, не экспертиза)",
+   "key_items": [
+    {
+     "rule_id": "RDS-008",
+     "technical_result": "недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-001",
+     "technical_result": "неоднозначность (применимость)",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-002",
+     "technical_result": "недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-003",
+     "technical_result": "неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-004",
+     "technical_result": "соответствие",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-005",
+     "technical_result": "недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-006",
+     "technical_result": "неоднозначность",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-007",
+     "technical_result": "недостаточно данных",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    },
+    {
+     "rule_id": "SEP-010",
+     "technical_result": "применимость не установлена",
+     "doctor_assessment": null,
+     "doctor_comment": null,
+     "assessed_by": null,
+     "assessed_at": null
+    }
+   ]
+  }
+ ]
+}
