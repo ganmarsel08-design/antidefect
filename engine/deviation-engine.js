@@ -12,7 +12,9 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.6.0-stage3';
+  const VERSION = '0.9.0-stage4';
+  const OFFICIAL_EVIDENCE = Object.freeze(['подтверждено_официальным_PDF', 'подтверждено_выдержкой_официального_сайта', 'подтверждено_протоколом_ОКК']);
+  const PROTOCOL_TYPES = Object.freeze(['диагностика_и_лечение', 'медицинское_вмешательство', 'реабилитация', 'не_установлен']);
   const TEST_ASSURANCE = 'тестовое подтверждение в браузере (без авторизации и защищённого журнала)';
   const ANALYSIS_BASIS = 'анализируются только сведения, введённые в карточку вручную; текст истории болезни программа не разбирает';
 
@@ -139,6 +141,54 @@
       at: o.at || new Date().toISOString() }) };
   }
 
+  /* ---------- Защищённая передача данных реестра ----------
+   * official_evidence и currency_verified учитываются, только если запись получена
+   * функцией registryEntry из реестра, загруженного loadRegistry. Те же поля во входных
+   * данных игнорируются. Применимость редакции на дату помощи вычисляется здесь,
+   * а не принимается со входа. Ограничение тестовой версии — как у attest*: для реальной
+   * работы реестр должен приходить с сервера с подписью.
+   * Проверки подписи реестра пока нет, поэтому любой загруженный реестр имеет
+   * authenticated:false, и положительные выводы («Соответствует протоколу»,
+   * «Обоснованное отклонение») блокируются до реализации серверной подписи. Флаг
+   * authenticated снаружи не задаётся: ни поля реестра, ни аргументы его не включают. */
+  const REGISTRY_UNAUTHENTICATED = 'реестр не подписан и не аутентифицирован сервером — положительный вывод заблокирован до реализации подписанного версионированного реестра';
+  const REGISTRIES = new WeakSet();
+  function loadRegistry(reg) {
+    const e = [];
+    if (!reg || !Array.isArray(reg.protocols)) return { ok: false, errors: ['нет списка protocols'] };
+    if (!isStr(reg.version)) e.push('нет версии реестра');
+    const byId = new Map();
+    reg.protocols.forEach((p, i) => {
+      if (!isStr(p.doc_id)) e.push('protocols[' + i + ']: нет doc_id');
+      else if (byId.has(p.doc_id)) e.push('doc_id не уникален: ' + p.doc_id);
+      else byId.set(p.doc_id, Object.freeze({
+        doc_id: p.doc_id, protocol_no: String(p.approval && p.approval.no || ''),
+        approved: p.approval && p.approval.date_iso, protocol_type: p.protocol_type,
+        registry_status: p.registry_status, valid_to: p.valid_to || null,
+        official_evidence: p.official_check && p.official_check.result,
+        currency_verified: !!(p.currency_check && p.currency_check.result === 'новее_редакции_не_найдено' && p.currency_check.basis)
+      }));
+    });
+    if (e.length) return { ok: false, errors: e };
+    // Проверки подписи нет: authenticated всегда false (поля reg.signature / reg.authenticated игнорируются)
+    const h = Object.freeze({ version: reg.version, size: byId.size, authenticated: false,
+      authentication: 'подпись реестра не проверяется в этой версии', _map: byId });
+    REGISTRIES.add(h);
+    return { ok: true, registry: h };
+  }
+  function registryEntry(h, docId, careDate, extra) {
+    if (!h || !REGISTRIES.has(h)) return { ok: false, errors: ['реестр не загружен через loadRegistry'] };
+    const p = h._map.get(docId);
+    if (!p) return { ok: false, errors: ['документ ' + docId + ' отсутствует в реестре'] };
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(careDate || ''))) return { ok: false, errors: ['дата помощи: ГГГГ-ММ-ДД'] };
+    const valid = p.currency_verified && p.approved && p.approved <= careDate && (!p.valid_to || careDate < p.valid_to) ? 'да' : 'не_определено';
+    return { ok: true, entry: seal('registry_entry', Object.assign({}, extra || {}, {
+      doc_id: p.doc_id, protocol_no: p.protocol_no, protocol_type: p.protocol_type, registry_status: p.registry_status,
+      official_evidence: p.official_evidence, currency_verified: p.currency_verified,
+      valid_on_care_date: valid, care_date: careDate, registry_version: h.version,
+      registry_authenticated: h.authenticated === true })) };
+  }
+
   /* ---------- Проверка структуры ---------- */
 
   // Простая проверка: 12 цифр подряд (возможный ИИН). Это НЕ обезличивание.
@@ -157,7 +207,8 @@
     if (!pc || !Object.values(RELATION).includes(pc.relation)) e.push('protocol_check.relation: недопустимое значение');
     else if (!Array.isArray(pc.searched)) e.push('protocol_check.searched должен быть массивом');
     else pc.searched.forEach((s, i) => {
-      if (!isStr(s.protocol_no)) e.push('searched[' + i + ']: нет номера протокола');
+      if (!isStr(s.protocol_no) && !isStr(s.doc_id)) e.push('searched[' + i + ']: нет идентификатора документа (doc_id или номер)');
+      if (s.protocol_type != null && !PROTOCOL_TYPES.includes(s.protocol_type)) e.push('searched[' + i + ']: недопустимый тип протокола');
       if (s.registry_status != null && !REGISTRY_STATUS.includes(s.registry_status)) e.push('searched[' + i + ']: статус в реестре: действует / заменён / не проверен');
     });
 
@@ -207,10 +258,28 @@
 
   /* ---------- Отношение к протоколу ---------- */
 
+  function docName(s) { return s.doc_id ? '«' + s.doc_id + '»' : '№' + s.protocol_no; }
+  function docKey(s) { return s.doc_id || s.protocol_no; }
+  /* Положительный вывод возможен, только если реестр несёт официальное подтверждение документа
+     и проверку актуальности редакции. Ручная отметка статуса или подтверждение эксперта
+     без этих данных реестра положительный вывод не разблокирует. */
   function editionProblem(s) {
-    if (s.valid_on_care_date !== 'да') return 'редакция протокола №' + s.protocol_no + ' на дату оказания помощи не подтверждена';
-    if (s.registry_status !== 'действует' && s.registry_status !== 'заменён') return 'актуальность протокола №' + s.protocol_no + ' в реестре не проверена';
+    if (s.valid_on_care_date !== 'да') return 'редакция протокола ' + docName(s) + ' на дату оказания помощи не подтверждена';
+    if (s.registry_status !== 'действует' && s.registry_status !== 'заменён') return 'актуальность протокола ' + docName(s) + ' в реестре не проверена';
+    if (!isAttested(s, 'registry_entry')) return 'сведения о протоколе ' + docName(s) + ' получены не из загруженного реестра (входным данным не доверяем)';
+    if (!OFFICIAL_EVIDENCE.includes(s.official_evidence)) return 'протокол ' + docName(s) + ' не подтверждён официальным документом в реестре (ручной отметки недостаточно)';
+    if (s.currency_verified !== true) return 'актуальность редакции протокола ' + docName(s) + ' не проверена по официальным данным (ручной отметки недостаточно)';
+    if (s.registry_authenticated !== true) return REGISTRY_UNAUTHENTICATED;
     return '';
+  }
+  function findSearched(pc, match) {
+    if (match.doc_id) {
+      const f = pc.searched.filter(s => s.doc_id === match.doc_id);
+      return f.length === 1 ? { sp: f[0] } : { err: f.length ? 'документ «' + match.doc_id + '» встречается в перечне несколько раз' : 'документ «' + match.doc_id + '» отсутствует в перечне просмотренных' };
+    }
+    const f = pc.searched.filter(s => s.protocol_no === match.protocol_no);
+    if (f.length > 1) return { err: 'номер заседания №' + match.protocol_no + ' не идентифицирует документ однозначно (в перечне ' + f.length + ' документа) — укажите doc_id' };
+    return f.length ? { sp: f[0] } : { err: 'протокол №' + match.protocol_no + ' отсутствует в перечне просмотренных' };
   }
 
   function deriveRelation(d) {
@@ -238,15 +307,16 @@
 
     let statement = '';
     if (relation === RELATION.OK || relation === RELATION.DIFF) {
-      const hasRef = match && isStr(match.protocol_no) && isStr(match.section) && isStr(match.quote);
-      const sp = hasRef ? pc.searched.find(s => s.protocol_no === match.protocol_no) : null;
-      if (!hasRef) { relation = RELATION.UNKNOWN; notes.push('нет ссылки на протокол (номер, раздел, дословная цитата)'); }
-      else if (!sp) { relation = RELATION.UNKNOWN; notes.push('протокол №' + match.protocol_no + ' отсутствует в перечне просмотренных'); }
+      const hasRef = match && (isStr(match.doc_id) || isStr(match.protocol_no)) && isStr(match.section) && isStr(match.quote);
+      const found = hasRef ? findSearched(pc, match) : null;
+      const sp = found && found.sp;
+      if (!hasRef) { relation = RELATION.UNKNOWN; notes.push('нет ссылки на протокол (документ, раздел, дословная цитата)'); }
+      else if (!sp) { relation = RELATION.UNKNOWN; notes.push(found.err); }
       else if (sp.valid_on_care_date !== 'да') {
         relation = RELATION.UNKNOWN;
-        notes.push('редакция протокола №' + sp.protocol_no + ' на дату оказания помощи не подтверждена (' + (sp.valid_on_care_date || 'не указано') + ')');
+        notes.push('редакция протокола ' + docName(sp) + ' на дату оказания помощи не подтверждена (' + (sp.valid_on_care_date || 'не указано') + ')');
       } else {
-        statement = 'протокол №' + match.protocol_no + ', раздел «' + match.section + '»: «' + match.quote + '»';
+        statement = 'протокол ' + docName(sp) + ', раздел «' + match.section + '»: «' + match.quote + '»';
         const pr = editionProblem(sp);
         if (pr) unconfirmed.push(pr);
       }
@@ -260,10 +330,10 @@
         relation = RELATION.UNKNOWN;
         notes.push('реестр неполный: не внесены применимые протоколы (' + cov.missing_applicable.join(', ') + ') — «не урегулировано» установить нельзя');
       } else {
-        statement = NOT_REG_STATEMENT + ' (просмотрены: ' + pc.searched.map(s => '№' + s.protocol_no).join(', ') + ')';
+        statement = NOT_REG_STATEMENT + ' (просмотрены: ' + pc.searched.map(docName).join(', ') + ')';
         const ca = cov.completeness_attestation;
         const covers = isAttested(ca, 'registry_completeness') && ca.total === cov.total &&
-          pc.searched.every(sp => ca.checked_protocols.includes(sp.protocol_no));
+          pc.searched.every(sp => ca.checked_protocols.includes(docKey(sp)));
         if (!covers) {
           statement += '; полнота реестра заявлена, но не подтверждена';
           unconfirmed.push('полнота реестра применимых протоколов заявлена, но не подтверждена экспертом (с перечнем проверенных протоколов)');
@@ -430,9 +500,10 @@
     }
 
     // Неподтверждённая редакция или актуальность протокола блокирует положительный вывод
-    let positive_blocked = false;
+    let positive_blocked = false, provisional_status = null;
+    rel.unconfirmed = uniq(rel.unconfirmed);
     if ((status === STATUS.COMPLIANT || status === STATUS.JUSTIFIED) && rel.unconfirmed.length) {
-      positive_blocked = true;
+      positive_blocked = true; provisional_status = status;
       reasons.push('предварительный вывод «' + status + '» не может быть окончательным: ' + rel.unconfirmed.join('; '));
       status = STATUS.EXPERT;
     } else if (rel.unconfirmed.length) warnings.push.apply(warnings, rel.unconfirmed);
@@ -449,7 +520,7 @@
       ok: true, engine_version: VERSION, id: d.id,
       analysis_basis: ANALYSIS_BASIS, evaluated_at: new Date().toISOString(), input_fingerprint: fingerprint(d),
       test_confirmations_used: usesAttestation(d),
-      status, status_set_by: 'auto', positive_blocked, blocked_by: positive_blocked ? rel.unconfirmed.slice() : [],
+      status, status_set_by: 'auto', positive_blocked, provisional_status, blocked_by: positive_blocked ? rel.unconfirmed.slice() : [],
       headline: composeHeadline(status, documentation, positive_blocked),
       clinical: { relation, relation_source: rel.source, indications: ind, statement: rel.statement },
       documentation,
@@ -471,7 +542,7 @@
     if (result && result.ok && o && o.current_input !== undefined && isStale(result, o.current_input))
       errs.push('исходные данные изменены после проверки — результат устарел, сначала выполните повторную проверку');
     if (errs.length) return { ok: false, errors: errs };
-    const original = result.original || { status: result.status, status_set_by: result.status_set_by, headline: result.headline, reasons: result.reasons.slice() };
+    const original = result.original || { status: result.status, status_set_by: result.status_set_by, provisional_status: result.provisional_status || null, blocked_by: (result.blocked_by || []).slice(), headline: result.headline, reasons: result.reasons.slice() };
     const entry = { at: o.at || new Date().toISOString(), who: o.who, event: 'решение эксперта', from: result.status, to: o.status,
       reason: o.reason, source: o.source, test_only: true, assurance: TEST_ASSURANCE };
     return Object.assign({}, result, {
@@ -526,10 +597,10 @@
 
   return {
     VERSION, STATUS, AUTO_STATUSES, ALL_STATUSES, RELATION, INDICATIONS, DOC, DOC_LABEL, REGISTRY_STATUS,
-    SIGNAL_KINDS, SEVERITY, CONFIDENCE, APPLICABILITY, REGIMEN, BIB_METHODS, SIGNAL_LEVEL,
+    SIGNAL_KINDS, SEVERITY, CONFIDENCE, OFFICIAL_EVIDENCE, PROTOCOL_TYPES, REGISTRY_UNAUTHENTICATED, APPLICABILITY, REGIMEN, BIB_METHODS, SIGNAL_LEVEL,
     DEFAULT_CONFIG, NOT_REG_STATEMENT, IIN_LIKE,
     validate, evaluate, applyExpertOverride, signalLevel,
-    attestBibliographic, attestExpertAssessment, attestRegistryCompleteness, isAttested,
+    attestBibliographic, attestExpertAssessment, attestRegistryCompleteness, isAttested, loadRegistry, registryEntry,
     fingerprint, isStale, reevaluate, contextFingerprint, sourceKey, buildJustificationDraft, TEST_ASSURANCE, ANALYSIS_BASIS
   };
 });
