@@ -1,0 +1,120 @@
+# Антидефект — автоматическая проверка (только синтетические данные).
+# Сверка цитат с оригинальными PDF протоколов здесь НЕ выполняется: PDF в репозитории нет и не загружаются.
+# Соответствующие тесты пропускаются (skip) и в отчёте явно отмечаются как невыполненные.
+name: tests
+
+on:
+  push:
+    branches: [feature/stage5-rules-pilot]
+  pull_request:
+    branches: [feature/stage4-registry]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: JS, Python, сборка, регрессия 171
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # тесты читают исторические коммиты (2239c52, d314a58, b6b9999)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Версии
+        run: |
+          set -euo pipefail
+          node --version
+          python --version
+          git log --oneline -1
+
+      - name: JS — полный набор (engine/test/*.test.js)
+        run: |
+          set -euo pipefail
+          node --test engine/test/*.test.js 2>&1 | tee js.log
+          {
+            echo "### JS: node --test engine/test/*.test.js"
+            grep -E '^# (tests|pass|fail|skipped|cancelled|todo)' js.log | sed 's/^# /- /'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Регрессия 171 случая (отдельный запуск с отчётом)
+        run: |
+          set -euo pipefail
+          node --test engine/test/regression-171.test.js engine/test/regression-b6b9999.test.js 2>&1 | tee reg.log
+          if grep -qE '^# skipped [1-9]' reg.log; then echo "::error::регрессия: пропущены тесты (нет истории git?)"; exit 1; fi
+          {
+            echo "### Регрессия 171 случая (против 2eeb6ae и против снимка b6b9999, включая воспроизведение снимка кодом b6b9999)"
+            grep -E '^# (tests|pass|fail|skipped)' reg.log | sed 's/^# /- /'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Python — правила, сборка, реестр
+        run: |
+          set -euo pipefail
+          : > py.log
+          for t in rules/test_rules.py rules/test_build.py registry/test_registry.py; do
+            echo "== $t" | tee -a py.log
+            python -m unittest -v "$t" 2>&1 | tee -a py.log
+          done
+          {
+            echo "### Python (unittest)"
+            grep -E '^(== |Ran |OK|FAILED)' py.log | sed 's/^/- /'
+            echo
+            echo "Пропущенные тесты (skip) — НЕ выполнены:"
+            grep -E "skipped '" py.log | sed 's/^/- /' || echo "- нет"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Проверка базы правил (без PDF) и детерминированность сборки JSON
+        run: |
+          set -euo pipefail
+          python rules/verify_rules.py rules/pilot-rules.json --registry registry/protocols-registry.json
+          python rules/build/build_rules.py --out "$RUNNER_TEMP/pilot-rules.json"
+          cmp "$RUNNER_TEMP/pilot-rules.json" rules/pilot-rules.json
+          python rules/build/build_expert_decisions.py --out "$RUNNER_TEMP/expert-decisions.json"
+          cmp "$RUNNER_TEMP/expert-decisions.json" rules/expert-decisions.json
+          {
+            echo "### Сборка"
+            echo "- rules/pilot-rules.json и rules/expert-decisions.json пересобраны и побайтово совпадают"
+            echo "- verify_rules.py: структура, реестр, хэши цитат — без ошибок"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Невыполненные проверки
+        if: always()
+        run: |
+          {
+            echo "### Не выполнялось в CI"
+            echo "- Сверка цитат с оригинальными PDF протоколов: PDF в репозитории отсутствуют (ANTIDEFECT_PDF_DIR не задан). Тесты сверки пропущены и успешными не считаются."
+            echo "- Сценарии интерфейса в браузере (engine/test/ui/*.scenario.js): требуют Playwright и Chrome, в CI не запускаются."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  mutation:
+    name: Мутационная проверка
+    runs-on: ubuntu-latest
+    needs: tests
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Мутации (каждая поломка должна быть поймана тестами)
+        shell: bash
+        run: |
+          set -euo pipefail
+          node engine/test/mutation-check.js 2>&1 | tee mut.log
+          {
+            echo "### Мутационная проверка"
+            tail -1 mut.log | sed 's/^/- /'
+          } >> "$GITHUB_STEP_SUMMARY"
