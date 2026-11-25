@@ -1,0 +1,10 @@
+{
+ "schema": "blind1-run-1.4",
+ "run_at": "2026-11-25T16:13:24.164Z",
+ "node": "v22.23.5",
+ "base_commit": "13a21b3b78832385e8a49be5be95c7cb9addfef6",
+ "kit_manifest_sha256": "84c7785d0897e9704cd45ca309f1bc93ab6c9c027e7ea4314ce0380d48a8289e",
+ "freeze_sha256": "563c78eeceb8cef6b9fa557ec4640d4b03d09cc5b1d28eb3b9c4070fe86866c6",
+ "technical_test": false,
+ "histories": 15
+}

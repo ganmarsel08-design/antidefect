@@ -1,0 +1,21 @@
+{
+ "schema": "blind1-run-manifest-1.4",
+ "files": {
+  "extraction/СЛП-НЭК-01.json": "0ed08fc138c7bb5a6a26c936faa99f4362424f5db03e2a2a98b8d18ba5d465b8",
+  "extraction/СЛП-НЭК-02.json": "4f94c7b72c3ae1429f345f0d23035d4f1669414b5695494a84ace5bfa00b9026",
+  "extraction/СЛП-НЭК-03.json": "6167b4626f2081681746d25c56e40bf619b4dad8691867424d3f932d4eca0a49",
+  "extraction/СЛП-НЭК-04.json": "f6c593a51801f29f05f861f2b15c7f869f155cce4407adab90b2cb332506c8bb",
+  "extraction/СЛП-НЭК-05.json": "d6252991360b99a952dc43e63e7e6d39445ca1a3adc80eee3ca9fa9d4187e8f0",
+  "extraction/СЛП-РДС-01.json": "59d32633020e87c4ca76949da94f1a6837f46ed1033d9041139b0beea0c6904d",
+  "extraction/СЛП-РДС-02.json": "58cc832c2cfa5cd66286a230796a6034f1d016939db19b3ce5123a7c9c35e1b6",
+  "extraction/СЛП-РДС-03.json": "21cb43d5c666608481904be26aedfd45a1aecb1bd41fd12e76104ae734a72031",
+  "extraction/СЛП-РДС-04.json": "10169881e8d7eb7651c5d49601a932d0e26174476bda3bd4b554cafb3766295e",
+  "extraction/СЛП-РДС-05.json": "a9e1f8b3e4f68f5b9130473cd7f55f87131b68aae8271fe83e7a8d8f4c38160e",
+  "extraction/СЛП-СЕП-01.json": "a7bbe881dad5f3eb36c9042de9b16ff663a65cc9980c44d0ac091593bc5064a9",
+  "extraction/СЛП-СЕП-02.json": "53a232ca6fc4283636c3b58a89cd2126e9103f478d15b6db156ad39850483108",
+  "extraction/СЛП-СЕП-03.json": "5332fdab877a8cd1d1d2f58363c8d92786b20afe1a1f2ffb3d02bf28ae0da630",
+  "extraction/СЛП-СЕП-04.json": "fef118fadf855abe4ace989ebc0e1d092558d11ca76dc7e6319f2161982c6000",
+  "extraction/СЛП-СЕП-05.json": "d0a9b03519012445936b6231620c975406c9653b0e3865e7b40eca7570600930",
+  "run-info.json": "f2216efec313f9d72cfdb7fdb743f704a39bfddc352ce2bc8d0d32990b10e6c1"
+ }
+}
