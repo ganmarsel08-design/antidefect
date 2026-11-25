@@ -34,12 +34,29 @@ for (const f of fs.readdirSync(path.join(ROOT, 'engine/test')).filter(n => /^sta
   const rel = 'engine/test/' + f; if (!files.includes(rel)) files.push(rel);
 }
 for (const rel of files) {
-  const r = spawnSync(process.execPath, ['--test', '--test-reporter=tap', rel], { cwd: ROOT, encoding: 'utf8' });
-  const out = r.stdout + r.stderr; const lines = out.split('\n');
+  const r = spawnSync(process.execPath, ['--test', '--test-reporter=tap', rel], { cwd: ROOT, encoding: 'utf8', timeout: 600000 });
+  // авария процесса не должна выглядеть как «ожидаемые падения» (ревью ChatGPT к e690664)
+  if (r.error) { bad.push(`${rel}: процесс не запустился или прерван: ${r.error.message}`); continue; }
+  if (r.signal) { bad.push(`${rel}: процесс завершён сигналом ${r.signal}`); continue; }
+  const out = (r.stdout || '') + (r.stderr || ''); const lines = out.split('\n');
+  const num = k => { const m = new RegExp('^# ' + k + ' (\\d+)$', 'm').exec(out); return m ? +m[1] : null; };
+  const nT = num('tests'), nP = num('pass'), nF = num('fail'), nC = num('cancelled'), nS = num('skipped'), nTd = num('todo');
+  const expCount = (EXP.expected_test_counts || {})[rel];
+  if (nT === null || nP === null || nF === null) bad.push(`${rel}: нет итоговых счётчиков TAP — прогон неполный`);
+  else {
+    if (nT === 0) bad.push(`${rel}: выполнено 0 тестов`);
+    if (nP + nF !== nT || nC || nS || nTd) bad.push(`${rel}: счётчики не сходятся (tests ${nT}, pass ${nP}, fail ${nF}, cancelled ${nC}, skipped ${nS}, todo ${nTd})`);
+    if (expCount === undefined) bad.push(`${rel}: число тестов не записано в ожидаемом списке`);
+    else if (nT !== expCount) bad.push(`${rel}: выполнено ${nT} тестов, ожидалось ${expCount}`);
+  }
+  if (r.status === 0 && nF) bad.push(`${rel}: код выхода 0 при упавших тестах`);
+  if (r.status !== 0 && nF === 0) bad.push(`${rel}: код выхода ${r.status} без упавших тестов — авария`);
   const failed = [];
   for (let i = 0; i < lines.length; i++) { const m = /^not ok \d+ - (.*)$/.exec(lines[i]); if (m) { let j = i + 1, body = ''; while (j < lines.length && !/^(?:not )?ok \d+ - /.test(lines[j])) body += lines[j++] + '\n'; failed.push({ name: m[1].trim(), body }); } }
   const exp = EXP.expected_failing_tests.filter(t => t.file === rel);
   const pass = (out.match(/^ok \d+ - /mg) || []).length;
+  if (nF !== null && failed.length !== nF) bad.push(`${rel}: разобрано падений ${failed.length}, по счётчику ${nF}`);
+  if (nP !== null && pass !== nP) bad.push(`${rel}: разобрано успешных ${pass}, по счётчику ${nP}`);
   console.log(`${rel}: прошло ${pass}, упало ${failed.length} (ожидаемо ${exp.length})`);
   for (const f of failed) {
     const e = exp.find(t => t.name === f.name);
@@ -52,8 +69,12 @@ for (const rel of files) {
 
 // 3) браузерный сценарий этапа 7 как есть
 if (process.argv.includes('--ui')) {
-  const r = spawnSync(process.execPath, [path.join(ROOT, 'engine/test/ui/expert.scenario.js')], { cwd: ROOT, encoding: 'utf8', env: process.env });
-  const out = r.stdout + r.stderr; console.log(out.split('\n').filter(l => /браузер:/.test(l)).join('\n'));
+  const r = spawnSync(process.execPath, [path.join(ROOT, 'engine/test/ui/expert.scenario.js')], { cwd: ROOT, encoding: 'utf8', env: process.env, timeout: 600000 });
+  if (r.error || r.signal) bad.push(`UI: процесс прерван (${r.error ? r.error.message : r.signal})`);
+  const out = (r.stdout || '') + (r.stderr || '');
+  const sm = /этап 7, браузер: (\d+)\/(\d+)/.exec(out);
+  if (!sm) bad.push('UI: нет итоговой строки «этап 7, браузер: N/M» — прогон неполный');
+  else if (+sm[1] !== EXP.expected_ui.passed || +sm[2] !== EXP.expected_ui.total) bad.push(`UI: ${sm[1]}/${sm[2]}, ожидалось ${EXP.expected_ui.passed}/${EXP.expected_ui.total}`); console.log(out.split('\n').filter(l => /браузер:/.test(l)).join('\n'));
   const fails = out.split('\n').filter(l => /^FAIL /.test(l)).map(l => l.slice(5).trim());
   for (const f of fails) { const e = EXP.expected_failing_ui_steps.find(s => f.startsWith(s.step)); if (!e) bad.push(`UI: неожиданно упал шаг «${f}»`); else console.log(`  ожидаемая несовместимость ${e.ids.join(', ')}: ${f}`); }
   for (const e of EXP.expected_failing_ui_steps) if (!fails.some(f => f.startsWith(e.step))) bad.push(`UI: ожидалось падение «${e.step}»`);
