@@ -211,3 +211,19 @@ test('*_given антибиотиков помечены: «назначен», �
   const c = run('Назначено: гентамицин 6 мг в/в каждые 36 ч.').candidates.find(x => x.field === 'gentamicin_given');
   assert.match(c.note, /назначен/); assert.match(c.note, /введения подтверждаются отдельно/);
 });
+
+// Ночной цикл: предварительные и сомнительные диагнозы, отложенное и отменённое.
+test('предварительный / сомнительный диагноз не выдаётся как установленный', () => {
+  for (const t of ['Диагноз: РДС?', 'Диагноз: РДС под вопросом.', 'Диагноз: исключить РДС.', 'Предварительный диагноз: РДС.', 'Диагноз: РДС (предварительно).', 'Диагноз: вероятно РДС.'])
+    assert.equal(val(t, 'rds_diagnosed'), undefined, t);
+  assert.equal(val('Диагноз: РДС.', 'rds_diagnosed'), true);
+  for (const t of ['Диагноз НЭК подтверждён, стадия 2а?', 'Диагноз: НЭК 1а (под вопросом).', 'Подозрение на НЭК?'])
+    { assert.equal(val(t, 'nec_stage'), undefined, t); assert.equal(val(t, 'nec_suspected'), undefined, t); }
+  assert.equal(val('Пассаж восстановлен? Уточнить.', 'gi_passage_restored'), undefined);
+});
+test('отложенное введение и отмена до введения не дают «введено» и дозы', () => {
+  assert.equal(val('Введение сурфактанта отложено.', 'surfactant_given'), undefined);
+  assert.equal(val('Сурфактант не вводился, планировался.', 'surfactant_given'), undefined);
+  assert.equal(val('Гентамицин 6 мг в/в каждые 36 ч — отменён до введения.', 'gentamicin_dose_mg'), undefined);
+  assert.equal(val('Гентамицин 6 мг в/в каждые 36 ч — отменён до введения.', 'gentamicin_interval_h'), undefined);
+});

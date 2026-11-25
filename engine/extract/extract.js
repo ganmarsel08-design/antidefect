@@ -263,7 +263,7 @@
     { re: /[Ии]ммуноглобулин не вводился/g, emit: () => [{ f: 'immunoglobulin_given', v: false }] },
     { re: /[Вв]ведён иммуноглобулин человека нормальный|[Ии]ммуноглобулин назначен индивидуально/g,
       // immunoglobulin_given в словаре — «Введён»: «назначен» даёт только вид применения, не факт введения
-      emit: (m, c) => { const r = []; if (/[Вв]ведён/.test(m[0]) && !NOT_ADMIN.test(c.line) && !PLAN.test(c.line)) r.push({ f: 'immunoglobulin_given', v: true }); if (/индивидуально/.test(m[0])) r.push({ f: 'immunoglobulin_use_type', v: 'individualized' }); return r; } },
+      emit: (m, c) => { const r = []; if (/[Вв]ведён/.test(m[0]) && !NOT_ADMIN.test(ownSentences(c.line, m.index)) && !PLAN.test(ownSentences(c.line, m.index))) r.push({ f: 'immunoglobulin_given', v: true }); if (/индивидуально/.test(m[0])) r.push({ f: 'immunoglobulin_use_type', v: 'individualized' }); return r; } },
     { re: /с целью лечения сепсиса/g, when: l => /иммуноглобулин/i.test(l), emit: () => [{ f: 'immunoglobulin_purpose', v: 'sepsis_treatment_or_prophylaxis' }] },
     { re: /рутинно по схеме отделения/g, when: l => /иммуноглобулин/i.test(l), emit: () => [{ f: 'immunoglobulin_use_type', v: 'routine' }] },
     { re: /по решению консилиума(?: \([^)]*\))?/g, emit: () => [{ f: 'consilium_documented', v: true }] },
@@ -322,6 +322,7 @@
     }
     if (kind === 'dose') {
       const drug = drugName(m[1]); if (!drug) return [];
+      if (NOT_ADMIN.test(ownSentences(c.line, m.index))) return []; // «отменён до введения», «не назначен», «фактически не вводился» — доза не извлекается
       const between = c.line.slice(m.index + m[1].length, m.index + m[0].indexOf(m[2], m[1].length));
       if (new RegExp('\\+|' + DRUG_ALT, 'i').test(between)) return []; // число относится к другому препарату
       const n = num(m[2].replace(' ', '')), unit = m[3].toLowerCase(); const r = [];
@@ -441,6 +442,20 @@
     while ((m = wre.exec(line))) { const rest = line.slice(m.index); const f = /верно\s|исправленному верить|исправлено на/i.exec(rest); if (f) wrong.push([m.index, m.index + f.index]); }
     return { copy, wrong };
   }
+  /*
+   * Предварительный или сомнительный диагноз / факт не выдаётся как установленный (ночной цикл, задание владельца):
+   * «РДС?», «под вопросом», «исключить», «дифференцировать», «предварительный», «не подтверждён», «вероятно»,
+   * «отложено», «по показаниям», «уточнить». Отказ — значение не извлекается (решает врач).
+   */
+  const UNCERTAIN_FIELDS = /^(rds_diagnosed|rds_risk|nec_stage|nec_diagnosed_at|nec_confirmed_at|nec_suspected|nec_suspected_at|surfactant_given|surfactant_in_delivery_room|gi_passage_restored|gi_passage_restored_at|clinical_deterioration|transferred_to_surgery|mechanical_ventilation|intubated|meningitis|serious_bacterial_infection_excluded|pathogen|blood_culture_result)$/;
+  const UNCERTAIN_WORDS = /под вопросом|исключить|дифференц|предварительн|не подтвержд|сомнительн|под сомнением|вероятн|возможн|отложен|по показаниям|уточнить|не исключ/i;
+  const DIAG_FIELDS = /^(rds_diagnosed|nec_stage|nec_diagnosed_at|nec_confirmed_at|nec_suspected|nec_suspected_at)$/;
+  function uncertain(line, s, e, f) {
+    const cl = clause(line, s), sg = segment(line, s);
+    if (line[cl.e] === '?' || /\?/.test(line.slice(s, cl.e))) return true;
+    const segText = line.slice(sg.s, Math.max(sg.e, e)) + ' ' + (line.slice(e, e + 40).match(/^[^,.;]*/) || [''])[0];
+    return UNCERTAIN_WORDS.test(segText) || (DIAG_FIELDS.test(f) && /исключ[её]н|снят[оа]?(?![а-яё])/i.test(segText));
+  }
   const inSpan = (sp, i) => sp.some(([a, b]) => i >= a && i < b);
 
   /* ── Этап 8: обобщённые формулировки (полнота). g — защиты: u — «не указано», n — отрицание в той же части,
@@ -464,11 +479,17 @@
    */
   const ADMIN = /введ[её]н|вводил|получа(?:ет|л)|[Нн]ачат[аыо]?(?![а-яё])|первая доза|[Нн]азначен[аоы]?(?![а-яё])|терапи[яи]\s*:|АБТ\s*:|схем[аеы]?\s*:/;
   const NOT_ADMIN = /не (?:вводил|введ[её]н|получал|назнача|назначен|начат)|фактически не|отмен[её]н\S* до введения/i;
+  /** Предложение с препаратом и следующее, если оно продолжает его («Фактически не вводился», «Отменён…»), — чтобы отказ про другой препарат не мешал. */
+  function ownSentences(line, idx) {
+    const cl = clause(line, idx); let t = line.slice(cl.s, cl.e);
+    const rest = line.slice(cl.e + 1); if (/^\s*(?:[Фф]актически|[Нн]е вводил|[Оо]тмен)/.test(rest)) t += ' ' + rest.slice(0, clause(rest, 1).e);
+    return t;
+  }
   function administered(c, idx) {
     const cl = clause(c.line, idx), t = c.line.slice(cl.s, cl.e);
     // перечень после «назначено:» через «;» — одно предложение
     const ps = c.line.slice(0, idx).search(/[.!?]\s+[^.!?]*$/); const sent = c.line.slice(ps < 0 ? 0 : ps + 1, cl.e);
-    if (NOT_ADMIN.test(c.line)) return false;
+    if (NOT_ADMIN.test(ownSentences(c.line, idx))) return false;
     if (!ADMIN.test(t) && ADMIN.test(sent) && !PLAN.test(sent)) return true;
     if (!ADMIN.test(t) && !/\|/.test(c.line)) return false;
     const sg = segment(c.line, idx);
@@ -508,7 +529,7 @@
     { re: /[Ии]нтубаци[\wА-Яа-яЁё]* не (?:проводил|выполнял)[\wА-Яа-яЁё]*/g, emit: T('intubated', false) },
     { re: /(?:аппаратн[\wА-Яа-яЁё]* )?ИВЛ не (?:проводил|требовал|выполнял)[\wА-Яа-яЁё]*/g, emit: T('mechanical_ventilation', false) },
     { re: /переведён[\wА-Яа-яЁё]* на ИВЛ|[Нн]а аппаратной ИВЛ/g, g: 'np', emit: T('mechanical_ventilation', true) },
-    { re: new RegExp('(?:[Вв]вед[её]н[\\wА-Яа-яЁё]*)[^.;]{0,60}?(' + SURF + '|сурфактант)|(' + SURF + ')[^.;]{0,25}?введ[её]н', 'g'), g: 'npo',
+    { re: new RegExp('(?:[Вв]вед[её]н(?:а|о|ы)?(?![А-Яа-яЁё]))[^.;]{0,60}?(' + SURF + '|сурфактант)|(' + SURF + ')[^.;]{0,25}?введ[её]н(?:а|о|ы)?(?![А-Яа-яЁё])', 'g'), g: 'npo',
       emit: (m, c) => { const cl = clause(c.line, m.index), t = c.line.slice(cl.s, cl.e); const r = [{ f: 'surfactant_given', v: true }];
         const dn = new RegExp('(' + SURF + ')(?: \\((?:' + SURF + ')\\))?').exec(t); if (dn) r.push({ f: 'surfactant_drug', v: dn[0], s: cl.s + dn.index, e: cl.s + dn.index + dn[0].length });
         if (/родзал|родильн[\wА-Яа-яЁё]* зал/.test(t)) r.push({ f: 'surfactant_in_delivery_room', v: true }); else if (/ОРИТН/.test(t)) r.push({ f: 'surfactant_in_delivery_room', v: false });
@@ -625,6 +646,7 @@
           for (const o of out) {
             const s = rec.start + (o.s !== undefined ? o.s : m.index);
             const e = rec.start + (o.e !== undefined ? o.e : m.index + m[0].length);
+            if (UNCERTAIN_FIELDS.test(o.f) && uncertain(line, m.index, m.index + m[0].length, o.f)) continue; // предварительное, под вопросом, исключить
             const hit = Object.assign({}, o, { start: s, end: Math.max(e, s + 1), list: rule.list || null });
             if (old) superseded.push(hit); else hits.push(hit);
           }
