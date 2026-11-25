@@ -1,0 +1,229 @@
+[
+ {
+  "id": "СЛП-РДС-01",
+  "ref_tokens": 494,
+  "program_tokens": 494,
+  "lcs": 494,
+  "body_recall": 1,
+  "body_precision": 1,
+  "expected_unread": [],
+  "detected": 0,
+  "false_warnings": [],
+  "leaks": [],
+  "warnings": []
+ },
+ {
+  "id": "СЛП-РДС-02",
+  "ref_tokens": 213,
+  "program_tokens": 213,
+  "lcs": 213,
+  "body_recall": 1,
+  "body_precision": 1,
+  "expected_unread": [
+   {
+    "type": "header",
+    "detected": true
+   },
+   {
+    "type": "textbox",
+    "detected": true
+   }
+  ],
+  "detected": 2,
+  "false_warnings": [],
+  "leaks": [],
+  "warnings": [
+   "не прочитано: рисунок — 1 шт.",
+   "не прочитано: надпись (текстовое поле) — 1 шт.",
+   "не прочитано: колонтитул (header1.xml)"
+  ]
+ },
+ {
+  "id": "СЛП-РДС-03",
+  "ref_tokens": 210,
+  "program_tokens": 210,
+  "lcs": 210,
+  "body_recall": 1,
+  "body_precision": 1,
+  "expected_unread": [
+   {
+    "type": "comment",
+    "detected": true
+   },
+   {
+    "type": "footnote",
+    "detected": true
+   },
+   {
+    "type": "image",
+    "detected": true
+   }
+  ],
+  "detected": 3,
+  "false_warnings": [],
+  "leaks": [],
+  "warnings": [
+   "не прочитано: рисунок — 1 шт.",
+   "не прочитано: сноски",
+   "не прочитано: примечания рецензента"
+  ]
+ },
+ {
+  "id": "СЛП-НЭК-01",
+  "ref_tokens": 385,
+  "program_tokens": 385,
+  "lcs": 385,
+  "body_recall": 1,
+  "body_precision": 1,
+  "expected_unread": [],
+  "detected": 0,
+  "false_warnings": [],
+  "leaks": [],
+  "warnings": []
+ },
+ {
+  "id": "СЛП-НЭК-02",
+  "ref_tokens": 209,
+  "program_tokens": 209,
+  "lcs": 209,
+  "body_recall": 1,
+  "body_precision": 1,
+  "expected_unread": [
+   {
+    "type": "footer",
+    "detected": true
+   },
+   {
+    "type": "footnote",
+    "detected": true
+   }
+  ],
+  "detected": 2,
+  "false_warnings": [],
+  "leaks": [],
+  "warnings": [
+   "не прочитано: колонтитул (footer1.xml)",
+   "не прочитано: сноски"
+  ]
+ },
+ {
+  "id": "СЛП-НЭК-03",
+  "ref_tokens": 139,
+  "program_tokens": 139,
+  "lcs": 139,
+  "body_recall": 1,
+  "body_precision": 1,
+  "expected_unread": [
+   {
+    "type": "image",
+    "detected": true
+   },
+   {
+    "type": "textbox",
+    "detected": true
+   }
+  ],
+  "detected": 2,
+  "false_warnings": [],
+  "leaks": [],
+  "warnings": [
+   "не прочитано: рисунок — 1 шт.",
+   "не прочитано: рисунок — 1 шт.",
+   "не прочитано: надпись (текстовое поле) — 1 шт."
+  ]
+ },
+ {
+  "id": "СЛП-НЭК-04",
+  "ref_tokens": 149,
+  "program_tokens": 149,
+  "lcs": 149,
+  "body_recall": 1,
+  "body_precision": 1,
+  "expected_unread": [
+   {
+    "type": "header",
+    "detected": true
+   },
+   {
+    "type": "comment",
+    "detected": true
+   }
+  ],
+  "detected": 2,
+  "false_warnings": [],
+  "leaks": [],
+  "warnings": [
+   "не прочитано: колонтитул (header1.xml)",
+   "не прочитано: примечания рецензента"
+  ]
+ },
+ {
+  "id": "СЛП-СЕП-01",
+  "ref_tokens": 208,
+  "program_tokens": 208,
+  "lcs": 208,
+  "body_recall": 1,
+  "body_precision": 1,
+  "expected_unread": [],
+  "detected": 0,
+  "false_warnings": [],
+  "leaks": [],
+  "warnings": []
+ },
+ {
+  "id": "СЛП-СЕП-02",
+  "ref_tokens": 168,
+  "program_tokens": 168,
+  "lcs": 168,
+  "body_recall": 1,
+  "body_precision": 1,
+  "expected_unread": [
+   {
+    "type": "footnote",
+    "detected": true
+   },
+   {
+    "type": "textbox",
+    "detected": true
+   }
+  ],
+  "detected": 2,
+  "false_warnings": [],
+  "leaks": [],
+  "warnings": [
+   "не прочитано: рисунок — 1 шт.",
+   "не прочитано: надпись (текстовое поле) — 1 шт.",
+   "не прочитано: сноски"
+  ]
+ },
+ {
+  "id": "СЛП-СЕП-03",
+  "ref_tokens": 138,
+  "program_tokens": 138,
+  "lcs": 138,
+  "body_recall": 1,
+  "body_precision": 1,
+  "expected_unread": [
+   {
+    "type": "footer",
+    "detected": true
+   },
+   {
+    "type": "image",
+    "detected": true
+   },
+   {
+    "type": "comment",
+    "detected": true
+   }
+  ],
+  "detected": 3,
+  "false_warnings": [],
+  "leaks": [],
+  "warnings": [
+   "не прочитано: рисунок — 1 шт.",
+   "не прочитано: колонтитул (footer1.xml)",
+   "не прочитано: примечания рецензента"
+  ]
+ }
+]

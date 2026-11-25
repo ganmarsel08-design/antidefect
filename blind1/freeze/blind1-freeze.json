@@ -1,0 +1,91 @@
+{
+ "schema": "blind1-freeze-1.4",
+ "frozen_at": "2026-11-25T16:08:30.426Z",
+ "manifest_sha256": "84c7785d0897e9704cd45ca309f1bc93ab6c9c027e7ea4314ce0380d48a8289e",
+ "archive": {
+  "name": "blind1-source-v2.zip",
+  "sha256": "b98eb8be01705add1a5ad87d6a3372bb653c2052b215082e983bc97dd9ffc2ce"
+ },
+ "validation": {
+  "errors": [],
+  "warnings": [
+   "СЛП-РДС-03/РДС03-F023: цитата в image — машинно не проверяема",
+   "СЛП-НЭК-03/НЭК03-F010: цитата в image — машинно не проверяема",
+   "СЛП-НЭК-03/НЭК03-F011: цитата в image — машинно не проверяема",
+   "СЛП-СЕП-03/СЕП03-F018: цитата в image — машинно не проверяема",
+   "СЛП-СЕП-03/СЕП03-F019: цитата в image — машинно не проверяема",
+   "СЛП-СЕП-03/СЕП03-F020: цитата в image — машинно не проверяема",
+   "СЛП-СЕП-03/СЕП03-F021: цитата в image — машинно не проверяема",
+   "СЛП-СЕП-03/СЕП03-F022: цитата в image — машинно не проверяема",
+   "минимум не выполнен: abbreviation — 4 из 12"
+  ],
+  "counts": {
+   "trap": {
+    "negation": 16,
+    "plan": 5,
+    "reference_range": 6,
+    "time_without_date": 5,
+    "abbreviation": 4,
+    "deleted_tracked_text": 2,
+    "latin_cyrillic_mix": 2,
+    "mother": 4,
+    "corrected_record": 4,
+    "conditional": 5,
+    "dose_without_unit": 3,
+    "template_placeholder": 2,
+    "unit_not_field_unit": 5,
+    "relative_time": 3,
+    "midnight_crossing": 2,
+    "typo": 3,
+    "duplicate_copy": 4,
+    "date_without_time": 3,
+    "other_protocol_mention": 1,
+    "other_patient": 1,
+    "past_history": 1
+   },
+   "docx_unread_types": [
+    "comment",
+    "footer",
+    "footnote",
+    "header",
+    "image",
+    "textbox"
+   ],
+   "docx_with_unread": 7,
+   "docx_without_unread": 3,
+   "docx_unread_with_facts": 13,
+   "docx_deleted": 2
+  }
+ },
+ "technical_test": false,
+ "input_files": {
+  "author-notes.md": "a4cc3e50f29c26de322ac12d6a87bcffef13425ec41e1920ac95d5f23029f1cd",
+  "blind1-gold.json": "77b25608cb273817362003713f1871656ad614a53254bd5ed952fe028770515b",
+  "docx-text/СЛП-НЭК-01.json": "716bfa9b28c8c2fdac00e7111528e9e8135d4e152c2cb5689d4bae39d81e3a51",
+  "docx-text/СЛП-НЭК-02.json": "3189bccc8a242c446fa4c87a40b84b0b798097d3bebc2fdf08f204a46c06278d",
+  "docx-text/СЛП-НЭК-03.json": "7f3260bfa354b4497a280372cbe41dc57d9b75cacc97498fdb05b0ef370b36aa",
+  "docx-text/СЛП-НЭК-04.json": "d3b9903a8ba7a6850ea729c3b62fffe2b9aa75ac379aa8958d9ee18f8cd2190d",
+  "docx-text/СЛП-РДС-01.json": "c9056a5af56977a4bccafc05be7fe0a1abc9ce354b37a82ad6d6127946a9bfe1",
+  "docx-text/СЛП-РДС-02.json": "d6945bbe3d4a79756e5be0c2fe2248313cdd8b7d87290c1890a56b76ac667c2e",
+  "docx-text/СЛП-РДС-03.json": "94a196cf7eb633f17e07cf209b82bfbd50ec186354f091b1cbd55e40bf77597e",
+  "docx-text/СЛП-СЕП-01.json": "8945d96632e018acbcf8ae1129741a46f290610a7a26ab8b649d9abe8d42ed07",
+  "docx-text/СЛП-СЕП-02.json": "d0e5c6b19e5f713d38b8ebb93d96b3b2bffb16028a30bba52272b3ef80587f23",
+  "docx-text/СЛП-СЕП-03.json": "6bd48ee23ec9cf1c4e2f03edbc9f97144e7aa2e2b2c58f34526e7aac72f5883d",
+  "histories/СЛП-НЭК-01.docx": "a10410fd6ba2afb92c61a6dbbbcad33a5e2ba5f3b9b6f9ccb0da15586ed20962",
+  "histories/СЛП-НЭК-02.docx": "759cda20f9c4fce9ce161da3c51635da614b3aa3ba85a83228a1a455a4d9953d",
+  "histories/СЛП-НЭК-03.docx": "ca3dec366e96439b8f50bb8b450e8f6cb668135d77cae73f859b5c5a8b77c596",
+  "histories/СЛП-НЭК-04.docx": "c114ec76bc0587506a26d25ad2d362727087c13bb7227c0e5278ef7af797d119",
+  "histories/СЛП-НЭК-05.txt": "e1b582ba48681fc373360d3903d81f65472807511e6491d54fcedc0c5d903968",
+  "histories/СЛП-РДС-01.docx": "547ceeb9cfa1e5c69640a31182c64fd98ff0ef342c6a935d1ce14b162a885c5a",
+  "histories/СЛП-РДС-02.docx": "35c387afeb77e31f8949d573ea742d2f4e7fcc8f046d36274a497351a3863f86",
+  "histories/СЛП-РДС-03.docx": "7a8dae07ca6256ada48de286f9914322716bf98ea84562f551be79a2be7c57ce",
+  "histories/СЛП-РДС-04.txt": "1e9c955d4cb1950aacfa2120dbf1f26d1eb7aade4724d35af1f873a7c527ec97",
+  "histories/СЛП-РДС-05.txt": "1dae2d7021196791aa7942791cc4cc54e029fa907cf63f38947c288cac1077f9",
+  "histories/СЛП-СЕП-01.docx": "3ab47a568c96c1a763a67b65862a1c21d81082728fd11c1e5435c3ba807adcdf",
+  "histories/СЛП-СЕП-02.docx": "afd2ac71e2ddaa1a283ac64cfb84201cb1b1613e4ec64c038b013a7e085d9db9",
+  "histories/СЛП-СЕП-03.docx": "2f853d8e3fe5646bc40b6b551b99cbcdcce58744b9df0c4edc0f834ea0212031",
+  "histories/СЛП-СЕП-04.txt": "6f80bc4217831df239f88a149615b3b787ca389613d66365ef418c567873a01a",
+  "histories/СЛП-СЕП-05.txt": "a7e34c3fadb6fe33cbe9ae86b7d5a2781129c8ffe99535eda3198039affdc5a1",
+  "manifest.json": "a49ea58823cb577156caf22bb69bcd2189c1850fa8ba3c5401ba56f80311c7c2"
+ }
+}
