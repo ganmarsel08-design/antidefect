@@ -170,3 +170,22 @@ test('время в скобках относится к тому, что в с�
   assert.equal(val(t, 'culture_result_at'), '2026-08-06T09:45+05:00');
   assert.equal(val(t, 'sbi_excluded_at'), '2026-08-06T10:30+05:00');
 });
+
+// Ревью ChatGPT к PR №13: план и отказ ≠ назначение; *_given в словаре — «назначен / включён в терапию».
+test('план, отказ и «фактически не вводился» не дают *_given', () => {
+  assert.equal(val('14.01.2026 07:30 — Планируется гентамицин 6 мг в/в каждые 36 ч.', 'gentamicin_given'), undefined);
+  assert.equal(val('14.01.2026 07:30 — Планируется гентамицин 6 мг в/в каждые 36 ч.', 'gentamicin_dose_mg'), undefined);
+  assert.equal(val('14.01.2026 07:30 — Назначен гентамицин 6 мг в/в каждые 36 ч. Фактически не вводился.', 'gentamicin_given'), undefined);
+  assert.equal(val('14.01.2026 07:30 — Гентамицин не назначен, в старом листе указано 6 мг.', 'gentamicin_given'), undefined);
+  assert.equal(val('14.01.2026 07:30 — Гентамицин не назначен, в старом листе указано 6 мг.', 'gentamicin_dose_mg'), undefined);
+  assert.equal(val('При ухудшении — бензилпенициллин 90 мг в/в каждые 12 ч.', 'benzylpenicillin_given'), undefined);
+  assert.equal(val('При появлении пневматоза — добавить метронидазол 7,5 мг в/в.', 'metronidazole_given'), undefined);
+  assert.equal(val('Рассмотреть ампициллин + гентамицин + метронидазол.', 'metronidazole_given'), undefined);
+});
+
+test('прямое назначение или введение дают *_given', () => {
+  assert.equal(val('14.01.2026 07:30 — Назначено: гентамицин 6 мг в/в каждые 36 ч.', 'gentamicin_given'), true);
+  assert.equal(val('14.01.2026 07:40 — Введена первая доза АБТ: бензилпенициллин 90 мг в/в.', 'benzylpenicillin_given'), true);
+  assert.equal(val('Начаты ампициллин + гентамицин + метронидазол.', 'metronidazole_given'), true);
+  assert.equal(val('Дата | Препарат | Доза\n14.01.2026 | Гентамицин | 6 мг в/в каждые 36 ч', 'gentamicin_given'), true);
+});

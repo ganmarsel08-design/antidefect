@@ -302,7 +302,7 @@
       const drugs = m[1].split(/, | \+ /).map(s => s.trim()).filter(Boolean);
       const s = L0 + m[0].indexOf(m[1]);
       const r = [{ f: 'abx_regimen', v: drugs, s, e: s + m[1].length }];
-      if (drugs.includes('метронидазол')) {
+      if (drugs.includes('метронидазол') && administered(c, m.index)) {
         r.push({ f: 'metronidazole_given', v: true, s, e: s + m[1].length });
         const d = eventDT(c.line, m.index, c.tz, c.ctx); if (d) r.push(atField('metronidazole_given_at', d, m));
       }
@@ -323,18 +323,19 @@
       const scope = stop >= 0 ? after.slice(0, stop) : after; const iv = /каждые (\d+) ?ч/.exec(scope);
       const ivPos = iv ? m.index + m[0].length + iv.index : 0;
       const sN = m.index + m[0].indexOf(m[2], m[1].length), eN = sN + m[2].length + 1 + m[3].length;
+      const given = administered(c, m.index);
       if (drug === 'гентамицин') {
-        r.push({ f: 'gentamicin_given', v: true });
+        if (given) r.push({ f: 'gentamicin_given', v: true });
         if (unit === 'мг') r.push({ f: 'gentamicin_dose_mg', v: n, s: m.index, e: eN });
         if (unit === 'мг/кг' || m[4]) r.push({ f: 'gentamicin_initial_dose_mg_kg', v: num(m[4] || m[2]) });
         if (iv) r.push({ f: 'gentamicin_interval_h', v: +iv[1], s: ivPos, e: ivPos + iv[0].length });
       } else if (drug === 'бензилпенициллин') {
-        r.push({ f: 'benzylpenicillin_given', v: true });
+        if (given) r.push({ f: 'benzylpenicillin_given', v: true });
         if (unit === 'мг') r.push({ f: 'benzylpenicillin_dose_mg', v: n, s: m.index, e: eN });
         if (unit === 'мг/кг' || m[4]) r.push({ f: 'benzylpenicillin_dose_mg_kg', v: num(m[4] || m[2]) });
         if (unit === 'ед/кг') r.push({ f: 'benzylpenicillin_dose_units_per_kg', v: n, s: m.index, e: eN });
         if (iv) r.push({ f: 'benzylpenicillin_interval_h', v: +iv[1], s: ivPos, e: ivPos + iv[0].length });
-      } else if (drug === 'метронидазол') r.push({ f: 'metronidazole_given', v: true });
+      } else if (drug === 'метронидазол' && given) r.push({ f: 'metronidazole_given', v: true });
       return r;
     }
     if (kind === 'regimenClause') {
@@ -351,7 +352,7 @@
       const cl = clause(c.line, m.index), t = c.line.slice(cl.s, cl.e);
       if (/замен|смен|отмен|прекращ/i.test(t)) return []; // смена или отмена схемы — не стартовая схема
       const r = [];
-      if (/[Нн]ачат|перв[\wА-Яа-яЁё]* доз|введен/.test(t) && drugs.includes('метронидазол')) r.push({ f: 'metronidazole_given', v: true });
+      if (drugs.includes('метронидазол') && administered(c, m.index)) r.push({ f: 'metronidazole_given', v: true });
       // схема — только стартовая (первая доза / эмпирическая); «гентамицин назначен» без дозы не даёт gentamicin_given
       if (/эмпирическ|стартов/.test(t) || (/перв[\wА-Яа-яЁё]* доз/.test(t) && !/НЭК/.test(c.text))) {
         r.push({ f: 'abx_regimen', v: drugs });
@@ -362,7 +363,7 @@
       return r;
     }
     if (kind === 'benzyl') {
-      const r = [{ f: 'benzylpenicillin_given', v: true }, { f: 'benzylpenicillin_interval_h', v: +m[5], s: L0 + m[0].lastIndexOf('каждые') }];
+      const r = [...(administered(c, m.index) ? [{ f: 'benzylpenicillin_given', v: true }] : []), { f: 'benzylpenicillin_interval_h', v: +m[5], s: L0 + m[0].lastIndexOf('каждые') }];
       if (m[2] === 'мг') r.push({ f: 'benzylpenicillin_dose_mg', v: num(m[1]), e: L0 + ('бензилпенициллин ' + m[1] + ' мг').length });
       const sk = L0 + m[0].indexOf('(');
       if (m[4] === 'мг/кг') r.push({ f: 'benzylpenicillin_dose_mg_kg', v: num(m[3]), s: sk, e: sk + m[3].length + 7 });
@@ -374,7 +375,7 @@
       return r;
     }
     if (kind === 'genta') {
-      const r = [{ f: 'gentamicin_given', v: true }, { f: 'gentamicin_dose_mg', v: num(m[1]), e: L0 + ('гентамицин ' + m[1] + ' мг').length }];
+      const r = [...(administered(c, m.index) ? [{ f: 'gentamicin_given', v: true }] : []), { f: 'gentamicin_dose_mg', v: num(m[1]), e: L0 + ('гентамицин ' + m[1] + ' мг').length }];
       const sk = L0 + m[0].indexOf('(');
       r.push({ f: 'gentamicin_initial_dose_mg_kg', v: num(m[2]), s: sk, e: sk + m[2].length + 7 });
       if (m[3] || m[4]) r.push({ f: 'gentamicin_interval_h', v: +(m[3] || m[4]), s: L0 + m[0].search(/каждые|вторая доза/) });
@@ -446,6 +447,25 @@
   const drugName = w => DRUGS[w] || DRUGS[w.toLowerCase()] || null;
   const tm = (f, val) => (m, c) => { const r = val === undefined ? [] : [{ f: val[0], v: val[1] }]; const d = eventDT(c.line, m.index, c.tz, c.ctx); if (d) r.push(atField(f, d, m)); return r; };
   const T = (f, v) => () => [{ f, v }];
+  /**
+   * Поля *_given в словаре — «препарат назначен / включён в терапию» (словарь полей). Ставятся только при прямой
+   * записи назначения или введения («назначено:», «введена первая доза», «начаты», «АБТ: …», строка листа назначений)
+   * и не ставятся при плане, условии, отказе («не назначен») или записи «фактически не вводился» — тогда решает врач
+   * (ревью ChatGPT к PR №13: план ≠ назначение ≠ введение).
+   */
+  const ADMIN = /введ[её]н|вводил|получа(?:ет|л)|[Нн]ачат[аыо]?(?![а-яё])|первая доза|[Нн]азначен[аоы]?(?![а-яё])|терапи[яи]\s*:|АБТ\s*:|схем[аеы]?\s*:/;
+  const NOT_ADMIN = /не (?:вводил|введ[её]н|получал|назнача|назначен|начат)|фактически не|отмен[её]н\S* до введения/i;
+  function administered(c, idx) {
+    const cl = clause(c.line, idx), t = c.line.slice(cl.s, cl.e);
+    // перечень после «назначено:» через «;» — одно предложение
+    const ps = c.line.slice(0, idx).search(/[.!?]\s+[^.!?]*$/); const sent = c.line.slice(ps < 0 ? 0 : ps + 1, cl.e);
+    if (NOT_ADMIN.test(c.line)) return false;
+    if (!ADMIN.test(t) && ADMIN.test(sent) && !PLAN.test(sent)) return true;
+    if (!ADMIN.test(t) && !/\|/.test(c.line)) return false;
+    const sg = segment(c.line, idx);
+    if (PLAN.test(c.line.slice(sg.s, sg.e)) || PLAN.test(t) || COND_CLAUSE.test(t)) return false;
+    return true;
+  }
   const RULES8 = [
     // ребёнок
     { re: new RegExp(LW + '(?:ГВ|[Сс]рок[\\wА-Яа-яЁё]*(?: гестации)?|гестационн[\\wА-Яа-яЁё]* возраст[\\wА-Яа-яЁё]*)\\s*:?\\s*(\\d{2})\\s*(?:нед|недел)', 'g'), g: 'o', emit: m => [{ f: 'gestational_age_weeks', v: +m[1] }] },
@@ -519,7 +539,7 @@
     { re: /ТБИ исключена|[Тт]яжёл[\wА-Яа-яЁё]* бактериальн[\wА-Яа-яЁё]* инфекци[\wА-Яа-яЁё]* исключена/g, g: 'p', emit: (m, c) => { const r = [{ f: 'serious_bacterial_infection_excluded', v: true }]; const d = eventDT(c.line, m.index, c.tz, c.ctx); if (d) r.push(atField('sbi_excluded_at', d, m)); return r; } },
     { re: /[Ии]ммуноглобулин не (?:назнача|вводил)[\wА-Яа-яЁё]*/g, emit: T('immunoglobulin_given', false) },
     { re: /(\d+) признак[\wА-Яа-яЁё]* «?Красного флага/g, emit: m => [{ f: 'red_flag_count', v: +m[1] }] },
-    { re: new RegExp(DRUG_RE + '[^.;]{0,25}?\\s*[|]?\\s*(\\d+(?:,\\d+)?(?: \\d{3})?) ?(мг|ЕД\\/кг|мг\\/кг)(?![А-Яа-я\\/])(?:\\s*\\((\\d+(?:,\\d+)?) ?мг\\/кг\\))?', 'gi'), g: 'o', special: 'dose' },
+    { re: new RegExp(DRUG_RE + '[^.;]{0,25}?\\s*[|]?\\s*(\\d+(?:,\\d+)?(?: \\d{3})?) ?(мг|ЕД\\/кг|мг\\/кг)(?![А-Яа-я\\/])(?:\\s*\\((\\d+(?:,\\d+)?) ?мг\\/кг\\))?', 'gi'), g: 'nop', special: 'dose' },
     { re: new RegExp(DRUG_RE + '(?:\\s*\\([^)]{0,30}\\))?(?:\\s*(?:\\+|,)\\s*' + LW + '(?:' + DRUG_ALT + ')' + RW + '(?:\\s*\\([^)]{0,30}\\))?)+', 'g'), g: 'o', special: 'regimen8' },
     // НЭК
     { re: /(?:[Пп]одозрени[\wА-Яа-яЁё]* на|[Пп]одозрение и подтверждение) НЭК/g, g: 'np', emit: (m, c) => { if (/[Нн]есмотря/.test(c.line.slice(Math.max(0, m.index - 12), m.index))) return []; const r = [{ f: 'nec_suspected', v: true }]; const d = eventDT(c.line, m.index, c.tz, c.ctx); if (d) r.push(atField('nec_suspected_at', d, m)); return r; } },
