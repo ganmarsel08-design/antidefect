@@ -1,0 +1,59 @@
+{
+ "schema": "blind1-manifest-1.4",
+ "method_version": "blind1-method-1.4",
+ "author_package_version": "blind1-author-1.2",
+ "gold_schema": "blind1-gold-1.1",
+ "created_at": "2026-11-25T10:08:48.749Z",
+ "node": "v22.23.5",
+ "note": "Единый манифест 1.4 (метод 1.4, пакет автора 1.2 без изменений). Зафиксирован до получения и открытия blind1-source.zip. Комплекты 1.1–1.3 сохранены без изменений в releases/.",
+ "program": {
+  "base_commit": "13a21b3b78832385e8a49be5be95c7cb9addfef6",
+  "extract_version": "0.7.0-stage7",
+  "files": {
+   "engine/extract/extract.js": "1f0f138748603b2625c29f4590848289fd6cb9273cdcb8ab7a9ca0af5a5018e8",
+   "engine/extract/docx.js": "8f4435257953802f63b17f07c518a1ae403a7af85028b78af336e435731c9684",
+   "engine/vendor/jszip/jszip.min.js": "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e",
+   "engine/case-builder.js": "c5d9ee2121171a3af4cedc9847f34a658eb5761ca66f9977173c60bdc732e496",
+   "engine/rules-engine.js": "0cec055e4292de74edd2cf81208ca3d8c787b19f822e0d82954c608ccc98cd31",
+   "engine/derive.js": "4fee3fda8c5aa1284bb7e26d6e4a086d07cd28f708c6ad11648a0156fe2153bb",
+   "engine/expert-view.js": "0831aef1e6e284e712bb3f5f9a4923dc7c27d07c906761c36f4f76c9c6d36a4d",
+   "engine/expert-app.js": "632c79b371cb4cba619270b6f301272ab8651343359c58791190f322b1da43e9",
+   "rules/pilot-rules.json": "af60b9a782901303c0a493bfdbbc82a0d32feedb8aa27ceb6e06ba5afc6d8810",
+   "rules/expert-decisions.json": "53ed8bac9a52f15b46bff2684fbc328807663405bb3b6d9a38393e1b449ffa74"
+  }
+ },
+ "protected_dirs": [
+  "scorer",
+  "tools"
+ ],
+ "kit_files": {
+  "blind1-method.md": "6365eea57d4ac0c5dc8e44fccb8dd1336265a4810c3c11f5845839f6bb310a14",
+  "blind1-author-package.md": "2ab03248add41618dcaf00c8ab911c5dd1cf560af2de99b88547514299520acc",
+  "field-sets.json": "f7b73460f252f89196e9395b259955fb0ac56f5943a5d02b67ecc01f3876ce67",
+  "CHANGES-1.1-1.2.md": "5c4ab44f68ee94dbdf4b9241ba6e3cbe7c6e80e975bbef4186d49344787e6906",
+  "CHANGES-1.2-1.3.md": "84eea8f8b39c30b7c5351cf85a6e538b8bcc7eff1ab21579f208adeee0bbc4c0",
+  "CHANGES-1.3-1.4.md": "0c286d45eba27fe7d777ffb974bfb65d60ec3c0e356304b257c19c460affdf4d",
+  "scorer/common.js": "c2ff7af15a3b0b45931fc044bc5443f361952cfacd138316aa8e52026c82f6b8",
+  "scorer/freeze.js": "ee4ae92310c5e46f2e1cf5a613708170796ecff5ff6c1a67b72c4c7a7936a6b1",
+  "scorer/impact.js": "98c4bfaf7fce79b343d073b54db9fac9d4e6279638d8e48d15cbc4d6550b5a24",
+  "scorer/match.js": "2c90ac4c25e4a359806c6ae953b8604e280f380e7c57d8726c921e1a7578e456",
+  "scorer/reading.js": "bf49d4a02db477cda6c8e594c6fb1bb87a5401cc570dc1e0a68b038d90cfe215",
+  "scorer/run.js": "8414693fff77af00eb36aae00e3a60d2a32deb48587c9452df7e6a1ffc915204",
+  "scorer/score.js": "042075f395dc6c944511daed83e845f0a76022ed45a77d293a5340fd57848ada",
+  "scorer/test/e2e.test.js": "625d81a87b3b953bd5bc8ea36e701e602b10f0b2e22c16e5ade35c57f4392eb9",
+  "scorer/test/impact.test.js": "dfa40d3dcf7889cf594d106366d6d0b994de936380a1a35c1693c9865df20a77",
+  "scorer/test/make-tech.py": "2b55ae457ec18f0b9ab6ba6e18a5d7defb7947975d037762256a14eab49b12eb",
+  "scorer/test/match.test.js": "e256d5e44722c51c095fbb59708c4ef13435f8ed4a5b480980f41e5bc2ecb7fe",
+  "scorer/test/tech/blind1-gold.json": "b642884dc06ce59f33e8ee500b80626632585f44aaef7666d81c3080ba4190de",
+  "scorer/test/tech/docx-text/ТЕХ-02.json": "0291c1bb89ad81c44210da37c0b0347cdfec92f50adf3995c1cb9369a0ef1ad6",
+  "scorer/test/tech/histories/ТЕХ-01.txt": "691b247cf7c3bfad774a0683cd0e03a97414b7337a59e7f05130a9b0e4734fc1",
+  "scorer/test/tech/histories/ТЕХ-02.docx": "9f52cbe9da636c090f7154199eab3e1aedcfa332bde8ce48fa876256897882cd",
+  "scorer/validate.py": "b7a6f2904bdbd3d22af493fa5f3c24fdea25d4860868a7a452d78e8001242d28",
+  "scorer/verify.js": "5f74c14c2d268640a6afd539e56277d8018b8cfe890e8f319a986ec96ddcff54",
+  "tools/build-package.js": "e86d68970d4d8fe8fc87e8c41024241f8ca30aa94e594cdd4a2c3ea3c38ca585",
+  "tools/make-manifest.js": "f4c0cc5a3fd6fa2c16e8ecdb37647cdf45fe9d4c6056886d4486dc031d32e870",
+  "tools/pack.py": "2f1c92175a0b1ec339bf56127f2ebe4b000dc35e4c344f429eec7ae5da10b4a0",
+  "tools/package-src/head.md": "b85dd57d15fa88b28afa011ed64999d52f99c81075043f4badb574e7164cad2d",
+  "tools/package-src/tail.md": "297b1da580c01f8d0c66a19e2aac8d257855d3e35f7d4050e6d99773dae8b558"
+ }
+}
