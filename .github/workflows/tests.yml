@@ -5,7 +5,7 @@ name: tests
 
 on:
   push:
-    branches: [feature/stage5-rules-pilot, feature/stage7-ui-pilot]
+    branches: [feature/stage5-rules-pilot, feature/stage7-ui-pilot, blind1/evaluator-1.4]
   pull_request:
     branches: [feature/stage4-registry]
   workflow_dispatch:
@@ -160,3 +160,34 @@ jobs:
             echo "### Мутационная проверка"
             tail -1 mut.log | sed 's/^/- /'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  blind1-evaluator:
+    # Оценщик слепого тестирования №1 (вне программы). Измеряемая программа — замороженный коммит 13a21b3,
+    # он выгружается отдельно; оценщик проверяет его хэши по манифесту 1.4. Только технические примеры.
+    name: Оценщик blind1 1.4 (технические тесты)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Замороженная программа 13a21b3
+        run: git worktree add "$RUNNER_TEMP/program" 13a21b3b78832385e8a49be5be95c7cb9addfef6
+      - name: Целостность комплекта и программы по манифесту 1.4
+        working-directory: blind1/kit
+        run: |
+          sha256sum freeze/blind1-manifest-1.4.json | grep -q '^84c7785d0897e9704cd45ca309f1bc93ab6c9c027e7ea4314ce0380d48a8289e '
+          node -e "const V=require('./scorer/verify.js');const k=V.verifyKit();V.verifyProgram(k.manifest,process.env.RUNNER_TEMP+'/program');console.log('OK')"
+          node tools/build-package.js "$RUNNER_TEMP/program" --check
+      - name: Тесты оценщика
+        working-directory: blind1/kit/scorer
+        env:
+          ANTIDEFECT_REPO: ${{ runner.temp }}/program
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: node --test test/*.test.js
