@@ -156,7 +156,7 @@ const cardLabels = p => p.$$eval('.card', cs => cs.map(c => [c.dataset.rule, c.q
       await p.setInputFiles('#docx', { name: 'СИН-СЕП-03.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', buffer: fs.readFileSync(path.join(ROOT, 'engine/test/fixtures/stage7/docx/СИН-СЕП-03.docx')) });
       await p.waitForFunction(() => document.getElementById('text').value.length > 100);
       await p.check('.prot[value="Сепсис"]'); await p.check('#synth'); await p.click('#go');
-      step('DOCX СЕП-03: прочитан полностью, найдено 29 сведений', /Найдено: 29/.test(await p.textContent('#cnt')) && !(await p.textContent('#docxwarn')));
+      step('DOCX СЕП-03: прочитан полностью, найдено 28 сведений (этап 8: «иммуноглобулин назначен» больше не даёт «введён»)', /Найдено: 28/.test(await p.textContent('#cnt')) && !(await p.textContent('#docxwarn')));
       step('DOCX: нет ошибок и сетевых запросов', errs.length === 0 || (console.log(errs), false));
       await p.close();
     }

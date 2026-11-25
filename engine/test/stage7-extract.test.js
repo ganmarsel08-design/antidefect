@@ -8,6 +8,8 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const X = require('../extract/extract.js');
 const EX = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/stage7/stage7-extraction-gold.json'), 'utf8'));
 const TZ = '+05:00';
+const PC = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/stage8/stage7-policy-changes.json'), 'utf8')).changes;
+const changed = (h, f) => PC.some(x => x.history === h.id && x.field === f);
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const ex = t => X.extract(t, { tz: TZ });
 const byField = r => new Map(r.candidates.map(c => [c.field, c]));
@@ -18,6 +20,7 @@ function compare(h, text) {
   let ok = 0;
   for (const c of r.candidates) for (const f of (c.fragments || [])) if (text.slice(f.start, f.end) !== f.text) errors.push(`фрагмент не совпадает с текстом: ${c.field}`);
   for (const it of h.items) {
+    if (changed(h, it.field)) { if (got.has(it.field)) errors.push(`значение ${it.field} должно больше не извлекаться (этап 8)`); continue; }
     const c = got.get(it.field);
     if (!c) { errors.push(`нет значения ${it.field}`); continue; }
     if (it.timeline) {
@@ -49,14 +52,14 @@ for (const h of EX.histories) {
   test(`${h.id}: все значения извлечены с исходными фрагментами, лишних нет, «не извлекается» соблюдено`, () => {
     const { ok, errors } = compare(h, h.text);
     assert.deepEqual(errors, []);
-    assert.equal(ok, h.items.length);
+    assert.equal(ok, h.items.length - PC.filter(x => x.history === h.id).length);
   });
 }
 
 test('итог: 249 из 249 значений, ноль лишних, все намеренно отсутствующие данные не извлечены', () => {
   let ok = 0, absent = 0;
   for (const h of EX.histories) { const c = compare(h, h.text); assert.deepEqual(c.errors, []); ok += c.ok; absent += h.absent.length; }
-  assert.equal(ok, 249);
+  assert.equal(ok, 249 - PC.length, 'этап 8: намеренно не извлекаются ' + PC.length + ' значения (fixtures/stage8/stage7-policy-changes.json)');
   assert.equal(absent, 39);
 });
 

@@ -230,7 +230,8 @@
     { re: /[Кк]ровь на посев взята (\d\d)\.(\d\d)\.(\d{4}) (\d\d):(\d\d)/g, emit: (m, c) => [{ f: 'blood_culture_drawn_at', v: iso(m, 1, c.tz) }] },
     { re: /[Пп]ервая доза (?!антибиотик)[а-яё]+ введена (\d\d)\.(\d\d)\.(\d{4}) (\d\d):(\d\d)/g, emit: (m, c) => [{ f: 'first_abx_dose_administered_at', v: iso(m, 1, c.tz) }] },
     { re: new RegExp(DT + ' — кровь на посев взята', 'g'), emit: (m, c) => [{ f: 'blood_culture_drawn_at', v: iso(m, 1, c.tz) }] },
-    { re: /из периферической вены/g, when: l => /посев/.test(l), emit: () => [{ f: 'sample_site', v: 'separate_vein' }] },
+    // «из периферической вены» не доказывает отдельную вену (ревью ChatGPT к PR №13) — только явное «отдельной»
+    { re: /из отдельной (?:периферической )?вены/g, when: l => /посев/.test(l), emit: () => [{ f: 'sample_site', v: 'separate_vein' }] },
     { re: /кровь на посев взята[^.]*?(\d+,\d+) мл/g, emit: m => { const s = m.index + m[0].lastIndexOf(m[1]); return [{ f: 'sample_volume_ml', v: num(m[1]), s, e: s + m[1].length + 3 }]; } },
     { re: new RegExp(DT + ' — введена первая доза антибиотик(?:а|ов)', 'g'), emit: (m, c) => [{ f: 'antibiotics_started', v: true }, { f: 'first_abx_dose_administered_at', v: iso(m, 1, c.tz) }, { f: 'abx_course_started_at', v: iso(m, 1, c.tz) }] },
     { re: new RegExp(DT + ' — первая доза антибиотик(?:а|ов)', 'g'), emit: (m, c) => [{ f: 'antibiotics_started', v: true }, { f: 'abx_course_started_at', v: iso(m, 1, c.tz) }] },
@@ -245,7 +246,7 @@
     { re: /посев крови (отрицательный|положительный)/g, emit: (m, c) => { const r = [{ f: 'blood_culture_result', v: m[1] }]; const d = eventDT(c.line, m.index, c.tz, c.ctx); if (d) r.push(atField('culture_result_at', d, m)); return r; } },
     { re: /посев крови положительный: ([A-Z]\. [a-z]+)/g, emit: m => { const s = m.index + m[0].indexOf(m[1]); const r = [{ f: 'pathogen', v: m[1], s, e: s + m[1].length }];
         if (GRAM_NEGATIVE.includes(m[1])) r.push({ f: 'gram_negative_culture', v: true, note: 'предложено по справочнику грамотрицательных возбудителей; подтверждает врач' }); return r; } },
-    { re: /(?<!не )тяжёлая бактериальная инфекция исключена/g, emit: (m, c) => { const r = [{ f: 'serious_bacterial_infection_excluded', v: true }]; const d = eventDT(c.line, m.index, c.tz, c.ctx); if (d) r.push(atField('sbi_excluded_at', d, m)); return r; } },
+    { re: /(?<!не )тяжёлая бактериальная инфекция исключена/g, emit: (m, c) => { const r = [{ f: 'serious_bacterial_infection_excluded', v: true }]; const d = eventDT(c.line, m.index, c.tz, c.ctx); if (d && !farFromHeader(c, m, d)) r.push(atField('sbi_excluded_at', d, m)); return r; } },
 
     // ── сепсис
     { re: /показание к антибактериальной терапии/g, emit: (m, c) => { const d = eventDT(c.line, m.index, c.tz, c.ctx); return d ? [atField('sepsis_indication_identified_at', d, m)] : []; } },
@@ -260,8 +261,9 @@
     { re: /бензилпенициллин (\d[\d ]*?(?:,\d+)?) (мг|ЕД) \((\d[\d ]*?(?:,\d+)?) (мг\/кг|ЕД\/кг)\) в\/в каждые (\d+) ч/g, special: 'benzyl' },
     { re: /гентамицин (\d+(?:,\d+)?) мг \((\d+(?:,\d+)?) мг\/кг\) в\/в(?:,? (?:каждые (\d+) ч|вторая доза через (\d+) ч))?/g, special: 'genta' },
     { re: /[Ии]ммуноглобулин не вводился/g, emit: () => [{ f: 'immunoglobulin_given', v: false }] },
-    { re: /введён иммуноглобулин человека нормальный|иммуноглобулин назначен индивидуально/g,
-      emit: m => { const r = [{ f: 'immunoglobulin_given', v: true }]; if (/индивидуально/.test(m[0])) r.push({ f: 'immunoglobulin_use_type', v: 'individualized' }); return r; } },
+    { re: /[Вв]ведён иммуноглобулин человека нормальный|[Ии]ммуноглобулин назначен индивидуально/g,
+      // immunoglobulin_given в словаре — «Введён»: «назначен» даёт только вид применения, не факт введения
+      emit: (m, c) => { const r = []; if (/[Вв]ведён/.test(m[0]) && !NOT_ADMIN.test(c.line) && !PLAN.test(c.line)) r.push({ f: 'immunoglobulin_given', v: true }); if (/индивидуально/.test(m[0])) r.push({ f: 'immunoglobulin_use_type', v: 'individualized' }); return r; } },
     { re: /с целью лечения сепсиса/g, when: l => /иммуноглобулин/i.test(l), emit: () => [{ f: 'immunoglobulin_purpose', v: 'sepsis_treatment_or_prophylaxis' }] },
     { re: /рутинно по схеме отделения/g, when: l => /иммуноглобулин/i.test(l), emit: () => [{ f: 'immunoglobulin_use_type', v: 'routine' }] },
     { re: /по решению консилиума(?: \([^)]*\))?/g, emit: () => [{ f: 'consilium_documented', v: true }] },
@@ -452,6 +454,8 @@
   const drugName = w => DRUGS[w] || DRUGS[w.toLowerCase()] || null;
   const tm = (f, val) => (m, c) => { const r = val === undefined ? [] : [{ f: val[0], v: val[1] }]; const d = eventDT(c.line, m.index, c.tz, c.ctx); if (d) r.push(atField(f, d, m)); return r; };
   const T = (f, v) => () => [{ f, v }];
+  /** Время записи (заголовка) не выдаётся за время решения, если решение записано в другом предложении той же записи. */
+  function farFromHeader(c, m, d) { const cl = clause(c.line, m.index); return d.end <= cl.s && !/(?:[01]\d|2[0-3]):[0-5]\d/.test(c.line.slice(cl.s, cl.e).replace(/\([^)]*\)/g, '')); }
   /**
    * Поля *_given в словаре — «препарат назначен / включён в терапию» (словарь полей). Ставятся только при прямой
    * записи назначения или введения («назначено:», «введена первая доза», «начаты», «АБТ: …», строка листа назначений)
@@ -541,7 +545,7 @@
       emit: (m, c) => { if (/\|/.test(c.line) && !/^\s*\d\d[.\/]\d\d[.\/]\d{2,4} [0-2]\d:[0-5]\d\s*\|/.test(c.line)) return [];
         const d = eventDT(c.line, m.index, c.tz, c.ctx); if (!d) return []; return [Object.assign(atField('crp_samples', d, m), { v: { drawn_at: d.value, purpose: /сходн/.test(m[0]) ? 'baseline' : 'control' } })]; }, list: 'crp_samples' },
     { re: /[Мм]енингит (?:клинически )?исключён/g, g: 'p', emit: T('meningitis', false) },
-    { re: /ТБИ исключена|[Тт]яжёл[\wА-Яа-яЁё]* бактериальн[\wА-Яа-яЁё]* инфекци[\wА-Яа-яЁё]* исключена/g, g: 'p', emit: (m, c) => { const r = [{ f: 'serious_bacterial_infection_excluded', v: true }]; const d = eventDT(c.line, m.index, c.tz, c.ctx); if (d) r.push(atField('sbi_excluded_at', d, m)); return r; } },
+    { re: /ТБИ исключена|[Тт]яжёл[\wА-Яа-яЁё]* бактериальн[\wА-Яа-яЁё]* инфекци[\wА-Яа-яЁё]* исключена/g, g: 'p', emit: (m, c) => { const r = [{ f: 'serious_bacterial_infection_excluded', v: true }]; const d = eventDT(c.line, m.index, c.tz, c.ctx); if (d && !farFromHeader(c, m, d)) r.push(atField('sbi_excluded_at', d, m)); return r; } },
     { re: /[Ии]ммуноглобулин не (?:назнача|вводил)[\wА-Яа-яЁё]*/g, emit: T('immunoglobulin_given', false) },
     { re: /(\d+) признак[\wА-Яа-яЁё]* «?Красного флага/g, emit: m => [{ f: 'red_flag_count', v: +m[1] }] },
     { re: new RegExp(DRUG_RE + '[^.;]{0,25}?\\s*[|]?\\s*(\\d+(?:,\\d+)?(?: \\d{3})?) ?(мг|ЕД\\/кг|мг\\/кг)(?![А-Яа-я\\/])(?:\\s*\\((\\d+(?:,\\d+)?) ?мг\\/кг\\))?', 'gi'), g: 'nop', special: 'dose' },
@@ -658,6 +662,7 @@
       for (const h of hs) { const d = distinct.find(x => same(x.v, h.v)); if (d) d.frs.push(frag(h)); else distinct.push({ v: h.v, frs: [frag(h)], note: h.note }); }
       const c = Object.assign(base, { value: distinct[0].v, fragment: distinct[0].frs[0].text, start: distinct[0].frs[0].start, end: distinct[0].frs[0].end, fragments: distinct[0].frs });
       if (distinct[0].note) c.note = distinct[0].note;
+      if (/^(gentamicin|benzylpenicillin|metronidazole)_given$/.test(f)) c.note = (c.note ? c.note + ' ' : '') + 'Поле означает «назначен / включён в терапию»; факт и время введения подтверждаются отдельно.';
       if (distinct.length > 1) {
         c.alternatives = distinct.map(d => ({ value: d.v, fragments: d.frs }));
         delete c.value; c.note = 'В тексте разные значения. Выбирает врач.';

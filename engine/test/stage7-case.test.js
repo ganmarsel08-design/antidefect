@@ -21,6 +21,9 @@ let tick = 0;
 const now = () => new Date(Date.UTC(2026, 10, 20, 9, 0, tick++)).toISOString();
 const session = h => CB.createSession({ extraction: X.extract(h.text, { tz: TZ, documentId: h.id }), actor: 'эксперт-тест', now });
 const H = id => EX.histories.find(h => h.id === id);
+// этап 8: значения, которые извлекатель намеренно больше не выдаёт, врач вносит вручную
+const PC = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/stage8/stage7-policy-changes.json'), 'utf8')).changes;
+function doctorAdds(s, h) { for (const x of PC.filter(x => x.history === h.id)) CB.addManual(s, x.field, h.items.find(i => i.field === x.field).value, { reason: 'этап 8: ' + x.reason }); }
 
 /** Полная проверка «как врач»: критические — по одному, остальные — группой, динамика — выбор варианта. */
 function reviewAll(s, pick) {
@@ -125,7 +128,7 @@ for (const h of EX.histories) {
     const variants = t.variants ? Object.keys(t.variants).map((k, i) => [k, i]) : [[null, 0]];
     for (const [k, i] of variants) {
       const ref = k ? t.variants[k] : t;
-      const s = session(h); reviewAll(s, i);
+      const s = session(h); reviewAll(s, i); doctorAdds(s, h);
       const b = CB.build(s);
       assert.equal(b.completeness.complete, true);
       assert.deepEqual(b.case.data, ref.input, 'данные для движка совпадают с эталоном');

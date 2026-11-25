@@ -189,3 +189,25 @@ test('прямое назначение или введение дают *_given
   assert.equal(val('Начаты ампициллин + гентамицин + метронидазол.', 'metronidazole_given'), true);
   assert.equal(val('Дата | Препарат | Доза\n14.01.2026 | Гентамицин | 6 мг в/в каждые 36 ч', 'gentamicin_given'), true);
 });
+
+// Повторное ревью ChatGPT к PR №13.
+test('«из периферической вены» не даёт separate_vein; «из отдельной вены» — даёт', () => {
+  assert.equal(val('18.03.2026 00:25 — Кровь на посев взята из периферической вены.', 'sample_site'), undefined);
+  assert.equal(val('18.03.2026 00:25 — Кровь на посев взята из отдельной периферической вены.', 'sample_site'), 'separate_vein');
+});
+test('иммуноглобулин: «назначен» и «назначен, фактически не вводился» не дают «введён»', () => {
+  assert.equal(val('Иммуноглобулин назначен индивидуально.', 'immunoglobulin_given'), undefined);
+  assert.equal(val('Иммуноглобулин назначен индивидуально.', 'immunoglobulin_use_type'), 'individualized');
+  assert.equal(val('Иммуноглобулин назначен индивидуально, фактически не вводился.', 'immunoglobulin_given'), undefined);
+  assert.equal(val('Введён иммуноглобулин человека нормальный.', 'immunoglobulin_given'), true);
+  assert.equal(val('Иммуноглобулин не вводился.', 'immunoglobulin_given'), false);
+});
+test('время исключения ТБИ: время записи — только если исключение в первом предложении записи', () => {
+  assert.equal(val('06.08.2026 10:30 — Посев крови отрицательный, ТБИ исключена.', 'sbi_excluded_at'), '2026-08-06T10:30+05:00');
+  assert.equal(val('06.08.2026 10:30 — Пересмотр АБТ. Состояние стабильное, ТБИ исключена.', 'sbi_excluded_at'), undefined);
+  assert.equal(val('06.08.2026 10:30 — Пересмотр АБТ. В 10:20 ТБИ исключена.', 'sbi_excluded_at'), '2026-08-06T10:20+05:00');
+});
+test('*_given антибиотиков помечены: «назначен», не подтверждение введения', () => {
+  const c = run('Назначено: гентамицин 6 мг в/в каждые 36 ч.').candidates.find(x => x.field === 'gentamicin_given');
+  assert.match(c.note, /назначен/); assert.match(c.note, /введения подтверждаются отдельно/);
+});
