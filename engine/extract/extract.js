@@ -103,7 +103,7 @@
   const FOREIGN_TIME = /(?:назнач[\wА-Яа-яЁё]*|планир[\wА-Яа-яЁё]*|ошибочно[^,]*|вместо|после\s+\S+(?:\s+\S+)?|через\s+\S+(?:\s+\S+)?|до\s+\S+)\s*\(?\s*(?:в\s+)?$/;
   /** Число сказуемых-причастий в части предложения («прекращено», «установлен», «взята»…). */
   const PRED = /(?<![А-Яа-яЁё])(?:[А-Яа-яЁё]{3,}(?:ен|ён|ена|ено|ены|ана|ано|аны|ята|ято|яты|ита|ито|иты|ута|уто|уты|ыта|ыто|ыты)|[А-Яа-яЁё]{3,}(?:ил|ила|или|ило|ал|ала|али|ало|ял|яла|яли|ел|ела|ели)|взят|начат|снят|ввел[аи]?|взял[аи]?)(?![А-Яа-яЁё])/g; // + прошедшее время: «поставили», «установили», «взяли»
-  const predicates = t => (t.match(PRED) || []).length;
+  const predicates = t => (t.replace(/\([^)]*\)/g, ' ').match(PRED) || []).length; // текст в скобках — не сказуемые этой части
   /** Скобки, внутри которых стоит позиция: [открывающая, закрывающая] или null. */
   function parenAt(line, i) { const o = line.lastIndexOf('(', i), c0 = line.lastIndexOf(')', i - 1); if (o < 0 || c0 > o) return null; const c = line.indexOf(')', i); return c < 0 ? null : [o, c]; }
   /**
@@ -546,7 +546,8 @@
         const d = eventDT(c.line, m.index, c.tz, c.ctx); if (!d) return []; return [Object.assign(atField('crp_samples', d, m), { v: { drawn_at: d.value, purpose: /сходн/.test(m[0]) ? 'baseline' : 'control' } })]; }, list: 'crp_samples' },
     { re: /[Мм]енингит (?:клинически )?исключён/g, g: 'p', emit: T('meningitis', false) },
     { re: /ТБИ исключена|[Тт]яжёл[\wА-Яа-яЁё]* бактериальн[\wА-Яа-яЁё]* инфекци[\wА-Яа-яЁё]* исключена/g, g: 'p', emit: (m, c) => { const r = [{ f: 'serious_bacterial_infection_excluded', v: true }]; const d = eventDT(c.line, m.index, c.tz, c.ctx); if (d && !farFromHeader(c, m, d)) r.push(atField('sbi_excluded_at', d, m)); return r; } },
-    { re: /[Ии]ммуноглобулин не (?:назнача|вводил)[\wА-Яа-яЁё]*/g, emit: T('immunoglobulin_given', false) },
+    // immunoglobulin_given = «Введён»: «нет» только при «не вводился»; «не назначался» — не доказательство (ревью ChatGPT к 126ed0d)
+    { re: /[Ии]ммуноглобулин[^.;]{0,30}?не вводил[\wА-Яа-яЁё]*/g, emit: T('immunoglobulin_given', false) },
     { re: /(\d+) признак[\wА-Яа-яЁё]* «?Красного флага/g, emit: m => [{ f: 'red_flag_count', v: +m[1] }] },
     { re: new RegExp(DRUG_RE + '[^.;]{0,25}?\\s*[|]?\\s*(\\d+(?:,\\d+)?(?: \\d{3})?) ?(мг|ЕД\\/кг|мг\\/кг)(?![А-Яа-я\\/])(?:\\s*\\((\\d+(?:,\\d+)?) ?мг\\/кг\\))?', 'gi'), g: 'nop', special: 'dose' },
     { re: new RegExp(DRUG_RE + '(?:\\s*\\([^)]{0,30}\\))?(?:\\s*(?:\\+|,)\\s*' + LW + '(?:' + DRUG_ALT + ')' + RW + '(?:\\s*\\([^)]{0,30}\\))?)+', 'g'), g: 'o', special: 'regimen8' },
