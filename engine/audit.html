@@ -238,6 +238,7 @@ function renderForm(it){
   if (isProt||isNR) {
     h+='<div class="row"><div><label class="f">Редакция действовала на дату помощи?</label><select data-f="pvalid">'+opt('да',f.pvalid,'Да, подтверждено')+opt('не_определено',f.pvalid,'Не знаю')+'</select></div>';
     h+='<div><label class="f">Статус протокола в реестре</label><select data-f="preg">'+E.REGISTRY_STATUS.map(x=>opt(x,f.preg)).join('')+'</select></div></div>';
+    h+='<p class="hint">Ручная отметка статуса не снимает блокировку положительного вывода: нужны официальное подтверждение документа и проверка актуальности из реестра протоколов.</p>';
   }
   h+='<label class="f">Показания у ребёнка</label><select data-f="ind">'+Object.keys(IND_LABEL).map(k=>(frag&&k==='не_подтверждены')?'':opt(k,f.ind,IND_LABEL[k])).join('')+'</select>';
   h+='<label class="f">Факты из истории (по одному в строке)</label><textarea data-f="facts">'+esc(f.facts)+'</textarea>';

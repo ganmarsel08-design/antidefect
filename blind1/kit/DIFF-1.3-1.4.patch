@@ -1,0 +1,379 @@
+Only in .: CHANGES-1.3-1.4.md
+diff -ru '--exclude=TEST-RESULTS-1.3.txt' -x releases -x TEST-RESULTS-1.4.txt -x freeze releases/1.3/kit/blind1-method.md ./blind1-method.md
+--- releases/1.3/kit/blind1-method.md	2026-11-21 10:04:22.641668423 +0500
++++ ./blind1-method.md	2026-11-25 15:08:32.295726012 +0500
+@@ -1,6 +1,6 @@
+ # Антидефект — слепое тестирование извлечения №1: метод измерения
+ 
+-Версия метода: **blind1-method-1.3** (заменяет 1.2; изменения — в разделе 11, `CHANGES-1.1-1.2.md` и `CHANGES-1.2-1.3.md`). Пакет автора — **blind1-author-1.2** (утверждён, не менялся). Метод и оценщик зафиксированы **до получения и открытия** `blind1-source.zip`. Материалы 1.0, 1.1 и 1.2 сохранены без изменений в `releases/`.
++Версия метода: **blind1-method-1.4** (заменяет 1.3; изменения — в разделе 11, `CHANGES-1.1-1.2.md`, `CHANGES-1.2-1.3.md` и `CHANGES-1.3-1.4.md`). Пакет автора — **blind1-author-1.2** (утверждён, не менялся). Метод и оценщик зафиксированы **до получения и открытия** `blind1-source.zip`. Материалы 1.0–1.3 сохранены без изменений в `releases/`.
+ 
+ Исполнитель измерения — Claude. Он не является ни автором историй, ни редактором эталона.
+ 
+@@ -21,7 +21,7 @@
+ - `rules/pilot-rules.json`;
+ - `rules/expert-decisions.json`.
+ 
+-SHA-256 этих файлов — в разделе `program` единого манифеста `freeze/blind1-manifest-1.3.json`.
++SHA-256 этих файлов — в разделе `program` единого манифеста `freeze/blind1-manifest-1.4.json`.
+ 
+ ## 2. Оценщик
+ 
+@@ -40,10 +40,10 @@
+ | `common.js` | общие функции |
+ | `field-sets.json` | разделение полей на часть A (поля, которые программа заявляет как извлекаемые: 108) и часть B (прочие исходные поля словаря: 76); перечень критических полей части A |
+ 
+-- Оценщик проверен на технических искусственных примерах (`scorer/test/`, 36 тестов). Это не клинические истории и не истории разработки. Результаты тестов — `TEST-RESULTS-1.3.txt`.
+-- **Единый манифест** `freeze/blind1-manifest-1.3.json` содержит: версии метода (1.3), пакета автора (1.2) и схемы эталона; базовый коммит и SHA-256 файлов программы; SHA-256 каждого файла комплекта (методика, пакет автора, `field-sets.json`, всё содержимое `scorer/` и `tools/`); перечень защищённых каталогов. Скомпилированные и служебные файлы (`__pycache__`, `.pyc`) в комплект не входят. Пакет автора и `field-sets.json` воспроизводятся из словаря программы `tools/build-package.js --check`.
++- Оценщик проверен на технических искусственных примерах (`scorer/test/`, 41 тест). Это не клинические истории и не истории разработки. Результаты тестов — `TEST-RESULTS-1.4.txt`.
++- **Единый манифест** `freeze/blind1-manifest-1.4.json` содержит: версии метода (1.4), пакета автора (1.2) и схемы эталона; базовый коммит и SHA-256 файлов программы; SHA-256 каждого файла комплекта (методика, пакет автора, `field-sets.json`, всё содержимое `scorer/` и `tools/`); перечень защищённых каталогов. Скомпилированные и служебные файлы (`__pycache__`, `.pyc`) в комплект не входят. Пакет автора и `field-sets.json` воспроизводятся из словаря программы `tools/build-package.js --check`.
+ - **Проверка целостности** (`verify.js`) выполняется перед заморозкой, перед прогоном и перед оценкой. Процесс останавливается, если:
+-  - нет манифеста, или в нём не метод 1.3 и пакет автора 1.2, или файл методики не версии 1.3, или пакет автора не версии 1.2;
++  - нет манифеста, или в нём не метод 1.4 и пакет автора 1.2, или файл методики не версии 1.4, или пакет автора не версии 1.2;
+   - любой файл комплекта отсутствует или его хэш отличается;
+   - в защищённых каталогах (`scorer/`, `tools/`) есть файл, не указанный в манифесте;
+   - HEAD программы не равен базовому коммиту или изменён любой файл программы;
+@@ -194,7 +194,7 @@
+ |---|---|---|
+ | Молчаливые ошибки доз и единиц | единицы полей доз + проверяемые ловушки `unit_not_field_unit` и `dose_without_unit` + опасные ЛП доз вне этих возможностей | уникальные значения: молчаливые О в полях доз, однозначные срабатывания этих ловушек, однозначные ЛП доз |
+ | Молчаливые ошибки времени | единицы полей даты-времени, элементы списков, наблюдения динамики, факты «дата без времени», проверяемые ловушки `time_without_date`, `date_without_time`, `relative_time`, `midnight_crossing` + опасные ЛП времени вне этих возможностей | уникальные значения: молчаливые О по времени, придуманное время, однозначные срабатывания, однозначные ЛП времени |
+-| Отрицания и планы, принятые за выполненное | единицы да/нет со значением «нет» + проверяемые ловушки `negation`, `plan`, `conditional` | уникальные значения: «да» вместо «нет» и **любые** срабатывания этих ловушек, включая альтернативы |
++| Отрицания и планы, принятые за выполненное | единицы да/нет со значением «нет», **включая наблюдения динамики пассажа `gi_passage_restored` со значением «нет»** + проверяемые ловушки `negation`, `plan`, `conditional` | уникальные значения: «да» вместо «нет» и **любые** срабатывания этих ловушек, включая альтернативы |
+ | Ложные предварительные соответствия | раздел 7 | раздел 7 |
+ 
+ **Чтение DOCX:** выявление неполного чтения (порог 100%), ложные предупреждения, утечки, полнота и точность текста по каждому документу.
+@@ -278,6 +278,10 @@
+ 
+ ## 11. Изменения
+ 
++### 1.3 → 1.4 (точечное исправление оценщика по проверке архива 1.3, до получения набора)
++
++1. В критерий «отрицания и планы, принятые за выполненное» включены наблюдения `gi_passage_restored` со значением «нет»: они входят в N, ошибочное однозначное «да» в том же наблюдении — в k; совпадение с ловушкой `negation` считается один раз. Прежде `zeroCounts()` исключал это поле (расхождение кода с разделом 6). Остальное без изменений.
++
+ ### 1.2 → 1.3 (по заключению по методу 1.2, до получения набора)
+ 
+ 1. Исправлено несогласованное упоминание версии пакета автора в разделе 3 (было 1.1; утверждён и передаётся 1.2). Пакет автора не менялся.
+diff -ru '--exclude=TEST-RESULTS-1.3.txt' -x releases -x TEST-RESULTS-1.4.txt -x freeze releases/1.3/kit/scorer/freeze.js ./scorer/freeze.js
+--- releases/1.3/kit/scorer/freeze.js	2026-11-21 10:03:30.441407365 +0500
++++ ./scorer/freeze.js	2026-11-25 15:08:32.292469619 +0500
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env node
+-// Антидефект — слепое тестирование №1. ЗАМОРОЗКА входных данных (метод 1.3, раздел 3, шаг 4).
++// Антидефект — слепое тестирование №1. ЗАМОРОЗКА входных данных (метод 1.4, раздел 3, шаг 4).
+ // node freeze.js --repo <рабочая копия> --input <распакованный архив> --archive <blind1-source.zip> --out <blind1-freeze.json>
+ // Перед заморозкой: проверка комплекта и программы; формальная проверка validate.py без ошибок. Повторная заморозка в тот же файл запрещена.
+ 'use strict';
+@@ -16,7 +16,7 @@
+   if (v.status !== 0) throw new V.IntegrityError('формальная проверка не пройдена — архив возвращается автору:\n' + v.stdout + v.stderr);
+   const files = V.listFiles(input);
+   const f = {
+-    schema: 'blind1-freeze-1.3', frozen_at: new Date().toISOString(), manifest_sha256: k.manifest_sha256,
++    schema: 'blind1-freeze-1.4', frozen_at: new Date().toISOString(), manifest_sha256: k.manifest_sha256,
+     archive: arg('archive') ? { name: path.basename(arg('archive')), sha256: C.sha256File(arg('archive')) } : null,
+     validation: JSON.parse(v.stdout), technical_test: process.argv.includes('--technical-test'),
+     input_files: Object.fromEntries(files.map(x => [x, C.sha256File(path.join(input, x))])),
+diff -ru '--exclude=TEST-RESULTS-1.3.txt' -x releases -x TEST-RESULTS-1.4.txt -x freeze releases/1.3/kit/scorer/match.js ./scorer/match.js
+--- releases/1.3/kit/scorer/match.js	2026-11-21 10:03:36.745166155 +0500
++++ ./scorer/match.js	2026-11-25 15:08:11.995210521 +0500
+@@ -148,7 +148,7 @@
+ }
+ 
+ /**
+- * Сводка нулевых критериев по истории (метод 1.3, раздел 6; без изменений с 1.2).
++ * Сводка нулевых критериев по истории (метод 1.4, раздел 6).
+  * Ошибка = конкретное значение кандидата (ключ ck). Одна и та же ошибка, классифицированная одновременно как О,
+  * ЛП и срабатывание ловушки, считается один раз. N = возможности из эталона (единицы, факты «дата без времени»,
+  * проверяемые ловушки) + опасные однозначные ЛП, не связанные ни с одной из этих возможностей.
+@@ -161,7 +161,11 @@
+     if (DOSE.test(u.field)) { z.dose.n++; if (u.cls === 'О' && u.silent) err(z.dose, u.ck, u); }
+     const timey = u.type === 'datetime' || u.type === 'date' || C.isList(u.field) || u.field === 'gi_passage_restored';
+     if (timey) { z.time.n++; if (u.cls === 'О' && u.silent && u.timeErr) err(z.time, u.ck, u); }
+-    if (u.type === 'tri' && !C.isList(u.field) && u.field !== 'gi_passage_restored' && JSON.parse(u.key) === false) { z.negplan.n++; if (u.negErr) err(z.negplan, u.ck, u); }
++    // «нет» в эталоне: обычное поле да/нет или наблюдение динамики пассажа (gi_passage_restored) — метод 1.4
++    const expectedNo = u.field === 'gi_passage_restored'
++      ? (u.expected !== null && typeof u.expected === 'object' ? u.expected.v === false : u.expected === false)
++      : u.type === 'tri' && !C.isList(u.field) && JSON.parse(u.key) === false;
++    if (expectedNo) { z.negplan.n++; if (u.negErr) err(z.negplan, u.ck, u); }
+   }
+   for (const d of r.dateOnly) { z.time.n++; for (const v of d.invented.filter(v => v.single)) err(z.time, v.ck, d); }
+   for (const t of r.traps) {
+diff -ru '--exclude=TEST-RESULTS-1.3.txt' -x releases -x TEST-RESULTS-1.4.txt -x freeze releases/1.3/kit/scorer/run.js ./scorer/run.js
+--- releases/1.3/kit/scorer/run.js	2026-11-21 10:03:30.441887773 +0500
++++ ./scorer/run.js	2026-11-25 15:08:32.292721052 +0500
+@@ -1,7 +1,7 @@
+ #!/usr/bin/env node
+ // Антидефект — слепое тестирование №1. ПРОГОН неизменной программы (раздел 2, шаг 5 метода 1.1).
+ // node run.js --repo <рабочая копия> --input <распакованный архив> --freeze <blind1-freeze.json> --out <results-v1>
+-// Отказ (метод 1.3): изменён комплект оценщика, методика, программа или входные данные; неполный комплект; каталог результатов уже существует.
++// Отказ (метод 1.4): изменён комплект оценщика, методика, программа или входные данные; неполный комплект; каталог результатов уже существует.
+ 'use strict';
+ const fs = require('fs'), path = require('path'), cp = require('child_process');
+ const C = require('./common.js');
+@@ -45,10 +45,10 @@
+     }
+     fs.writeFileSync(path.join(out, 'extraction', h.id + '.json'), JSON.stringify(rec, null, 1) + '\n');
+   }
+-  const info = { schema: 'blind1-run-1.3', run_at: new Date().toISOString(), node: process.version, base_commit: head, kit_manifest_sha256: ver.manifest_sha256, freeze_sha256: ver.freeze_sha256, technical_test: !ver.freeze_sha256, histories: gold.histories.length };
++  const info = { schema: 'blind1-run-1.4', run_at: new Date().toISOString(), node: process.version, base_commit: head, kit_manifest_sha256: ver.manifest_sha256, freeze_sha256: ver.freeze_sha256, technical_test: !ver.freeze_sha256, histories: gold.histories.length };
+   fs.writeFileSync(path.join(out, 'run-info.json'), JSON.stringify(info, null, 1) + '\n');
+   const outs = V.listFiles(out);
+-  fs.writeFileSync(path.join(out, 'RUN-MANIFEST.json'), JSON.stringify({ schema: 'blind1-run-manifest-1.3', files: Object.fromEntries(outs.map(f => [f, C.sha256File(path.join(out, f))])) }, null, 1) + '\n');
++  fs.writeFileSync(path.join(out, 'RUN-MANIFEST.json'), JSON.stringify({ schema: 'blind1-run-manifest-1.4', files: Object.fromEntries(outs.map(f => [f, C.sha256File(path.join(out, f))])) }, null, 1) + '\n');
+   for (const f of [...outs, 'RUN-MANIFEST.json']) fs.chmodSync(path.join(out, f), 0o444);
+   console.log(`прогон выполнен: ${gold.histories.length} историй → ${out}`);
+ }
+diff -ru '--exclude=TEST-RESULTS-1.3.txt' -x releases -x TEST-RESULTS-1.4.txt -x freeze releases/1.3/kit/scorer/score.js ./scorer/score.js
+--- releases/1.3/kit/scorer/score.js	2026-11-21 10:03:09.908976292 +0500
++++ ./scorer/score.js	2026-11-25 15:08:32.293545836 +0500
+@@ -99,7 +99,7 @@
+   const rd = reading.filter(r => r.expected_unread);
+   const unreadExp = rd.reduce((a, r) => a + r.expected_unread.length, 0), unreadDet = rd.reduce((a, r) => a + r.detected, 0);
+   const metrics = {
+-    schema: 'blind1-metrics-1.3', kit_manifest_sha256: ver.manifest_sha256, freeze_sha256: ver.freeze_sha256, generated_at: new Date().toISOString(), bootstrap: { B, seed: SEED, unit: 'история' },
++    schema: 'blind1-metrics-1.4', kit_manifest_sha256: ver.manifest_sha256, freeze_sha256: ver.freeze_sha256, generated_at: new Date().toISOString(), bootstrap: { B, seed: SEED, unit: 'история' },
+     thresholds: THR,
+     extraction_e2e: extractionMetrics(e2e, sets),
+     extraction_docx_e2e: extractionMetrics(e2e.filter(r => r.format === 'docx'), sets),
+@@ -139,7 +139,7 @@
+   W('metrics.json', metrics);
+   W('report.md', report(metrics, e2e, impact, reading, gold));
+   const files = V.listFiles(res).filter(f => f !== 'MANIFEST.json');
+-  W('MANIFEST.json', { schema: 'blind1-results-manifest-1.3', kit_manifest_sha256: ver.manifest_sha256, freeze_sha256: ver.freeze_sha256, files: Object.fromEntries(files.map(f => [f, C.sha256File(path.join(res, f))])) });
++  W('MANIFEST.json', { schema: 'blind1-results-manifest-1.4', kit_manifest_sha256: ver.manifest_sha256, freeze_sha256: ver.freeze_sha256, files: Object.fromEntries(files.map(f => [f, C.sha256File(path.join(res, f))])) });
+   (function ro(d) { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); if (fs.statSync(p).isDirectory()) ro(p); else fs.chmodSync(p, 0o444); } })(res);
+   console.log('оценка записана:', res);
+ }
+diff -ru '--exclude=TEST-RESULTS-1.3.txt' -x releases -x TEST-RESULTS-1.4.txt -x freeze releases/1.3/kit/scorer/test/e2e.test.js ./scorer/test/e2e.test.js
+--- releases/1.3/kit/scorer/test/e2e.test.js	2026-11-21 10:04:22.640666255 +0500
++++ ./scorer/test/e2e.test.js	2026-11-25 15:08:32.293998001 +0500
+@@ -22,7 +22,7 @@
+ 
+ function kitCopy() { // копия комплекта (без releases) для проверок подмены
+   const d = fs.mkdtempSync(path.join(os.tmpdir(), 'b1k-'));
+-  for (const x of ['blind1-method.md', 'blind1-author-package.md', 'field-sets.json', 'CHANGES-1.1-1.2.md', 'CHANGES-1.2-1.3.md', 'scorer', 'tools', 'freeze']) fs.cpSync(path.join(S, '..', x), path.join(d, x), { recursive: true });
++  for (const x of ['blind1-method.md', 'blind1-author-package.md', 'field-sets.json', 'CHANGES-1.1-1.2.md', 'CHANGES-1.2-1.3.md', 'CHANGES-1.3-1.4.md', 'scorer', 'tools', 'freeze']) fs.cpSync(path.join(S, '..', x), path.join(d, x), { recursive: true });
+   return d;
+ }
+ const runIn = (kit, args) => cp.spawnSync(process.execPath, args, { cwd: path.join(kit, 'scorer'), encoding: 'utf8' });
+@@ -40,7 +40,7 @@
+   assert.equal(m.extraction_e2e.recall.n, 8); assert.equal(m.unread_facts, 2);
+   assert.equal(m.docx_reading.unread_detection.k, 4); assert.equal(m.docx_reading.false_warnings, 0);
+   assert.equal(m.zero.dose.status, 'не проверен'); assert.equal(m.traps.deleted_tracked_text['выдержана'], 1);
+-  assert.equal(m.schema, 'blind1-metrics-1.3'); assert.equal(m.rules_impact_causes.stress.false_compliance_total, 0); assert.ok(m.rules_impact_causes.cautious.all_discrepancies);
++  assert.equal(m.schema, 'blind1-metrics-1.4'); assert.equal(m.rules_impact_causes.stress.false_compliance_total, 0); assert.ok(m.rules_impact_causes.cautious.all_discrepancies);
+   const man = JSON.parse(fs.readFileSync(path.join(out, 'MANIFEST.json'), 'utf8'));
+   assert.ok(man.files['report.md'] && man.files['extraction/ТЕХ-02.json'] && man.kit_manifest_sha256);
+   assert.equal(fs.statSync(path.join(out, 'metrics.json')).mode & 0o222, 0);
+@@ -98,10 +98,10 @@
+   const k4 = kitCopy(); fs.rmSync(path.join(k4, 'blind1-author-package.md'));
+   r = runIn(k4, ['run.js', '--repo', REPO, '--input', TECH, '--out', path.join(k4, 'res'), '--technical-test']);
+   assert.equal(r.status, 2); assert.match(r.stderr, /нет файла комплекта: blind1-author-package.md/);
+-  const k5 = kitCopy(); const mp = path.join(k5, 'freeze', 'blind1-manifest-1.3.json'); fs.chmodSync(mp, 0o644);
+-  const m = JSON.parse(fs.readFileSync(mp, 'utf8')); m.method_version = 'blind1-method-1.2'; fs.writeFileSync(mp, JSON.stringify(m));
++  const k5 = kitCopy(); const mp = path.join(k5, 'freeze', 'blind1-manifest-1.4.json'); fs.chmodSync(mp, 0o644);
++  const m = JSON.parse(fs.readFileSync(mp, 'utf8')); m.method_version = 'blind1-method-1.3'; fs.writeFileSync(mp, JSON.stringify(m));
+   r = runIn(k5, ['run.js', '--repo', REPO, '--input', TECH, '--out', path.join(k5, 'res'), '--technical-test']);
+-  assert.equal(r.status, 2); assert.match(r.stderr, /версии в манифесте не соответствуют методу 1.3/);
++  assert.equal(r.status, 2); assert.match(r.stderr, /версии в манифесте не соответствуют методу 1.4/);
+ });
+ 
+ // --- аудит 1.1 → 1.2: валидатор эталона чтения DOCX ---
+diff -ru '--exclude=TEST-RESULTS-1.3.txt' -x releases -x TEST-RESULTS-1.4.txt -x freeze releases/1.3/kit/scorer/test/match.test.js ./scorer/test/match.test.js
+--- releases/1.3/kit/scorer/test/match.test.js	2026-11-21 09:49:59.592612349 +0500
++++ ./scorer/test/match.test.js	2026-11-25 15:08:06.537547599 +0500
+@@ -164,3 +164,40 @@
+   assert.equal(r.units[0].cls, 'О');
+   const z = M.zeroCounts(r).dose; assert.equal(z.k, 1); assert.equal(z.n, 2);
+ });
++
++// --- аудит 1.3 → 1.4: отрицательные наблюдения пассажа (gi_passage_restored) в критерии negplan ---
++const giH = (extraTraps) => { const h = H([fact('F1', 'gi_passage_restored', false, 'доза А = 10 мг', { event_at: '2026-06-08T08:00+05:00', time_basis: 'explicit' })]); h.traps = extraTraps || []; return h; };
++const giCand = v => ({ candidates: [{ id: 'c1', field: 'gi_passage_restored', timeline: [{ v, at: '2026-06-08T08:00+05:00', date: '2026-06-08', fragment: at('доза А = 10 мг') }] }] });
++
++test('1.4: пассаж — верное «нет» в наблюдении: N = 1, k = 0', () => {
++  const r = M.scoreHistory({ h: giH(), text, dd, sets, extraction: giCand(false) });
++  assert.equal(r.units[0].cls, 'В');
++  assert.deepEqual([M.zeroCounts(r).negplan.n, M.zeroCounts(r).negplan.k], [1, 0]);
++});
++
++test('1.4: пассаж — пропущенное «нет»: N = 1, k = 0 (пропуск учитывается в полноте, не в negplan)', () => {
++  const r = M.scoreHistory({ h: giH(), text, dd, sets, extraction: { candidates: [] } });
++  assert.equal(r.units[0].cls, 'П');
++  assert.deepEqual([M.zeroCounts(r).negplan.n, M.zeroCounts(r).negplan.k], [1, 0]);
++});
++
++test('1.4: пассаж — ошибочное однозначное «да» вместо «нет» в том же наблюдении: N = 1, k = 1 (случай аудита)', () => {
++  const r = M.scoreHistory({ h: giH(), text, dd, sets, extraction: giCand(true) });
++  assert.equal(r.units[0].cls, 'О'); assert.equal(r.units[0].silent, true); assert.equal(r.units[0].negErr, true);
++  assert.deepEqual([M.zeroCounts(r).negplan.n, M.zeroCounts(r).negplan.k], [1, 1]);
++});
++
++test('1.4: пассаж — то же ошибочное «да» и ловушка negation на той же цитате: N = 2, k = 1 (без двойного подсчёта)', () => {
++  const trap = { tid: 'T1', type: 'negation', quote: 'доза А = 10 мг', location: 'body', field: 'gi_passage_restored', must_not_value: true };
++  const r = M.scoreHistory({ h: giH([trap]), text, dd, sets, extraction: giCand(true) });
++  assert.equal(r.traps[0].status, 'сработала');
++  assert.deepEqual([M.zeroCounts(r).negplan.n, M.zeroCounts(r).negplan.k], [2, 1]);
++});
++
++test('1.4: пассаж — «да» в эталоне не входит в N negplan; верное «да» и ошибочное «нет» критерий не затрагивают', () => {
++  const h = H([fact('F1', 'gi_passage_restored', true, 'доза А = 10 мг', { event_at: '2026-06-08T08:00+05:00' })]);
++  for (const v of [true, false]) {
++    const r = M.scoreHistory({ h, text, dd, sets, extraction: giCand(v) });
++    assert.deepEqual([M.zeroCounts(r).negplan.n, M.zeroCounts(r).negplan.k], [0, 0]);
++  }
++});
+diff -ru '--exclude=TEST-RESULTS-1.3.txt' -x releases -x TEST-RESULTS-1.4.txt -x freeze releases/1.3/kit/scorer/verify.js ./scorer/verify.js
+--- releases/1.3/kit/scorer/verify.js	2026-11-21 10:03:30.440752333 +0500
++++ ./scorer/verify.js	2026-11-25 15:08:32.292128485 +0500
+@@ -1,13 +1,13 @@
+-// Антидефект — слепое тестирование №1. Проверка целостности перед заморозкой, прогоном и оценкой (метод 1.3, раздел 2).
++// Антидефект — слепое тестирование №1. Проверка целостности перед заморозкой, прогоном и оценкой (метод 1.4, раздел 2).
+ // Останавливает процесс при изменении любого защищённого файла: программы, комплекта оценщика, методики, входных данных.
+ 'use strict';
+ const fs = require('fs'), path = require('path'), cp = require('child_process');
+ const C = require('./common.js');
+ 
+ const KIT = path.resolve(__dirname, '..');
+-const MANIFEST_NAME = 'blind1-manifest-1.3.json';
++const MANIFEST_NAME = 'blind1-manifest-1.4.json';
+ const MANIFEST = path.join(KIT, 'freeze', MANIFEST_NAME);
+-const METHOD_VERSION = 'blind1-method-1.3', PACKAGE_VERSION = 'blind1-author-1.2'; // пакет автора 1.2 утверждён и не менялся
++const METHOD_VERSION = 'blind1-method-1.4', PACKAGE_VERSION = 'blind1-author-1.2'; // пакет автора 1.2 утверждён и не менялся
+ 
+ class IntegrityError extends Error {}
+ const fail = m => { throw new IntegrityError(m); };
+@@ -26,7 +26,7 @@
+   const mp = path.join(kit, 'freeze', MANIFEST_NAME);
+   if (!fs.existsSync(mp)) fail(`нет манифеста комплекта freeze/${MANIFEST_NAME}`);
+   const m = JSON.parse(fs.readFileSync(mp, 'utf8'));
+-  if (m.schema !== 'blind1-manifest-1.3' || m.method_version !== METHOD_VERSION || m.author_package_version !== PACKAGE_VERSION) fail('версии в манифесте не соответствуют методу 1.3 и пакету автора 1.2');
++  if (m.schema !== 'blind1-manifest-1.4' || m.method_version !== METHOD_VERSION || m.author_package_version !== PACKAGE_VERSION) fail('версии в манифесте не соответствуют методу 1.4 и пакету автора 1.2');
+   for (const [f, h] of Object.entries(m.kit_files)) {
+     const p = path.join(kit, f);
+     if (!fs.existsSync(p)) fail(`нет файла комплекта: ${f}`);
+@@ -37,7 +37,7 @@
+     if (extra.length) fail(`лишние файлы в защищённом каталоге: ${extra.join(', ')}`);
+   }
+   const method = fs.readFileSync(path.join(kit, 'blind1-method.md'), 'utf8');
+-  if (!method.includes(`Версия метода: **${METHOD_VERSION}**`)) fail('файл методики не является версией 1.3');
++  if (!method.includes(`Версия метода: **${METHOD_VERSION}**`)) fail('файл методики не является версией 1.4');
+   if (!fs.readFileSync(path.join(kit, 'blind1-author-package.md'), 'utf8').includes(`Версия задания: ${PACKAGE_VERSION}.`)) fail('пакет автора не является версией 1.2');
+   return { manifest: m, manifest_sha256: C.sha256File(mp) };
+ }
+@@ -53,7 +53,7 @@
+ /** Входные данные: заморозка ссылается на этот манифест; полный комплект файлов, без лишних, с верными хэшами. */
+ function verifyInput(freezePath, input, manifestSha) {
+   const f = JSON.parse(fs.readFileSync(freezePath, 'utf8'));
+-  if (f.schema !== 'blind1-freeze-1.3') fail('заморозка не версии 1.3');
++  if (f.schema !== 'blind1-freeze-1.4') fail('заморозка не версии 1.4');
+   if (f.manifest_sha256 !== manifestSha) fail('заморозка сделана для другого манифеста комплекта');
+   const have = listFiles(input);
+   const missing = Object.keys(f.input_files).filter(x => !have.includes(x)), extra = have.filter(x => !(x in f.input_files));
+diff -ru '--exclude=TEST-RESULTS-1.3.txt' -x releases -x TEST-RESULTS-1.4.txt -x freeze releases/1.3/kit/tools/make-manifest.js ./tools/make-manifest.js
+--- releases/1.3/kit/tools/make-manifest.js	2026-11-21 10:03:30.442307262 +0500
++++ ./tools/make-manifest.js	2026-11-25 15:08:32.294319308 +0500
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env node
+-// Антидефект — слепое тестирование №1. Единый согласованный манифест комплекта 1.3: программа + методика 1.3 + пакет автора 1.2 + оценщик.
++// Антидефект — слепое тестирование №1. Единый согласованный манифест комплекта 1.4: программа + методика 1.4 + пакет автора 1.2 + оценщик.
+ // node tools/make-manifest.js <рабочая копия программы>   (повторная запись запрещена: манифест создаётся один раз)
+ 'use strict';
+ const fs = require('fs'), path = require('path'), cp = require('child_process');
+@@ -10,13 +10,13 @@
+ const PROGRAM = ['engine/extract/extract.js', 'engine/extract/docx.js', 'engine/vendor/jszip/jszip.min.js', 'engine/case-builder.js', 'engine/rules-engine.js',
+   'engine/derive.js', 'engine/expert-view.js', 'engine/expert-app.js', 'rules/pilot-rules.json', 'rules/expert-decisions.json'];
+ const PROTECTED = ['scorer', 'tools'];
+-const kitFiles = ['blind1-method.md', 'blind1-author-package.md', 'field-sets.json', 'CHANGES-1.1-1.2.md', 'CHANGES-1.2-1.3.md', ...PROTECTED.flatMap(d => V.listFiles(path.join(KIT, d)).map(f => d + '/' + f))];
++const kitFiles = ['blind1-method.md', 'blind1-author-package.md', 'field-sets.json', 'CHANGES-1.1-1.2.md', 'CHANGES-1.2-1.3.md', 'CHANGES-1.3-1.4.md', ...PROTECTED.flatMap(d => V.listFiles(path.join(KIT, d)).map(f => d + '/' + f))];
+ const bad = kitFiles.filter(f => /__pycache__|\.pyc$|node_modules/.test(f));
+ if (bad.length) { console.error('ОСТАНОВ: в комплекте непереносимые файлы: ' + bad.join(', ')); process.exit(2); }
+ const m = {
+-  schema: 'blind1-manifest-1.3', method_version: V.METHOD_VERSION, author_package_version: V.PACKAGE_VERSION, gold_schema: 'blind1-gold-1.1',
++  schema: 'blind1-manifest-1.4', method_version: V.METHOD_VERSION, author_package_version: V.PACKAGE_VERSION, gold_schema: 'blind1-gold-1.1',
+   created_at: new Date().toISOString(), node: process.version,
+-  note: 'Единый манифест 1.3 (метод 1.3, пакет автора 1.2 без изменений). Зафиксирован до получения и открытия blind1-source.zip. Манифест 1.2 сохранён в releases/1.2, манифесты 1.1 — в releases/1.1.',
++  note: 'Единый манифест 1.4 (метод 1.4, пакет автора 1.2 без изменений). Зафиксирован до получения и открытия blind1-source.zip. Комплекты 1.1–1.3 сохранены без изменений в releases/.',
+   program: { base_commit: cp.execSync('git rev-parse HEAD', { cwd: repo }).toString().trim(), extract_version: require(path.join(repo, 'engine/extract/extract.js')).VERSION,
+     files: Object.fromEntries(PROGRAM.map(f => [f, C.sha256File(path.join(repo, f))])) },
+   protected_dirs: PROTECTED,
+diff -ru '--exclude=TEST-RESULTS-1.3.txt' -x releases -x TEST-RESULTS-1.4.txt -x freeze releases/1.3/kit/tools/pack.py ./tools/pack.py
+--- releases/1.3/kit/tools/pack.py	2026-11-21 10:03:36.718998876 +0500
++++ ./tools/pack.py	2026-11-25 15:08:32.295098605 +0500
+@@ -1,12 +1,12 @@
+ #!/usr/bin/env python3
+-"""Сборка архива комплекта 1.3 с UTF-8 именами и проверка: каждый файл манифеста присутствует в архиве с верным SHA-256.
+-python3 -I -B tools/pack.py <выходной .zip> [дополнительные файлы вне манифеста, например TEST-RESULTS-1.3.txt]"""
++"""Сборка архива комплекта 1.4 с UTF-8 именами и проверка: каждый файл манифеста присутствует в архиве с верным SHA-256.
++python3 -I -B tools/pack.py <выходной .zip> [дополнительные файлы вне манифеста, например TEST-RESULTS-1.4.txt]"""
+ import hashlib, json, sys, zipfile
+ from pathlib import Path
+ KIT = Path(__file__).resolve().parent.parent
+ out = Path(sys.argv[1]); extra = sys.argv[2:]
+-m = json.loads((KIT / 'freeze' / 'blind1-manifest-1.3.json').read_text(encoding='utf-8'))
+-names = sorted(m['kit_files']) + ['freeze/blind1-manifest-1.3.json'] + extra
++m = json.loads((KIT / 'freeze' / 'blind1-manifest-1.4.json').read_text(encoding='utf-8'))
++names = sorted(m['kit_files']) + ['freeze/blind1-manifest-1.4.json'] + extra
+ with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
+     for n in names:
+         zi = zipfile.ZipInfo(n, (2026, 11, 21, 0, 0, 0)); zi.compress_type = zipfile.ZIP_DEFLATED; zi.external_attr = 0o444 << 16
+--- releases/1.3/kit/freeze/blind1-manifest-1.3.json	2026-11-21 10:04:22.791189780 +0500
++++ freeze/blind1-manifest-1.4.json	2026-11-25 15:08:48.761550109 +0500
+@@ -1,11 +1,11 @@
+ {
+- "schema": "blind1-manifest-1.3",
+- "method_version": "blind1-method-1.3",
++ "schema": "blind1-manifest-1.4",
++ "method_version": "blind1-method-1.4",
+  "author_package_version": "blind1-author-1.2",
+  "gold_schema": "blind1-gold-1.1",
+- "created_at": "2026-11-21T05:04:22.777Z",
++ "created_at": "2026-11-25T10:08:48.749Z",
+  "node": "v22.23.5",
+- "note": "Единый манифест 1.3 (метод 1.3, пакет автора 1.2 без изменений). Зафиксирован до получения и открытия blind1-source.zip. Манифест 1.2 сохранён в releases/1.2, манифесты 1.1 — в releases/1.1.",
++ "note": "Единый манифест 1.4 (метод 1.4, пакет автора 1.2 без изменений). Зафиксирован до получения и открытия blind1-source.zip. Комплекты 1.1–1.3 сохранены без изменений в releases/.",
+  "program": {
+   "base_commit": "13a21b3b78832385e8a49be5be95c7cb9addfef6",
+   "extract_version": "0.7.0-stage7",
+@@ -27,31 +27,32 @@
+   "tools"
+  ],
+  "kit_files": {
+-  "blind1-method.md": "bd146d47a7ad69fd3977db60884693c8a5f1a3271d928b5349a73018df3c8eb5",
++  "blind1-method.md": "6365eea57d4ac0c5dc8e44fccb8dd1336265a4810c3c11f5845839f6bb310a14",
+   "blind1-author-package.md": "2ab03248add41618dcaf00c8ab911c5dd1cf560af2de99b88547514299520acc",
+   "field-sets.json": "f7b73460f252f89196e9395b259955fb0ac56f5943a5d02b67ecc01f3876ce67",
+   "CHANGES-1.1-1.2.md": "5c4ab44f68ee94dbdf4b9241ba6e3cbe7c6e80e975bbef4186d49344787e6906",
+   "CHANGES-1.2-1.3.md": "84eea8f8b39c30b7c5351cf85a6e538b8bcc7eff1ab21579f208adeee0bbc4c0",
++  "CHANGES-1.3-1.4.md": "0c286d45eba27fe7d777ffb974bfb65d60ec3c0e356304b257c19c460affdf4d",
+   "scorer/common.js": "c2ff7af15a3b0b45931fc044bc5443f361952cfacd138316aa8e52026c82f6b8",
+-  "scorer/freeze.js": "12eca9c39bc2ef16ac10d3c43f03852c411aa1e1d7a8f3a34a8d7a4a402448f5",
++  "scorer/freeze.js": "ee4ae92310c5e46f2e1cf5a613708170796ecff5ff6c1a67b72c4c7a7936a6b1",
+   "scorer/impact.js": "98c4bfaf7fce79b343d073b54db9fac9d4e6279638d8e48d15cbc4d6550b5a24",
+-  "scorer/match.js": "65e4e222f6389d903ff33770879dd49ab8294ecd7141d1bdf6696a3895d9c702",
++  "scorer/match.js": "2c90ac4c25e4a359806c6ae953b8604e280f380e7c57d8726c921e1a7578e456",
+   "scorer/reading.js": "bf49d4a02db477cda6c8e594c6fb1bb87a5401cc570dc1e0a68b038d90cfe215",
+-  "scorer/run.js": "06076a2d7629d5d0d289ceb6ba79fb50e0795909c38ad22218a530792b8ca762",
+-  "scorer/score.js": "f5f4cb071f3bf446fc8725e616fb2d36fb9d7d85d9427344aa5f3fde16e69985",
+-  "scorer/test/e2e.test.js": "c0884aa765819b79d244bb67c15d80070ce170ed6e68cb3c3383f9998b46ac40",
++  "scorer/run.js": "8414693fff77af00eb36aae00e3a60d2a32deb48587c9452df7e6a1ffc915204",
++  "scorer/score.js": "042075f395dc6c944511daed83e845f0a76022ed45a77d293a5340fd57848ada",
++  "scorer/test/e2e.test.js": "625d81a87b3b953bd5bc8ea36e701e602b10f0b2e22c16e5ade35c57f4392eb9",
+   "scorer/test/impact.test.js": "dfa40d3dcf7889cf594d106366d6d0b994de936380a1a35c1693c9865df20a77",
+   "scorer/test/make-tech.py": "2b55ae457ec18f0b9ab6ba6e18a5d7defb7947975d037762256a14eab49b12eb",
+-  "scorer/test/match.test.js": "ca5993cca3a0a586e6bf047446c600431b58b721e7c3f757a70e227abcd5c909",
++  "scorer/test/match.test.js": "e256d5e44722c51c095fbb59708c4ef13435f8ed4a5b480980f41e5bc2ecb7fe",
+   "scorer/test/tech/blind1-gold.json": "b642884dc06ce59f33e8ee500b80626632585f44aaef7666d81c3080ba4190de",
+   "scorer/test/tech/docx-text/ТЕХ-02.json": "0291c1bb89ad81c44210da37c0b0347cdfec92f50adf3995c1cb9369a0ef1ad6",
+   "scorer/test/tech/histories/ТЕХ-01.txt": "691b247cf7c3bfad774a0683cd0e03a97414b7337a59e7f05130a9b0e4734fc1",
+   "scorer/test/tech/histories/ТЕХ-02.docx": "9f52cbe9da636c090f7154199eab3e1aedcfa332bde8ce48fa876256897882cd",
+   "scorer/validate.py": "b7a6f2904bdbd3d22af493fa5f3c24fdea25d4860868a7a452d78e8001242d28",
+-  "scorer/verify.js": "c71dfdaf661cd35734bec6f928fe7b356a70b4805f1caec45e677dd75325cf03",
++  "scorer/verify.js": "5f74c14c2d268640a6afd539e56277d8018b8cfe890e8f319a986ec96ddcff54",
+   "tools/build-package.js": "e86d68970d4d8fe8fc87e8c41024241f8ca30aa94e594cdd4a2c3ea3c38ca585",
+-  "tools/make-manifest.js": "8d5cff5651e264ab1c645215de1b8ebb42d3976ecf9a478d656ac370ec159be8",
+-  "tools/pack.py": "17ab8222ce01e1ccbd4f22d6b24253961b12a135dbfc6892d52b5df226912f5d",
++  "tools/make-manifest.js": "f4c0cc5a3fd6fa2c16e8ecdb37647cdf45fe9d4c6056886d4486dc031d32e870",
++  "tools/pack.py": "2f1c92175a0b1ec339bf56127f2ebe4b000dc35e4c344f429eec7ae5da10b4a0",
+   "tools/package-src/head.md": "b85dd57d15fa88b28afa011ed64999d52f99c81075043f4badb574e7164cad2d",
+   "tools/package-src/tail.md": "297b1da580c01f8d0c66a19e2aac8d257855d3e35f7d4050e6d99773dae8b558"
+  }

@@ -1,0 +1,3652 @@
+{
+ "schema": "stage7-engine-technical-0.3",
+ "note": "Уровень 2. ТЕХНИЧЕСКИЙ эталон: результаты действующего rules-engine.js на данных уровня 1. Проверка воспроизводимости программы, НЕ клиническая экспертиза и не доказательство клинической правильности.",
+ "engine_commit": "c1768a3 (в feature/stage4-registry: 4f36b41)",
+ "histories": [
+  {
+   "id": "СИН-РДС-01",
+   "protocol": "РДС",
+   "input": {
+    "facility_utc_offset": "+05:00",
+    "antenatal_steroids_given": true,
+    "gestational_age_weeks": 29,
+    "birth_weight_g": 1180,
+    "rds_risk": true,
+    "condition_allows_delayed_clamping": true,
+    "cord_clamp_delay_s": 60,
+    "cpap_from_birth": true,
+    "cpap_pressure_cmh2o": 6,
+    "oxygen_given": true,
+    "oxygen_via_blender": true,
+    "fio2": 0.45,
+    "intubation_needed_for_stabilization": true,
+    "intubated": true,
+    "surfactant_given": true,
+    "surfactant_in_delivery_room": true,
+    "surfactant_drug": "порактант альфа",
+    "surfactant_initial_dose_mg_kg": 200,
+    "rds_diagnosed": true,
+    "mechanical_ventilation": true,
+    "oxygen_after_stabilization": true,
+    "spo2_target_low": 90,
+    "spo2_target_high": 95,
+    "paco2_hypocapnia_threshold": 35,
+    "threshold_source": "СОП ОРИТН «Респираторная поддержка», п. 4.2",
+    "blood_gases": [
+     {
+      "drawn_at": "2026-03-02T08:00+05:00",
+      "ph": 7.31,
+      "paco2_mmhg": 48
+     },
+     {
+      "drawn_at": "2026-03-02T14:00+05:00",
+      "ph": 7.44,
+      "paco2_mmhg": 32
+     }
+    ],
+    "vent_changes": [
+     {
+      "at": "2026-03-02T14:20+05:00",
+      "parameter": "PIP",
+      "from": 18,
+      "to": 16
+     }
+    ],
+    "antibiotics_started": true,
+    "blood_culture_drawn_at": "2026-03-02T07:30+05:00",
+    "first_abx_dose_administered_at": "2026-03-02T07:50+05:00",
+    "blood_culture_result": "отрицательный",
+    "culture_result_at": "2026-03-04T08:00+05:00",
+    "serious_bacterial_infection_excluded": true,
+    "sbi_excluded_at": "2026-03-04T08:00+05:00",
+    "antibiotics_stopped_at": "2026-03-04T10:00+05:00"
+   },
+   "final_conclusion": null,
+   "active_conflicts": [],
+   "counts": {
+    "соответствие": 8,
+    "неоднозначность": 2
+   },
+   "shown_by_default": [
+    {
+     "rule_id": "RDS-001",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-002",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-003",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-004",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-005",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-006",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-007",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность",
+     "parts": [
+      {
+       "part_id": "start",
+       "applicability": "неприменимо",
+       "observation": "правило_неприменимо",
+       "label": "неприменимо"
+      },
+      {
+       "part_id": "stop",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность"
+      }
+     ],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-008",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-009",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-010",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность",
+     "parts": [
+      {
+       "part_id": "gases",
+       "applicability": "применимо",
+       "observation": "совпадает_с_буквальным_прочтением",
+       "label": "соответствие"
+      },
+      {
+       "part_id": "hypocapnia",
+       "applicability": "применимо",
+       "observation": "совпадает_с_буквальным_прочтением",
+       "label": "соответствие"
+      },
+      {
+       "part_id": "response",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность"
+      }
+     ],
+     "missing_data": []
+    }
+   ],
+   "hidden_cross_protocol_undetermined": {
+    "count": 18,
+    "rules": [
+     "NEC-001",
+     "NEC-002",
+     "NEC-003",
+     "NEC-004",
+     "NEC-005",
+     "NEC-006",
+     "NEC-008",
+     "NEC-009",
+     "NEC-010",
+     "SEP-001",
+     "SEP-002",
+     "SEP-003",
+     "SEP-004",
+     "SEP-005",
+     "SEP-006",
+     "SEP-007",
+     "SEP-008",
+     "SEP-010"
+    ]
+   },
+   "ui_warnings": [],
+   "all_rules": [
+    {
+     "rule_id": "RDS-001",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "RDS-002",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "RDS-003",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "RDS-004",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "RDS-005",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "RDS-006",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "RDS-007",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность"
+    },
+    {
+     "rule_id": "RDS-008",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "RDS-009",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "RDS-010",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность"
+    },
+    {
+     "rule_id": "NEC-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-002",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-004",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-007",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "NEC-008",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-009",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-002",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-004",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-007",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-008",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-009",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "SEP-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    }
+   ]
+  },
+  {
+   "id": "СИН-РДС-02",
+   "protocol": "РДС",
+   "input": {
+    "facility_utc_offset": "+05:00",
+    "antenatal_steroids_given": false,
+    "gestational_age_weeks": 31,
+    "birth_weight_g": 1520,
+    "rds_risk": true,
+    "condition_allows_delayed_clamping": true,
+    "cord_clamp_delay_s": 20,
+    "cpap_from_birth": true,
+    "cpap_pressure_cmh2o": 5,
+    "oxygen_given": true,
+    "oxygen_via_blender": false,
+    "intubation_needed_for_stabilization": false,
+    "surfactant_in_delivery_room": false,
+    "rds_diagnosed": true,
+    "oxygen_after_stabilization": true,
+    "spo2_target_low": 88,
+    "spo2_target_high": 95,
+    "intubated": true,
+    "mechanical_ventilation": true,
+    "surfactant_given": true,
+    "surfactant_drug": "порактант альфа",
+    "surfactant_initial_dose_mg_kg": 200,
+    "blood_gases": [
+     {
+      "drawn_at": "2026-03-11T03:30+05:00",
+      "ph": 7.38,
+      "paco2_mmhg": 30
+     }
+    ],
+    "antibiotics_started": false
+   },
+   "final_conclusion": null,
+   "active_conflicts": [],
+   "counts": {
+    "предварительное отличие": 4,
+    "соответствие": 2,
+    "неоднозначность": 1,
+    "недостаточно данных": 2
+   },
+   "shown_by_default": [
+    {
+     "rule_id": "RDS-001",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-002",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-003",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-004",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-005",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-006",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-007",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных",
+     "parts": [
+      {
+       "part_id": "start",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "part_id": "stop",
+       "applicability": "неприменимо",
+       "observation": "правило_неприменимо",
+       "label": "неприменимо"
+      }
+     ],
+     "missing_data": [
+      "serious_bacterial_infection_excluded"
+     ]
+    },
+    {
+     "rule_id": "RDS-009",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-010",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных",
+     "parts": [
+      {
+       "part_id": "gases",
+       "applicability": "применимо",
+       "observation": "совпадает_с_буквальным_прочтением",
+       "label": "соответствие"
+      },
+      {
+       "part_id": "hypocapnia",
+       "applicability": "применимо",
+       "observation": "не_оценено_нет_данных",
+       "label": "недостаточно данных"
+      },
+      {
+       "part_id": "response",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      }
+     ],
+     "missing_data": [
+      "hypocapnia_episode_count"
+     ]
+    }
+   ],
+   "hidden_cross_protocol_undetermined": {
+    "count": 12,
+    "rules": [
+     "NEC-001",
+     "NEC-002",
+     "NEC-003",
+     "NEC-004",
+     "NEC-005",
+     "NEC-006",
+     "NEC-009",
+     "NEC-010",
+     "SEP-001",
+     "SEP-003",
+     "SEP-005",
+     "SEP-006"
+    ]
+   },
+   "ui_warnings": [],
+   "all_rules": [
+    {
+     "rule_id": "RDS-001",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие"
+    },
+    {
+     "rule_id": "RDS-002",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "RDS-003",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность"
+    },
+    {
+     "rule_id": "RDS-004",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие"
+    },
+    {
+     "rule_id": "RDS-005",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие"
+    },
+    {
+     "rule_id": "RDS-006",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие"
+    },
+    {
+     "rule_id": "RDS-007",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных"
+    },
+    {
+     "rule_id": "RDS-008",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "RDS-009",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "RDS-010",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных"
+    },
+    {
+     "rule_id": "NEC-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-002",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-004",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-007",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "NEC-008",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "NEC-009",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-002",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "SEP-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-004",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "SEP-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-007",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "SEP-008",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "SEP-009",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "SEP-010",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    }
+   ]
+  },
+  {
+   "id": "СИН-РДС-03",
+   "protocol": "РДС",
+   "input": {
+    "facility_utc_offset": "+05:00",
+    "gestational_age_weeks": 34,
+    "birth_weight_g": 2150,
+    "rds_risk": true,
+    "cpap_from_birth": true,
+    "oxygen_given": true,
+    "fio2": 0.35,
+    "rds_diagnosed": true,
+    "oxygen_after_stabilization": true,
+    "antibiotics_started": true,
+    "first_abx_dose_administered_at": "2026-03-18T14:30+05:00",
+    "intubated": true,
+    "mechanical_ventilation": true,
+    "surfactant_given": true,
+    "surfactant_drug": "порактант альфа",
+    "blood_gases": [
+     {
+      "drawn_at": "2026-03-19T03:00+05:00",
+      "ph": 7.29,
+      "paco2_mmhg": 41
+     },
+     {
+      "drawn_at": "2026-03-19T09:00+05:00",
+      "ph": 7.41,
+      "paco2_mmhg": 33
+     }
+    ]
+   },
+   "final_conclusion": null,
+   "active_conflicts": [],
+   "counts": {
+    "недостаточно данных": 7,
+    "соответствие": 1,
+    "применимость не установлена": 2
+   },
+   "shown_by_default": [
+    {
+     "rule_id": "RDS-001",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных",
+     "parts": [],
+     "missing_data": [
+      "cpap_pressure_cmh2o"
+     ]
+    },
+    {
+     "rule_id": "RDS-002",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "RDS-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена",
+     "parts": [],
+     "missing_data": [
+      "antenatal_steroids_given",
+      "intubation_needed_for_stabilization"
+     ]
+    },
+    {
+     "rule_id": "RDS-004",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных",
+     "parts": [],
+     "missing_data": [
+      "oxygen_via_blender"
+     ]
+    },
+    {
+     "rule_id": "RDS-005",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных",
+     "parts": [],
+     "missing_data": [
+      "spo2_target_high",
+      "spo2_target_low"
+     ]
+    },
+    {
+     "rule_id": "RDS-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена",
+     "parts": [],
+     "missing_data": [
+      "condition_allows_delayed_clamping"
+     ]
+    },
+    {
+     "rule_id": "RDS-007",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных",
+     "parts": [
+      {
+       "part_id": "start",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "part_id": "stop",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      }
+     ],
+     "missing_data": [
+      "serious_bacterial_infection_excluded"
+     ]
+    },
+    {
+     "rule_id": "RDS-008",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных",
+     "parts": [],
+     "missing_data": [
+      "blood_culture_before_antibiotics_resolved"
+     ]
+    },
+    {
+     "rule_id": "RDS-009",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных",
+     "parts": [],
+     "missing_data": [
+      "surfactant_initial_dose_mg_kg"
+     ]
+    },
+    {
+     "rule_id": "RDS-010",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных",
+     "parts": [
+      {
+       "part_id": "gases",
+       "applicability": "применимо",
+       "observation": "совпадает_с_буквальным_прочтением",
+       "label": "соответствие"
+      },
+      {
+       "part_id": "hypocapnia",
+       "applicability": "применимо",
+       "observation": "не_оценено_нет_данных",
+       "label": "недостаточно данных"
+      },
+      {
+       "part_id": "response",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      }
+     ],
+     "missing_data": [
+      "hypocapnia_episode_count"
+     ]
+    }
+   ],
+   "hidden_cross_protocol_undetermined": {
+    "count": 19,
+    "rules": [
+     "NEC-001",
+     "NEC-002",
+     "NEC-003",
+     "NEC-004",
+     "NEC-005",
+     "NEC-006",
+     "NEC-008",
+     "NEC-009",
+     "NEC-010",
+     "SEP-001",
+     "SEP-002",
+     "SEP-003",
+     "SEP-004",
+     "SEP-005",
+     "SEP-006",
+     "SEP-007",
+     "SEP-008",
+     "SEP-009",
+     "SEP-010"
+    ]
+   },
+   "ui_warnings": [],
+   "all_rules": [
+    {
+     "rule_id": "RDS-001",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных"
+    },
+    {
+     "rule_id": "RDS-002",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "RDS-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-004",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных"
+    },
+    {
+     "rule_id": "RDS-005",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных"
+    },
+    {
+     "rule_id": "RDS-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-007",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных"
+    },
+    {
+     "rule_id": "RDS-008",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных"
+    },
+    {
+     "rule_id": "RDS-009",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных"
+    },
+    {
+     "rule_id": "RDS-010",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных"
+    },
+    {
+     "rule_id": "NEC-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-002",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-004",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-007",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "NEC-008",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-009",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-002",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-004",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-007",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-008",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-009",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    }
+   ]
+  },
+  {
+   "id": "СИН-НЭК-01",
+   "protocol": "НЭК",
+   "input": {
+    "facility_utc_offset": "+05:00",
+    "facility_level": 3,
+    "gestational_age_weeks": 30,
+    "birth_weight_g": 1350,
+    "nec_suspected": true,
+    "nec_suspected_at": "2026-04-13T10:20+05:00",
+    "nec_onset_at": "2026-04-13T10:20+05:00",
+    "feeding_at_nec_suspicion": "active",
+    "enteral_feeding_stopped": true,
+    "enteral_feeding_stopped_at": "2026-04-13T10:30+05:00",
+    "ng_tube_placed": true,
+    "ng_tube_placed_at": "2026-04-13T10:40+05:00",
+    "ng_tube_size_f": 6,
+    "uvc_present": true,
+    "uvc_removed": true,
+    "uvc_removed_at": "2026-04-13T11:30+05:00",
+    "uac_present": false,
+    "pn_running_at_nec_onset": true,
+    "pn_type": "full",
+    "antibiotics_started": true,
+    "abx_course_started_at": "2026-04-13T11:00+05:00",
+    "abx_regimen": [
+     "ампициллин",
+     "гентамицин",
+     "метронидазол"
+    ],
+    "metronidazole_given": true,
+    "metronidazole_given_at": "2026-04-13T11:00+05:00",
+    "nec_stage": "2а",
+    "nec_confirmed_at": "2026-04-13T14:00+05:00",
+    "nec_diagnosed_at": "2026-04-13T14:00+05:00",
+    "surgeon_consult_status": "done",
+    "surgeon_consult_format": "in_person",
+    "surgeon_consult_at": "2026-04-13T15:00+05:00",
+    "surgeon_conclusion": "оперативное лечение не показано",
+    "xrays": [
+     {
+      "at": "2026-04-13T13:30+05:00",
+      "position": "horizontal",
+      "reason": null,
+      "result": "пневматоз кишечника"
+     },
+     {
+      "at": "2026-04-15T14:00+05:00",
+      "position": "horizontal",
+      "reason": "planned",
+      "result": "без отрицательной динамики"
+     },
+     {
+      "at": "2026-04-22T10:00+05:00",
+      "position": "horizontal",
+      "reason": "planned",
+      "result": "норма"
+     }
+    ],
+    "clinical_deterioration": false,
+    "clinical_lab_improvement_documented": true,
+    "gi_passage_restored": true,
+    "gi_passage_restored_at": "2026-04-20T09:00+05:00",
+    "enteral_feeding_resumed_at": "2026-04-20T09:00+05:00",
+    "abx_course_ended_at": "2026-04-23T11:00+05:00",
+    "course_completed": true
+   },
+   "final_conclusion": null,
+   "active_conflicts": [
+    "CF-001"
+   ],
+   "counts": {
+    "недостаточно данных": 1,
+    "соответствие": 5,
+    "неоднозначность": 3
+   },
+   "shown_by_default": [
+    {
+     "rule_id": "RDS-008",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных",
+     "parts": [],
+     "missing_data": [
+      "blood_culture_before_antibiotics_resolved"
+     ]
+    },
+    {
+     "rule_id": "NEC-001",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [
+      {
+       "part_id": "feeding",
+       "applicability": "применимо",
+       "observation": "совпадает_с_буквальным_прочтением",
+       "label": "соответствие"
+      },
+      {
+       "part_id": "ng_tube",
+       "applicability": "применимо",
+       "observation": "совпадает_с_буквальным_прочтением",
+       "label": "соответствие"
+      }
+     ],
+     "missing_data": []
+    },
+    {
+     "rule_id": "NEC-002",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [
+      {
+       "part_id": "uvc",
+       "applicability": "применимо",
+       "observation": "совпадает_с_буквальным_прочтением",
+       "label": "соответствие"
+      },
+      {
+       "part_id": "uac",
+       "applicability": "неприменимо",
+       "observation": "правило_неприменимо",
+       "label": "неприменимо"
+      }
+     ],
+     "missing_data": []
+    },
+    {
+     "rule_id": "NEC-004",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [
+      {
+       "part_id": "term",
+       "applicability": "применимо",
+       "observation": "совпадает_с_буквальным_прочтением",
+       "label": "соответствие"
+      },
+      {
+       "part_id": "improvement",
+       "applicability": "применимо",
+       "observation": "совпадает_с_буквальным_прочтением",
+       "label": "соответствие"
+      }
+     ],
+     "missing_data": []
+    },
+    {
+     "rule_id": "NEC-005",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "NEC-006",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность",
+     "parts": [
+      {
+       "part_id": "first_48h",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность"
+      },
+      {
+       "part_id": "weekly",
+       "applicability": "применимо",
+       "observation": "совпадает_с_буквальным_прочтением",
+       "label": "соответствие"
+      },
+      {
+       "part_id": "deterioration",
+       "applicability": "неприменимо",
+       "observation": "правило_неприменимо",
+       "label": "неприменимо"
+      }
+     ],
+     "missing_data": []
+    },
+    {
+     "rule_id": "NEC-007",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "NEC-008",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "NEC-010",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность",
+     "parts": [],
+     "missing_data": []
+    }
+   ],
+   "hidden_cross_protocol_undetermined": {
+    "count": 19,
+    "rules": [
+     "RDS-001",
+     "RDS-002",
+     "RDS-003",
+     "RDS-004",
+     "RDS-005",
+     "RDS-006",
+     "RDS-007",
+     "RDS-009",
+     "RDS-010",
+     "SEP-001",
+     "SEP-002",
+     "SEP-003",
+     "SEP-004",
+     "SEP-005",
+     "SEP-006",
+     "SEP-007",
+     "SEP-008",
+     "SEP-009",
+     "SEP-010"
+    ]
+   },
+   "ui_warnings": [],
+   "all_rules": [
+    {
+     "rule_id": "RDS-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-002",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-004",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-007",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-008",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных"
+    },
+    {
+     "rule_id": "RDS-009",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-001",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "NEC-002",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "NEC-003",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "NEC-004",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "NEC-005",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "NEC-006",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность"
+    },
+    {
+     "rule_id": "NEC-007",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "NEC-008",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность"
+    },
+    {
+     "rule_id": "NEC-009",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "NEC-010",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность"
+    },
+    {
+     "rule_id": "SEP-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-002",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-004",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-007",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-008",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-009",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    }
+   ]
+  },
+  {
+   "id": "СИН-НЭК-02",
+   "protocol": "НЭК",
+   "input": {
+    "facility_utc_offset": "+05:00",
+    "facility_level": 3,
+    "surgical_department_available": false,
+    "gestational_age_weeks": 32,
+    "birth_weight_g": 1600,
+    "nec_suspected": true,
+    "nec_suspected_at": "2026-05-16T08:00+05:00",
+    "nec_onset_at": "2026-05-16T08:00+05:00",
+    "feeding_at_nec_suspicion": "active",
+    "enteral_feeding_stopped": false,
+    "ng_tube_present_at_suspicion": true,
+    "ng_tube_functioning_at_suspicion": true,
+    "uvc_present": true,
+    "uvc_removed": false,
+    "pn_type": "glucose_only",
+    "pn_running_at_nec_onset": false,
+    "xrays": [
+     {
+      "at": "2026-05-16T12:00+05:00",
+      "position": "horizontal",
+      "reason": null,
+      "result": "пневматоз, газ в воротной вене"
+     },
+     {
+      "at": "2026-05-18T13:00+05:00",
+      "position": "horizontal",
+      "reason": "planned",
+      "result": "без динамики"
+     },
+     {
+      "at": "2026-05-27T10:00+05:00",
+      "position": "horizontal",
+      "reason": null,
+      "result": "пневматоз регрессирует"
+     }
+    ],
+    "nec_stage": "2б",
+    "nec_diagnosed_at": "2026-05-16T12:30+05:00",
+    "nec_confirmed_at": "2026-05-16T12:30+05:00",
+    "antibiotics_started": true,
+    "abx_course_started_at": "2026-05-16T13:00+05:00",
+    "abx_regimen": [
+     "ампициллин",
+     "гентамицин"
+    ],
+    "metronidazole_given": false,
+    "clinical_deterioration": true,
+    "deterioration_at": "2026-05-18T22:00+05:00",
+    "enteral_feeding_resumed_at": "2026-05-19T09:00+05:00",
+    "abx_course_ended_at": "2026-05-23T13:00+05:00",
+    "course_completed": true,
+    "current_department": "nicu",
+    "transferred_to_surgery": false
+   },
+   "final_conclusion": null,
+   "active_conflicts": [],
+   "counts": {
+    "недостаточно данных": 1,
+    "предварительное отличие": 6,
+    "неоднозначность": 2
+   },
+   "shown_by_default": [
+    {
+     "rule_id": "RDS-008",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных",
+     "parts": [],
+     "missing_data": [
+      "blood_culture_before_antibiotics_resolved"
+     ]
+    },
+    {
+     "rule_id": "NEC-001",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие",
+     "parts": [
+      {
+       "part_id": "feeding",
+       "applicability": "применимо",
+       "observation": "отличается_от_буквального_прочтения",
+       "label": "предварительное отличие"
+      },
+      {
+       "part_id": "ng_tube",
+       "applicability": "применимо",
+       "observation": "совпадает_с_буквальным_прочтением",
+       "label": "соответствие"
+      }
+     ],
+     "missing_data": []
+    },
+    {
+     "rule_id": "NEC-002",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие",
+     "parts": [
+      {
+       "part_id": "uvc",
+       "applicability": "применимо",
+       "observation": "отличается_от_буквального_прочтения",
+       "label": "предварительное отличие"
+      },
+      {
+       "part_id": "uac",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      }
+     ],
+     "missing_data": [
+      "uac_present"
+     ]
+    },
+    {
+     "rule_id": "NEC-004",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие",
+     "parts": [
+      {
+       "part_id": "term",
+       "applicability": "применимо",
+       "observation": "отличается_от_буквального_прочтения",
+       "label": "предварительное отличие"
+      },
+      {
+       "part_id": "improvement",
+       "applicability": "применимо",
+       "observation": "не_оценено_нет_данных",
+       "label": "недостаточно данных"
+      }
+     ],
+     "missing_data": [
+      "clinical_lab_improvement_documented"
+     ]
+    },
+    {
+     "rule_id": "NEC-005",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "NEC-006",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность",
+     "parts": [
+      {
+       "part_id": "first_48h",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность"
+      },
+      {
+       "part_id": "weekly",
+       "applicability": "применимо",
+       "observation": "отличается_от_буквального_прочтения",
+       "label": "предварительное отличие"
+      },
+      {
+       "part_id": "deterioration",
+       "applicability": "применимо",
+       "observation": "отличается_от_буквального_прочтения",
+       "label": "предварительное отличие"
+      }
+     ],
+     "missing_data": []
+    },
+    {
+     "rule_id": "NEC-007",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "NEC-008",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "NEC-010",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие",
+     "parts": [],
+     "missing_data": []
+    }
+   ],
+   "hidden_cross_protocol_undetermined": {
+    "count": 19,
+    "rules": [
+     "RDS-001",
+     "RDS-002",
+     "RDS-003",
+     "RDS-004",
+     "RDS-005",
+     "RDS-006",
+     "RDS-007",
+     "RDS-009",
+     "RDS-010",
+     "SEP-001",
+     "SEP-002",
+     "SEP-003",
+     "SEP-004",
+     "SEP-005",
+     "SEP-006",
+     "SEP-007",
+     "SEP-008",
+     "SEP-009",
+     "SEP-010"
+    ]
+   },
+   "ui_warnings": [],
+   "all_rules": [
+    {
+     "rule_id": "RDS-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-002",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-004",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-007",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-008",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных"
+    },
+    {
+     "rule_id": "RDS-009",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-001",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие"
+    },
+    {
+     "rule_id": "NEC-002",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие"
+    },
+    {
+     "rule_id": "NEC-003",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "NEC-004",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие"
+    },
+    {
+     "rule_id": "NEC-005",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие"
+    },
+    {
+     "rule_id": "NEC-006",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность"
+    },
+    {
+     "rule_id": "NEC-007",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие"
+    },
+    {
+     "rule_id": "NEC-008",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность"
+    },
+    {
+     "rule_id": "NEC-009",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "NEC-010",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие"
+    },
+    {
+     "rule_id": "SEP-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-002",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-004",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-007",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-008",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-009",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    }
+   ]
+  },
+  {
+   "id": "СИН-НЭК-03",
+   "protocol": "НЭК",
+   "variants": {
+    "A": {
+     "input_note": "gi_passage_restored = false (2026-06-08, без времени)",
+     "input": {
+      "facility_utc_offset": "+05:00",
+      "facility_level": 2,
+      "gestational_age_weeks": 34,
+      "birth_weight_g": 2200,
+      "nec_suspected": true,
+      "feeding_at_nec_suspicion": "active",
+      "enteral_feeding_stopped": true,
+      "nec_stage": "1б",
+      "gi_passage_restored": false,
+      "pn_type": "partial",
+      "antibiotics_started": true,
+      "abx_regimen": [
+       "ампициллин",
+       "гентамицин",
+       "метронидазол"
+      ],
+      "metronidazole_given": true,
+      "surgeon_consult_status": "done",
+      "surgeon_consult_format": "remote",
+      "surgeon_consult_at": "2026-06-08T18:00+05:00",
+      "surgeon_recommendations": "наблюдение, повторная консультация при ухудшении",
+      "gi_passage_restored_at": "2026-06-10T16:00+05:00",
+      "enteral_feeding_resumed_at": "2026-06-11T10:00+05:00"
+     },
+     "final_conclusion": null,
+     "active_conflicts": [
+      "CF-003"
+     ],
+     "counts": {
+      "недостаточно данных": 2,
+      "применимость не установлена": 1,
+      "неоднозначность": 4
+     },
+     "shown_by_default": [
+      {
+       "rule_id": "RDS-008",
+       "applicability": "применимо",
+       "observation": "не_оценено_нет_данных",
+       "label": "недостаточно данных",
+       "parts": [],
+       "missing_data": [
+        "blood_culture_before_antibiotics_resolved"
+       ]
+      },
+      {
+       "rule_id": "NEC-001",
+       "applicability": "применимо",
+       "observation": "не_оценено_нет_данных",
+       "label": "недостаточно данных",
+       "parts": [
+        {
+         "part_id": "feeding",
+         "applicability": "применимо",
+         "observation": "совпадает_с_буквальным_прочтением",
+         "label": "соответствие"
+        },
+        {
+         "part_id": "ng_tube",
+         "applicability": "применимо",
+         "observation": "не_оценено_нет_данных",
+         "label": "недостаточно данных"
+        }
+       ],
+       "missing_data": [
+        "ng_tube_functioning_at_suspicion",
+        "ng_tube_placed",
+        "ng_tube_present_at_suspicion"
+       ]
+      },
+      {
+       "rule_id": "NEC-002",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена",
+       "parts": [],
+       "missing_data": [
+        "uac_present",
+        "uvc_present"
+       ]
+      },
+      {
+       "rule_id": "NEC-003",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность",
+       "parts": [
+        {
+         "part_id": "stop",
+         "applicability": "применимо",
+         "observation": "совпадает_с_буквальным_прочтением",
+         "label": "соответствие"
+        },
+        {
+         "part_id": "resume",
+         "applicability": "применимо",
+         "observation": "неоднозначность_ожидает_экспертного_решения",
+         "label": "неоднозначность"
+        }
+       ],
+       "missing_data": []
+      },
+      {
+       "rule_id": "NEC-005",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность",
+       "parts": [],
+       "missing_data": []
+      },
+      {
+       "rule_id": "NEC-007",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность",
+       "parts": [],
+       "missing_data": []
+      },
+      {
+       "rule_id": "NEC-009",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность",
+       "parts": [],
+       "missing_data": []
+      }
+     ],
+     "hidden_cross_protocol_undetermined": {
+      "count": 19,
+      "rules": [
+       "RDS-001",
+       "RDS-002",
+       "RDS-003",
+       "RDS-004",
+       "RDS-005",
+       "RDS-006",
+       "RDS-007",
+       "RDS-009",
+       "RDS-010",
+       "SEP-001",
+       "SEP-002",
+       "SEP-003",
+       "SEP-004",
+       "SEP-005",
+       "SEP-006",
+       "SEP-007",
+       "SEP-008",
+       "SEP-009",
+       "SEP-010"
+      ]
+     },
+     "ui_warnings": [],
+     "all_rules": [
+      {
+       "rule_id": "RDS-001",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-002",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-003",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-004",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-005",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-006",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-007",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-008",
+       "applicability": "применимо",
+       "observation": "не_оценено_нет_данных",
+       "label": "недостаточно данных"
+      },
+      {
+       "rule_id": "RDS-009",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-010",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "NEC-001",
+       "applicability": "применимо",
+       "observation": "не_оценено_нет_данных",
+       "label": "недостаточно данных"
+      },
+      {
+       "rule_id": "NEC-002",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "NEC-003",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность"
+      },
+      {
+       "rule_id": "NEC-004",
+       "applicability": "неприменимо",
+       "observation": "правило_неприменимо",
+       "label": "неприменимо"
+      },
+      {
+       "rule_id": "NEC-005",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность"
+      },
+      {
+       "rule_id": "NEC-006",
+       "applicability": "неприменимо",
+       "observation": "правило_неприменимо",
+       "label": "неприменимо"
+      },
+      {
+       "rule_id": "NEC-007",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность"
+      },
+      {
+       "rule_id": "NEC-008",
+       "applicability": "неприменимо",
+       "observation": "правило_неприменимо",
+       "label": "неприменимо"
+      },
+      {
+       "rule_id": "NEC-009",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность"
+      },
+      {
+       "rule_id": "NEC-010",
+       "applicability": "неприменимо",
+       "observation": "правило_неприменимо",
+       "label": "неприменимо"
+      },
+      {
+       "rule_id": "SEP-001",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-002",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-003",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-004",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-005",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-006",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-007",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-008",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-009",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-010",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      }
+     ]
+    },
+    "B": {
+     "input_note": "gi_passage_restored = true (2026-06-10T16:00+05:00)",
+     "input": {
+      "facility_utc_offset": "+05:00",
+      "facility_level": 2,
+      "gestational_age_weeks": 34,
+      "birth_weight_g": 2200,
+      "nec_suspected": true,
+      "feeding_at_nec_suspicion": "active",
+      "enteral_feeding_stopped": true,
+      "nec_stage": "1б",
+      "gi_passage_restored": true,
+      "pn_type": "partial",
+      "antibiotics_started": true,
+      "abx_regimen": [
+       "ампициллин",
+       "гентамицин",
+       "метронидазол"
+      ],
+      "metronidazole_given": true,
+      "surgeon_consult_status": "done",
+      "surgeon_consult_format": "remote",
+      "surgeon_consult_at": "2026-06-08T18:00+05:00",
+      "surgeon_recommendations": "наблюдение, повторная консультация при ухудшении",
+      "gi_passage_restored_at": "2026-06-10T16:00+05:00",
+      "enteral_feeding_resumed_at": "2026-06-11T10:00+05:00"
+     },
+     "final_conclusion": null,
+     "active_conflicts": [],
+     "counts": {
+      "недостаточно данных": 2,
+      "применимость не установлена": 1,
+      "неоднозначность": 3
+     },
+     "shown_by_default": [
+      {
+       "rule_id": "RDS-008",
+       "applicability": "применимо",
+       "observation": "не_оценено_нет_данных",
+       "label": "недостаточно данных",
+       "parts": [],
+       "missing_data": [
+        "blood_culture_before_antibiotics_resolved"
+       ]
+      },
+      {
+       "rule_id": "NEC-001",
+       "applicability": "применимо",
+       "observation": "не_оценено_нет_данных",
+       "label": "недостаточно данных",
+       "parts": [
+        {
+         "part_id": "feeding",
+         "applicability": "применимо",
+         "observation": "совпадает_с_буквальным_прочтением",
+         "label": "соответствие"
+        },
+        {
+         "part_id": "ng_tube",
+         "applicability": "применимо",
+         "observation": "не_оценено_нет_данных",
+         "label": "недостаточно данных"
+        }
+       ],
+       "missing_data": [
+        "ng_tube_functioning_at_suspicion",
+        "ng_tube_placed",
+        "ng_tube_present_at_suspicion"
+       ]
+      },
+      {
+       "rule_id": "NEC-002",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена",
+       "parts": [],
+       "missing_data": [
+        "uac_present",
+        "uvc_present"
+       ]
+      },
+      {
+       "rule_id": "NEC-005",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность",
+       "parts": [],
+       "missing_data": []
+      },
+      {
+       "rule_id": "NEC-007",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность",
+       "parts": [],
+       "missing_data": []
+      },
+      {
+       "rule_id": "NEC-009",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность",
+       "parts": [],
+       "missing_data": []
+      }
+     ],
+     "hidden_cross_protocol_undetermined": {
+      "count": 19,
+      "rules": [
+       "RDS-001",
+       "RDS-002",
+       "RDS-003",
+       "RDS-004",
+       "RDS-005",
+       "RDS-006",
+       "RDS-007",
+       "RDS-009",
+       "RDS-010",
+       "SEP-001",
+       "SEP-002",
+       "SEP-003",
+       "SEP-004",
+       "SEP-005",
+       "SEP-006",
+       "SEP-007",
+       "SEP-008",
+       "SEP-009",
+       "SEP-010"
+      ]
+     },
+     "ui_warnings": [],
+     "all_rules": [
+      {
+       "rule_id": "RDS-001",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-002",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-003",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-004",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-005",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-006",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-007",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-008",
+       "applicability": "применимо",
+       "observation": "не_оценено_нет_данных",
+       "label": "недостаточно данных"
+      },
+      {
+       "rule_id": "RDS-009",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "RDS-010",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "NEC-001",
+       "applicability": "применимо",
+       "observation": "не_оценено_нет_данных",
+       "label": "недостаточно данных"
+      },
+      {
+       "rule_id": "NEC-002",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "NEC-003",
+       "applicability": "неприменимо",
+       "observation": "правило_неприменимо",
+       "label": "неприменимо"
+      },
+      {
+       "rule_id": "NEC-004",
+       "applicability": "неприменимо",
+       "observation": "правило_неприменимо",
+       "label": "неприменимо"
+      },
+      {
+       "rule_id": "NEC-005",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность"
+      },
+      {
+       "rule_id": "NEC-006",
+       "applicability": "неприменимо",
+       "observation": "правило_неприменимо",
+       "label": "неприменимо"
+      },
+      {
+       "rule_id": "NEC-007",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность"
+      },
+      {
+       "rule_id": "NEC-008",
+       "applicability": "неприменимо",
+       "observation": "правило_неприменимо",
+       "label": "неприменимо"
+      },
+      {
+       "rule_id": "NEC-009",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность"
+      },
+      {
+       "rule_id": "NEC-010",
+       "applicability": "неприменимо",
+       "observation": "правило_неприменимо",
+       "label": "неприменимо"
+      },
+      {
+       "rule_id": "SEP-001",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-002",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-003",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-004",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-005",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-006",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-007",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-008",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-009",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      },
+      {
+       "rule_id": "SEP-010",
+       "applicability": "не_определено",
+       "observation": "не_оценено_нет_данных",
+       "label": "применимость не установлена"
+      }
+     ]
+    }
+   },
+   "engine_limitation": "Две записи с временной привязкой сохраняются обе. Движок принимает одно значение gi_passage_restored — это ограничение текущего движка; правило NEC-003 без отдельного согласования не меняется. Технические результаты даны для обоих вариантов ввода."
+  },
+  {
+   "id": "СИН-СЕП-01",
+   "protocol": "Сепсис",
+   "input": {
+    "facility_utc_offset": "+05:00",
+    "gestational_age_weeks": 39,
+    "weight_kg": 3.4,
+    "weight_measured_at": "2026-07-03T05:10+05:00",
+    "sepsis_indication_identified_at": "2026-07-03T08:10+05:00",
+    "risk_factor_or_sign_count": 2,
+    "red_flag_count": 0,
+    "sepsis_suspected": true,
+    "early_onset_sepsis_suspected": true,
+    "crp_samples": [
+     {
+      "drawn_at": "2026-07-03T08:20+05:00",
+      "purpose": "baseline"
+     },
+     {
+      "drawn_at": "2026-07-04T05:00+05:00",
+      "purpose": "control"
+     }
+    ],
+    "blood_culture_drawn_at": "2026-07-03T08:25+05:00",
+    "sample_site": "separate_vein",
+    "sample_volume_ml": 1,
+    "postnatal_age_days": 0,
+    "benzylpenicillin_given": true,
+    "benzylpenicillin_prescribed_at": "2026-07-03T08:30+05:00",
+    "benzylpenicillin_dose_mg": 85,
+    "benzylpenicillin_dose_mg_kg": 25,
+    "benzylpenicillin_interval_h": 12,
+    "gentamicin_given": true,
+    "gentamicin_prescribed_at": "2026-07-03T08:30+05:00",
+    "gentamicin_dose_mg": 17,
+    "gentamicin_initial_dose_mg_kg": 5,
+    "gentamicin_interval_h": 36,
+    "initial_empirical_regimen": "benzylpenicillin+gentamicin",
+    "empirical_regimen": "benzylpenicillin+gentamicin",
+    "antibiotics_started": true,
+    "first_abx_dose_administered_at": "2026-07-03T08:45+05:00",
+    "abx_course_started_at": "2026-07-03T08:45+05:00",
+    "meningitis": false,
+    "abx_course_ended_at": "2026-07-05T08:45+05:00",
+    "course_completed": true,
+    "blood_culture_result": "отрицательный",
+    "culture_result_at": "2026-07-05T09:00+05:00",
+    "improving": true,
+    "antibiotics_stopped_at": "2026-07-05T09:00+05:00",
+    "high_risk_factors": false,
+    "immunoglobulin_given": false
+   },
+   "final_conclusion": null,
+   "active_conflicts": [
+    "CF-006",
+    "CF-007"
+   ],
+   "counts": {
+    "соответствие": 4,
+    "неоднозначность": 3
+   },
+   "shown_by_default": [
+    {
+     "rule_id": "RDS-008",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "SEP-001",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "SEP-002",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "SEP-004",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "SEP-005",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "SEP-006",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность",
+     "parts": [
+      {
+       "part_id": "dose",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность"
+      },
+      {
+       "part_id": "interval",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность"
+      }
+     ],
+     "missing_data": []
+    },
+    {
+     "rule_id": "SEP-007",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    }
+   ],
+   "hidden_cross_protocol_undetermined": {
+    "count": 16,
+    "rules": [
+     "RDS-001",
+     "RDS-002",
+     "RDS-003",
+     "RDS-004",
+     "RDS-007",
+     "RDS-009",
+     "RDS-010",
+     "NEC-001",
+     "NEC-002",
+     "NEC-003",
+     "NEC-004",
+     "NEC-005",
+     "NEC-006",
+     "NEC-008",
+     "NEC-009",
+     "NEC-010"
+    ]
+   },
+   "ui_warnings": [],
+   "all_rules": [
+    {
+     "rule_id": "RDS-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-002",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-004",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-005",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "RDS-006",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "RDS-007",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-008",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "RDS-009",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-002",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-004",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-007",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "NEC-008",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-009",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-001",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность"
+    },
+    {
+     "rule_id": "SEP-002",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "SEP-003",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "SEP-004",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "SEP-005",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность"
+    },
+    {
+     "rule_id": "SEP-006",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность"
+    },
+    {
+     "rule_id": "SEP-007",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "SEP-008",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "SEP-009",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "SEP-010",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    }
+   ]
+  },
+  {
+   "id": "СИН-СЕП-02",
+   "protocol": "Сепсис",
+   "input": {
+    "facility_utc_offset": "+05:00",
+    "gestational_age_weeks": 37,
+    "birth_weight_g": 2900,
+    "sepsis_indication_identified_at": "2026-08-13T02:00+05:00",
+    "red_flag_count": 1,
+    "sepsis_suspected": true,
+    "early_onset_sepsis_suspected": true,
+    "antibiotics_started": true,
+    "first_abx_dose_administered_at": "2026-08-13T02:40+05:00",
+    "abx_course_started_at": "2026-08-13T02:40+05:00",
+    "initial_empirical_regimen": "другое",
+    "empirical_regimen": "другое",
+    "abx_regimen": [
+     "цефотаксим",
+     "амикацин"
+    ],
+    "blood_culture_drawn_at": "2026-08-13T03:15+05:00",
+    "immunoglobulin_given": true,
+    "immunoglobulin_purpose": "sepsis_treatment_or_prophylaxis",
+    "immunoglobulin_use_type": "routine",
+    "crp_samples": [
+     {
+      "drawn_at": "2026-08-14T15:00+05:00",
+      "purpose": "control"
+     }
+    ],
+    "blood_culture_result": "положительный",
+    "culture_result_at": "2026-08-15T11:00+05:00",
+    "pathogen": "E. coli",
+    "gram_negative_culture": true,
+    "meningitis": false,
+    "improving": true,
+    "abx_course_ended_at": "2026-08-22T02:40+05:00",
+    "course_completed": true
+   },
+   "final_conclusion": null,
+   "active_conflicts": [],
+   "counts": {
+    "предварительное отличие": 5,
+    "неоднозначность": 2,
+    "применимость не установлена": 2
+   },
+   "shown_by_default": [
+    {
+     "rule_id": "RDS-008",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "SEP-001",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "SEP-002",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "SEP-003",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "SEP-004",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "SEP-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена",
+     "parts": [],
+     "missing_data": [
+      "benzylpenicillin_given"
+     ]
+    },
+    {
+     "rule_id": "SEP-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена",
+     "parts": [],
+     "missing_data": [
+      "gentamicin_given"
+     ]
+    },
+    {
+     "rule_id": "SEP-007",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "SEP-010",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность",
+     "parts": [],
+     "missing_data": []
+    }
+   ],
+   "hidden_cross_protocol_undetermined": {
+    "count": 16,
+    "rules": [
+     "RDS-001",
+     "RDS-002",
+     "RDS-003",
+     "RDS-004",
+     "RDS-007",
+     "RDS-009",
+     "RDS-010",
+     "NEC-001",
+     "NEC-002",
+     "NEC-003",
+     "NEC-004",
+     "NEC-005",
+     "NEC-006",
+     "NEC-008",
+     "NEC-009",
+     "NEC-010"
+    ]
+   },
+   "ui_warnings": [],
+   "all_rules": [
+    {
+     "rule_id": "RDS-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-002",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-004",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-005",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "RDS-006",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "RDS-007",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-008",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие"
+    },
+    {
+     "rule_id": "RDS-009",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-002",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-004",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-007",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "NEC-008",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-009",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-001",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность"
+    },
+    {
+     "rule_id": "SEP-002",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие"
+    },
+    {
+     "rule_id": "SEP-003",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие"
+    },
+    {
+     "rule_id": "SEP-004",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие"
+    },
+    {
+     "rule_id": "SEP-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-007",
+     "applicability": "применимо",
+     "observation": "отличается_от_буквального_прочтения",
+     "label": "предварительное отличие"
+    },
+    {
+     "rule_id": "SEP-008",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "SEP-009",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "SEP-010",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность"
+    }
+   ]
+  },
+  {
+   "id": "СИН-СЕП-03",
+   "protocol": "Сепсис",
+   "input": {
+    "facility_utc_offset": "+05:00",
+    "gestational_age_weeks": 33,
+    "weight_kg": 1.9,
+    "weight_measured_at": "2026-09-20T18:20+05:00",
+    "risk_factor_or_sign_count": 1,
+    "red_flag_count": 0,
+    "sepsis_suspected": true,
+    "early_onset_sepsis_suspected": true,
+    "postnatal_age_days": 1,
+    "benzylpenicillin_given": true,
+    "benzylpenicillin_prescribed_at": "2026-09-21T09:00+05:00",
+    "benzylpenicillin_dose_units_per_kg": 50000,
+    "benzylpenicillin_interval_h": 8,
+    "gentamicin_given": true,
+    "gentamicin_prescribed_at": "2026-09-21T09:00+05:00",
+    "gentamicin_dose_mg": 7.6,
+    "gentamicin_initial_dose_mg_kg": 4,
+    "gentamicin_interval_h": 24,
+    "initial_empirical_regimen": "benzylpenicillin+gentamicin",
+    "empirical_regimen": "benzylpenicillin+gentamicin",
+    "antibiotics_started": true,
+    "first_abx_dose_administered_at": "2026-09-21T09:30+05:00",
+    "abx_course_started_at": "2026-09-21T09:30+05:00",
+    "meningitis": false,
+    "immunoglobulin_given": true,
+    "immunoglobulin_purpose": "sepsis_treatment_or_prophylaxis",
+    "immunoglobulin_use_type": "individualized",
+    "consilium_documented": true,
+    "clinical_evidence": "тяжёлая нейтропения 0,4×10⁹/л",
+    "course_completed": false
+   },
+   "final_conclusion": null,
+   "active_conflicts": [],
+   "counts": {
+    "недостаточно данных": 4,
+    "неоднозначность (применимость)": 1,
+    "неоднозначность": 2,
+    "соответствие": 1,
+    "применимость не установлена": 1
+   },
+   "shown_by_default": [
+    {
+     "rule_id": "RDS-008",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных",
+     "parts": [],
+     "missing_data": [
+      "blood_culture_before_antibiotics_resolved"
+     ]
+    },
+    {
+     "rule_id": "SEP-001",
+     "applicability": "зависит_от_неоднозначности",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность (применимость)",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "SEP-002",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных",
+     "parts": [],
+     "missing_data": [
+      "culture_drawn_before_first_dose"
+     ]
+    },
+    {
+     "rule_id": "SEP-003",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "SEP-004",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие",
+     "parts": [],
+     "missing_data": []
+    },
+    {
+     "rule_id": "SEP-005",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных",
+     "parts": [],
+     "missing_data": [
+      "benzylpenicillin_dose_per_kg",
+      "very_severe_condition"
+     ]
+    },
+    {
+     "rule_id": "SEP-006",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность",
+     "parts": [
+      {
+       "part_id": "dose",
+       "applicability": "применимо",
+       "observation": "неоднозначность_ожидает_экспертного_решения",
+       "label": "неоднозначность"
+      },
+      {
+       "part_id": "interval",
+       "applicability": "применимо",
+       "observation": "не_оценено_нет_данных",
+       "label": "недостаточно данных"
+      }
+     ],
+     "missing_data": [
+      "gram_negative_culture",
+      "very_ill"
+     ]
+    },
+    {
+     "rule_id": "SEP-007",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных",
+     "parts": [],
+     "missing_data": [
+      "hours_first_dose_to_control_crp"
+     ]
+    },
+    {
+     "rule_id": "SEP-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена",
+     "parts": [],
+     "missing_data": [
+      "blood_culture_result",
+      "high_risk_factors"
+     ]
+    }
+   ],
+   "hidden_cross_protocol_undetermined": {
+    "count": 18,
+    "rules": [
+     "RDS-001",
+     "RDS-002",
+     "RDS-003",
+     "RDS-004",
+     "RDS-005",
+     "RDS-006",
+     "RDS-007",
+     "RDS-009",
+     "RDS-010",
+     "NEC-001",
+     "NEC-002",
+     "NEC-003",
+     "NEC-004",
+     "NEC-005",
+     "NEC-006",
+     "NEC-008",
+     "NEC-009",
+     "NEC-010"
+    ]
+   },
+   "ui_warnings": [],
+   "all_rules": [
+    {
+     "rule_id": "RDS-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-002",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-004",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-007",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-008",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных"
+    },
+    {
+     "rule_id": "RDS-009",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "RDS-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-001",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-002",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-003",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-004",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-005",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-006",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-007",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "NEC-008",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-009",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "NEC-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    },
+    {
+     "rule_id": "SEP-001",
+     "applicability": "зависит_от_неоднозначности",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность (применимость)"
+    },
+    {
+     "rule_id": "SEP-002",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных"
+    },
+    {
+     "rule_id": "SEP-003",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность"
+    },
+    {
+     "rule_id": "SEP-004",
+     "applicability": "применимо",
+     "observation": "совпадает_с_буквальным_прочтением",
+     "label": "соответствие"
+    },
+    {
+     "rule_id": "SEP-005",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных"
+    },
+    {
+     "rule_id": "SEP-006",
+     "applicability": "применимо",
+     "observation": "неоднозначность_ожидает_экспертного_решения",
+     "label": "неоднозначность"
+    },
+    {
+     "rule_id": "SEP-007",
+     "applicability": "применимо",
+     "observation": "не_оценено_нет_данных",
+     "label": "недостаточно данных"
+    },
+    {
+     "rule_id": "SEP-008",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "SEP-009",
+     "applicability": "неприменимо",
+     "observation": "правило_неприменимо",
+     "label": "неприменимо"
+    },
+    {
+     "rule_id": "SEP-010",
+     "applicability": "не_определено",
+     "observation": "не_оценено_нет_данных",
+     "label": "применимость не установлена"
+    }
+   ]
+  }
+ ],
+ "ui_test_variants": [
+  {
+   "id": "СИН-СЕП-01/без-возраста",
+   "derived_from": "СИН-СЕП-01",
+   "change": "удалено поле postnatal_age_days",
+   "sep006": "соответствие",
+   "active_conflicts": [
+    "CF-006"
+   ],
+   "ui_warnings": [
+    {
+     "rule_id": "SEP-006",
+     "kind": "неполная проверка",
+     "text": "Соответствует проверенному фрагменту текста. Возрастная таблица не проверена: отсутствует постнатальный возраст.",
+     "engine_outcome_unchanged": true
+    }
+   ]
+  }
+ ]
+}

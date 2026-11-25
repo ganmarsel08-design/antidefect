@@ -1,0 +1,2750 @@
+{
+ "note": "Только синтетические данные. 90 базовых + 27 граничных (scenarios-117) + 40 исправлений этапа 6 + 14 ТАБ. Заморожено на коммите 2eeb6ae.",
+ "cases": [
+  {
+   "id": "RDS-001-T1",
+   "rule": "RDS-001",
+   "group": "базовый",
+   "data": {
+    "rds_risk": true,
+    "cpap_from_birth": true,
+    "cpap_pressure_cmh2o": 6
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-001-T2",
+   "rule": "RDS-001",
+   "group": "базовый",
+   "data": {
+    "rds_risk": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-001-T3",
+   "rule": "RDS-001",
+   "group": "базовый",
+   "data": {
+    "rds_risk": true,
+    "cpap_from_birth": false
+   },
+   "justifications": {
+    "RDS-001": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "RDS-002-T1",
+   "rule": "RDS-002",
+   "group": "базовый",
+   "data": {
+    "rds_diagnosed": true,
+    "intubated": true,
+    "surfactant_given": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-002-T2",
+   "rule": "RDS-002",
+   "group": "базовый",
+   "data": {
+    "rds_diagnosed": true,
+    "intubated": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-002-T3",
+   "rule": "RDS-002",
+   "group": "базовый",
+   "data": {
+    "rds_diagnosed": true,
+    "intubated": true,
+    "surfactant_given": false
+   },
+   "justifications": {
+    "RDS-002": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "RDS-003-T1",
+   "rule": "RDS-003",
+   "group": "базовый",
+   "data": {
+    "rds_risk": true,
+    "antenatal_steroids_given": false,
+    "surfactant_in_delivery_room": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-003-T2",
+   "rule": "RDS-003",
+   "group": "базовый",
+   "data": {
+    "rds_risk": true,
+    "antenatal_steroids_given": false
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-003-T3",
+   "rule": "RDS-003",
+   "group": "базовый",
+   "data": {
+    "rds_risk": true,
+    "antenatal_steroids_given": false,
+    "surfactant_in_delivery_room": false
+   },
+   "justifications": {
+    "RDS-003": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "RDS-004-T1",
+   "rule": "RDS-004",
+   "group": "базовый",
+   "data": {
+    "oxygen_given": true,
+    "oxygen_via_blender": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-004-T2",
+   "rule": "RDS-004",
+   "group": "базовый",
+   "data": {
+    "oxygen_given": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-004-T3",
+   "rule": "RDS-004",
+   "group": "базовый",
+   "data": {
+    "oxygen_given": true,
+    "oxygen_via_blender": false
+   },
+   "justifications": {
+    "RDS-004": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "RDS-005-T1",
+   "rule": "RDS-005",
+   "group": "базовый",
+   "data": {
+    "gestational_age_weeks": 36,
+    "oxygen_after_stabilization": true,
+    "spo2_target_low": 90,
+    "spo2_target_high": 95
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-005-T2",
+   "rule": "RDS-005",
+   "group": "базовый",
+   "data": {
+    "gestational_age_weeks": 36,
+    "oxygen_after_stabilization": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-005-T3",
+   "rule": "RDS-005",
+   "group": "базовый",
+   "data": {
+    "gestational_age_weeks": 36,
+    "oxygen_after_stabilization": true,
+    "spo2_target_low": 89
+   },
+   "justifications": {
+    "RDS-005": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "RDS-006-T1",
+   "rule": "RDS-006",
+   "group": "базовый",
+   "data": {
+    "gestational_age_weeks": 36,
+    "condition_allows_delayed_clamping": true,
+    "cord_clamp_delay_s": 60
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-006-T2",
+   "rule": "RDS-006",
+   "group": "базовый",
+   "data": {
+    "gestational_age_weeks": 36,
+    "condition_allows_delayed_clamping": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-006-T3",
+   "rule": "RDS-006",
+   "group": "базовый",
+   "data": {
+    "gestational_age_weeks": 36,
+    "condition_allows_delayed_clamping": true,
+    "cord_clamp_delay_s": 59
+   },
+   "justifications": {
+    "RDS-006": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "RDS-007-T1",
+   "rule": "RDS-007",
+   "group": "базовый",
+   "data": {
+    "rds_diagnosed": true,
+    "serious_bacterial_infection_excluded": true,
+    "antibiotics_started": true,
+    "sbi_excluded_at": "2026-01-02T10:00+05:00",
+    "antibiotics_stopped_at": "2026-01-02T14:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-007-T2",
+   "rule": "RDS-007",
+   "group": "базовый",
+   "data": {
+    "rds_diagnosed": true,
+    "serious_bacterial_infection_excluded": true,
+    "antibiotics_started": true,
+    "sbi_excluded_at": "2026-01-02T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-007-T3",
+   "rule": "RDS-007",
+   "group": "базовый",
+   "data": {
+    "rds_diagnosed": true,
+    "serious_bacterial_infection_excluded": true,
+    "antibiotics_started": true,
+    "sbi_excluded_at": "2026-01-02T10:00+05:00",
+    "antibiotics_stopped_at": "2026-01-02T08:00+05:00"
+   },
+   "justifications": {
+    "RDS-007": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "RDS-008-T1",
+   "rule": "RDS-008",
+   "group": "базовый",
+   "data": {
+    "antibiotics_started": true,
+    "blood_culture_before_antibiotics": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-008-T2",
+   "rule": "RDS-008",
+   "group": "базовый",
+   "data": {
+    "antibiotics_started": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-008-T3",
+   "rule": "RDS-008",
+   "group": "базовый",
+   "data": {
+    "antibiotics_started": true,
+    "blood_culture_before_antibiotics": false
+   },
+   "justifications": {
+    "RDS-008": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "RDS-009-T1",
+   "rule": "RDS-009",
+   "group": "базовый",
+   "data": {
+    "rds_diagnosed": true,
+    "surfactant_drug": "порактант альфа",
+    "surfactant_initial_dose_mg_kg": 200
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-009-T2",
+   "rule": "RDS-009",
+   "group": "базовый",
+   "data": {
+    "rds_diagnosed": true,
+    "surfactant_drug": "порактант альфа"
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-009-T3",
+   "rule": "RDS-009",
+   "group": "базовый",
+   "data": {
+    "rds_diagnosed": true,
+    "surfactant_drug": "порактант альфа",
+    "surfactant_initial_dose_mg_kg": 201
+   },
+   "justifications": {
+    "RDS-009": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "RDS-010-T1",
+   "rule": "RDS-010",
+   "group": "базовый",
+   "data": {
+    "mechanical_ventilation": true,
+    "blood_gases": [
+     {
+      "drawn_at": "2026-01-01T10:00+05:00",
+      "paco2_mmhg": 44
+     }
+    ],
+    "paco2_hypocapnia_threshold": 35,
+    "threshold_source": "синтетический СОП ОРИТН"
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-010-T2",
+   "rule": "RDS-010",
+   "group": "базовый",
+   "data": {
+    "mechanical_ventilation": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "RDS-010-T3",
+   "rule": "RDS-010",
+   "group": "базовый",
+   "data": {
+    "mechanical_ventilation": true,
+    "blood_gases": [
+     {
+      "drawn_at": "2026-01-01T10:00+05:00",
+      "paco2_mmhg": 28
+     }
+    ],
+    "paco2_hypocapnia_threshold": 35,
+    "threshold_source": "синтетический СОП ОРИТН",
+    "vent_changes": [
+     {
+      "at": "2026-01-01T10:30+05:00",
+      "parameter": "PIP",
+      "from": 22,
+      "to": 19
+     }
+    ]
+   },
+   "justifications": {
+    "RDS-010": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "NEC-001-T1",
+   "rule": "NEC-001",
+   "group": "базовый",
+   "data": {
+    "nec_suspected": true,
+    "nec_suspected_at": "2026-01-03T10:00+05:00",
+    "feeding_at_nec_suspicion": "active",
+    "enteral_feeding_stopped": true,
+    "enteral_feeding_stopped_at": "2026-01-03T10:05+05:00",
+    "ng_tube_placed": true,
+    "ng_tube_placed_at": "2026-01-03T10:15+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-001-T2",
+   "rule": "NEC-001",
+   "group": "базовый",
+   "data": {
+    "nec_suspected": true,
+    "feeding_at_nec_suspicion": "unknown",
+    "ng_tube_placed": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-001-T3",
+   "rule": "NEC-001",
+   "group": "базовый",
+   "data": {
+    "nec_suspected": true,
+    "feeding_at_nec_suspicion": "active",
+    "enteral_feeding_stopped": false,
+    "ng_tube_placed": true
+   },
+   "justifications": {
+    "NEC-001": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "NEC-002-T1",
+   "rule": "NEC-002",
+   "group": "базовый",
+   "data": {
+    "nec_suspected": true,
+    "uvc_present": true,
+    "uvc_removed": true,
+    "uac_present": false
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-002-T2",
+   "rule": "NEC-002",
+   "group": "базовый",
+   "data": {
+    "nec_suspected": true,
+    "uvc_present": true,
+    "uac_present": false
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-002-T3",
+   "rule": "NEC-002",
+   "group": "базовый",
+   "data": {
+    "nec_suspected": true,
+    "uvc_present": true,
+    "uvc_removed": false,
+    "uac_present": false,
+    "retention_reason": "единственный доступ"
+   },
+   "justifications": {
+    "NEC-002": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "NEC-003-T1",
+   "rule": "NEC-003",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "1б",
+    "gi_passage_restored": false,
+    "enteral_feeding_stopped": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-003-T2",
+   "rule": "NEC-003",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "1б"
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-003-T3",
+   "rule": "NEC-003",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "1б",
+    "gi_passage_restored": false,
+    "enteral_feeding_stopped": false,
+    "enteral_feeding_resumed_at": "2026-01-04T10:00+05:00"
+   },
+   "justifications": {
+    "NEC-003": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "NEC-004-T1",
+   "rule": "NEC-004",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2а",
+    "nec_onset_at": "2026-01-01T10:00+05:00",
+    "nec_confirmed_at": "2026-01-01T18:00+05:00",
+    "enteral_feeding_resumed_at": "2026-01-08T10:00+05:00",
+    "improvement_signs": {
+     "abdomen_not_distended_not_tender": true,
+     "no_pathological_gastric_residuals": true,
+     "ileus_resolved": true,
+     "spontaneous_stool": true,
+     "labs_normalized": true,
+     "no_us_bowel_wall_inflammation": true,
+     "no_ascites": true,
+     "peristalsis_restored": true
+    }
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-004-T2",
+   "rule": "NEC-004",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2а"
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-004-T3",
+   "rule": "NEC-004",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2а",
+    "nec_onset_at": "2026-01-01T10:00+05:00",
+    "nec_confirmed_at": "2026-01-01T18:00+05:00",
+    "enteral_feeding_resumed_at": "2026-01-04T10:00+05:00"
+   },
+   "justifications": {
+    "NEC-004": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "NEC-005-T1",
+   "rule": "NEC-005",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2б",
+    "pn_type": "full",
+    "pn_running_at_nec_onset": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-005-T2",
+   "rule": "NEC-005",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2б",
+    "pn_running_at_nec_onset": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-005-T3",
+   "rule": "NEC-005",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2б",
+    "pn_type": "full",
+    "pn_running_at_nec_onset": false,
+    "nec_onset_at": "2026-01-01T10:00+05:00",
+    "pn_started_at": "2026-01-02T09:00+05:00"
+   },
+   "justifications": {
+    "NEC-005": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "NEC-006-T1",
+   "rule": "NEC-006",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2б",
+    "nec_diagnosed_at": "2026-01-01T10:00+05:00",
+    "clinical_deterioration": false,
+    "xrays": [
+     {
+      "at": "2026-01-03T10:00+05:00",
+      "position": "horizontal",
+      "reason": "planned"
+     },
+     {
+      "at": "2026-01-09T10:00+05:00",
+      "position": "horizontal",
+      "reason": "planned"
+     }
+    ]
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-006-T2",
+   "rule": "NEC-006",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2б",
+    "clinical_deterioration": false
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-006-T3",
+   "rule": "NEC-006",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2б",
+    "nec_diagnosed_at": "2026-01-01T10:00+05:00",
+    "clinical_deterioration": true,
+    "deterioration_at": "2026-01-02T08:00+05:00",
+    "xrays": [
+     {
+      "at": "2026-01-03T10:00+05:00",
+      "position": "horizontal",
+      "reason": "planned"
+     }
+    ]
+   },
+   "justifications": {
+    "NEC-006": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "NEC-007-T1",
+   "rule": "NEC-007",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2б",
+    "antibiotics_started": true,
+    "metronidazole_given": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-007-T2",
+   "rule": "NEC-007",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2б",
+    "antibiotics_started": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-007-T3",
+   "rule": "NEC-007",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2б",
+    "antibiotics_started": true,
+    "metronidazole_given": false,
+    "other_antianaerobic_drug": "клиндамицин"
+   },
+   "justifications": {
+    "NEC-007": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "NEC-008-T1",
+   "rule": "NEC-008",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2б",
+    "antibiotics_started": true,
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00",
+    "abx_course_ended_at": "2026-01-11T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-008-T2",
+   "rule": "NEC-008",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2б",
+    "antibiotics_started": true,
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-008-T3",
+   "rule": "NEC-008",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2б",
+    "antibiotics_started": true,
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00",
+    "abx_course_ended_at": "2026-01-07T10:00+05:00"
+   },
+   "justifications": {
+    "NEC-008": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "NEC-009-T1",
+   "rule": "NEC-009",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "1б",
+    "facility_level": 2,
+    "surgeon_consult_status": "done",
+    "surgeon_consult_format": "in_person"
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-009-T2",
+   "rule": "NEC-009",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "1б",
+    "facility_level": 2,
+    "surgeon_consult_status": "no_record"
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-009-T3",
+   "rule": "NEC-009",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "1б",
+    "facility_level": 2,
+    "surgeon_consult_status": "documented_not_done"
+   },
+   "justifications": {
+    "NEC-009": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "NEC-010-T1",
+   "rule": "NEC-010",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2б",
+    "surgical_department_available": false,
+    "current_department": "other",
+    "transferred_to_surgery": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-010-T2",
+   "rule": "NEC-010",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2б"
+   },
+   "justifications": null
+  },
+  {
+   "id": "NEC-010-T3",
+   "rule": "NEC-010",
+   "group": "базовый",
+   "data": {
+    "nec_stage": "2б",
+    "surgical_department_available": false,
+    "current_department": "nicu",
+    "transferred_to_surgery": false,
+    "transport_stable": false,
+    "transfer_delay_reason": "нестабильная гемодинамика"
+   },
+   "justifications": {
+    "NEC-010": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "SEP-001-T1",
+   "rule": "SEP-001",
+   "group": "базовый",
+   "data": {
+    "red_flag_count": 1,
+    "antibiotics_started": true,
+    "sepsis_indication_identified_at": "2026-01-01T10:00+05:00",
+    "first_abx_dose_administered_at": "2026-01-01T10:40+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-001-T2",
+   "rule": "SEP-001",
+   "group": "базовый",
+   "data": {
+    "antibiotics_started": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-001-T3",
+   "rule": "SEP-001",
+   "group": "базовый",
+   "data": {
+    "red_flag_count": 1,
+    "antibiotics_started": true,
+    "sepsis_indication_identified_at": "2026-01-01T10:00+05:00",
+    "first_abx_dose_administered_at": "2026-01-01T12:00+05:00"
+   },
+   "justifications": {
+    "SEP-001": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "SEP-002-T1",
+   "rule": "SEP-002",
+   "group": "базовый",
+   "data": {
+    "sepsis_suspected": true,
+    "antibiotics_started": true,
+    "blood_culture_drawn_at": "2026-01-01T09:40+05:00",
+    "first_abx_dose_administered_at": "2026-01-01T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-002-T2",
+   "rule": "SEP-002",
+   "group": "базовый",
+   "data": {
+    "sepsis_suspected": true,
+    "antibiotics_started": true,
+    "first_abx_dose_administered_at": "2026-01-01T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-002-T3",
+   "rule": "SEP-002",
+   "group": "базовый",
+   "data": {
+    "sepsis_suspected": true,
+    "antibiotics_started": true,
+    "blood_culture_drawn_at": "2026-01-01T11:00+05:00",
+    "first_abx_dose_administered_at": "2026-01-01T10:00+05:00"
+   },
+   "justifications": {
+    "SEP-002": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "SEP-003-T1",
+   "rule": "SEP-003",
+   "group": "базовый",
+   "data": {
+    "sepsis_suspected": true,
+    "immunoglobulin_given": true,
+    "immunoglobulin_purpose": "other_indication",
+    "immunoglobulin_indication_text": "иное показание (синтетика)"
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-003-T2",
+   "rule": "SEP-003",
+   "group": "базовый",
+   "data": {
+    "sepsis_suspected": true,
+    "immunoglobulin_given": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-003-T3",
+   "rule": "SEP-003",
+   "group": "базовый",
+   "data": {
+    "sepsis_suspected": true,
+    "immunoglobulin_given": true,
+    "immunoglobulin_purpose": "sepsis_treatment_or_prophylaxis",
+    "immunoglobulin_use_type": "routine"
+   },
+   "justifications": {
+    "SEP-003": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "SEP-004-T1",
+   "rule": "SEP-004",
+   "group": "базовый",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "antibiotics_started": true,
+    "initial_empirical_regimen": "ampicillin+gentamicin"
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-004-T2",
+   "rule": "SEP-004",
+   "group": "базовый",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "antibiotics_started": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-004-T3",
+   "rule": "SEP-004",
+   "group": "базовый",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "antibiotics_started": true,
+    "initial_empirical_regimen": "другое",
+    "drug_availability": [
+     {
+      "drug": "гентамицин",
+      "available": false,
+      "checked_at": "2026-01-01T09:00+05:00",
+      "source": "аптека"
+     }
+    ]
+   },
+   "justifications": {
+    "SEP-004": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "SEP-005-T1",
+   "rule": "SEP-005",
+   "group": "базовый",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_dose_mg": 30,
+    "weight_kg": 1.2,
+    "benzylpenicillin_interval_h": 12,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-005-T2",
+   "rule": "SEP-005",
+   "group": "базовый",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_dose_mg": 30,
+    "benzylpenicillin_interval_h": 12,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-005-T3",
+   "rule": "SEP-005",
+   "group": "базовый",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_dose_mg": 60,
+    "weight_kg": 1.2,
+    "benzylpenicillin_interval_h": 12,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00"
+   },
+   "justifications": {
+    "SEP-005": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "SEP-006-T1",
+   "rule": "SEP-006",
+   "group": "базовый",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "gentamicin_dose_mg": 6,
+    "weight_kg": 1.2,
+    "gentamicin_interval_h": 36,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-006-T2",
+   "rule": "SEP-006",
+   "group": "базовый",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "gentamicin_dose_mg": 6,
+    "weight_kg": 1.2,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-006-T3",
+   "rule": "SEP-006",
+   "group": "базовый",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "gentamicin_dose_mg": 9.6,
+    "weight_kg": 1.2,
+    "gentamicin_interval_h": 36,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00"
+   },
+   "justifications": {
+    "SEP-006": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "SEP-007-T1",
+   "rule": "SEP-007",
+   "group": "базовый",
+   "data": {
+    "sepsis_suspected": true,
+    "antibiotics_started": true,
+    "first_abx_dose_administered_at": "2026-01-01T11:00+05:00",
+    "crp_samples": [
+     {
+      "drawn_at": "2026-01-02T06:00+05:00",
+      "purpose": "control"
+     }
+    ]
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-007-T2",
+   "rule": "SEP-007",
+   "group": "базовый",
+   "data": {
+    "sepsis_suspected": true,
+    "antibiotics_started": true,
+    "first_abx_dose_administered_at": "2026-01-01T11:00+05:00",
+    "crp_samples": [
+     {
+      "drawn_at": "2026-01-02",
+      "purpose": "control"
+     }
+    ]
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-007-T3",
+   "rule": "SEP-007",
+   "group": "базовый",
+   "data": {
+    "sepsis_suspected": true,
+    "antibiotics_started": true,
+    "first_abx_dose_administered_at": "2026-01-01T17:00+05:00",
+    "crp_samples": [
+     {
+      "drawn_at": "2026-01-02T09:00+05:00",
+      "purpose": "control"
+     }
+    ]
+   },
+   "justifications": {
+    "SEP-007": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "SEP-008-T1",
+   "rule": "SEP-008",
+   "group": "базовый",
+   "data": {
+    "antibiotics_started": true,
+    "empirical_regimen": "ampicillin+gentamicin",
+    "improving": true,
+    "blood_culture_result": "отрицательный",
+    "high_risk_factors": false,
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00",
+    "abx_course_ended_at": "2026-01-04T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-008-T2",
+   "rule": "SEP-008",
+   "group": "базовый",
+   "data": {
+    "antibiotics_started": true,
+    "empirical_regimen": "ampicillin+gentamicin",
+    "improving": true,
+    "blood_culture_result": "отрицательный",
+    "high_risk_factors": false,
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-008-T3",
+   "rule": "SEP-008",
+   "group": "базовый",
+   "data": {
+    "antibiotics_started": true,
+    "empirical_regimen": "ampicillin+gentamicin",
+    "improving": true,
+    "blood_culture_result": "отрицательный",
+    "high_risk_factors": false,
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00",
+    "abx_course_ended_at": "2026-01-07T10:00+05:00"
+   },
+   "justifications": {
+    "SEP-008": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "SEP-009-T1",
+   "rule": "SEP-009",
+   "group": "базовый",
+   "data": {
+    "antibiotics_started": true,
+    "empirical_regimen": "ampicillin+gentamicin",
+    "improving": true,
+    "blood_culture_result": "положительный",
+    "meningitis": false,
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00",
+    "abx_course_ended_at": "2026-01-10T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-009-T2",
+   "rule": "SEP-009",
+   "group": "базовый",
+   "data": {
+    "antibiotics_started": true,
+    "empirical_regimen": "ampicillin+gentamicin",
+    "improving": true,
+    "blood_culture_result": "положительный",
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00",
+    "abx_course_ended_at": "2026-01-10T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-009-T3",
+   "rule": "SEP-009",
+   "group": "базовый",
+   "data": {
+    "antibiotics_started": true,
+    "empirical_regimen": "ampicillin+gentamicin",
+    "improving": true,
+    "blood_culture_result": "положительный",
+    "meningitis": false,
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00",
+    "abx_course_ended_at": "2026-01-07T10:00+05:00"
+   },
+   "justifications": {
+    "SEP-009": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "SEP-010-T1",
+   "rule": "SEP-010",
+   "group": "базовый",
+   "data": {
+    "antibiotics_started": true,
+    "meningitis": false,
+    "blood_culture_result": "отрицательный",
+    "high_risk_factors": true,
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00",
+    "abx_course_ended_at": "2026-01-07T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-010-T2",
+   "rule": "SEP-010",
+   "group": "базовый",
+   "data": {
+    "antibiotics_started": true,
+    "blood_culture_result": "отрицательный",
+    "high_risk_factors": true,
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00",
+    "abx_course_ended_at": "2026-01-07T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "SEP-010-T3",
+   "rule": "SEP-010",
+   "group": "базовый",
+   "data": {
+    "antibiotics_started": true,
+    "meningitis": false,
+    "blood_culture_result": "отрицательный",
+    "high_risk_factors": true,
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00",
+    "abx_course_ended_at": "2026-01-12T10:00+05:00"
+   },
+   "justifications": {
+    "SEP-010": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "EDGE-01",
+   "rule": "RDS-003",
+   "group": "граничный",
+   "data": {
+    "rds_risk": true,
+    "gestational_age_weeks": 26,
+    "antenatal_steroids_given": true,
+    "intubation_needed_for_stabilization": false,
+    "fio2": 0.35,
+    "surfactant_in_delivery_room": false
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-02",
+   "rule": "RDS-004",
+   "group": "граничный",
+   "data": {
+    "oxygen_given": true,
+    "oxygen_via_blender": false
+   },
+   "justifications": null,
+   "limitation": "известное ограничение: подтверждённое правило RDS-004 не различает «при стабилизации» и «после»; область не расширяется (ТЗ §6 п. 6)"
+  },
+  {
+   "id": "EDGE-03",
+   "rule": "RDS-008",
+   "group": "граничный",
+   "data": {
+    "antibiotics_started": true,
+    "blood_culture_before_antibiotics": true
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-04",
+   "rule": "RDS-009",
+   "group": "граничный",
+   "data": {
+    "rds_diagnosed": true,
+    "surfactant_drug": "порактант альфа",
+    "surfactant_initial_dose_mg_kg": 100
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-05",
+   "rule": "RDS-010",
+   "group": "граничный",
+   "data": {
+    "mechanical_ventilation": true,
+    "blood_gases": [
+     {
+      "drawn_at": "2026-01-01T10:00+05:00",
+      "paco2_mmhg": 28
+     },
+     {
+      "drawn_at": "2026-01-01T12:00+05:00",
+      "paco2_mmhg": 38
+     }
+    ],
+    "paco2_hypocapnia_threshold": 35,
+    "threshold_source": "синтетический СОП",
+    "vent_changes": [
+     {
+      "at": "2026-01-01T10:30+05:00",
+      "parameter": "PIP",
+      "from": 22,
+      "to": 19
+     }
+    ]
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-06",
+   "rule": "NEC-001",
+   "group": "граничный",
+   "data": {
+    "nec_suspected": true,
+    "nec_suspected_at": "2026-01-03T10:00+05:00",
+    "feeding_at_nec_suspicion": "active",
+    "enteral_feeding_stopped": true,
+    "enteral_feeding_stopped_at": "2026-01-03T10:05+05:00"
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-07",
+   "rule": "NEC-002",
+   "group": "граничный",
+   "data": {
+    "nec_suspected": true,
+    "uvc_present": true,
+    "uvc_removed": false,
+    "uac_present": true,
+    "uac_removed": true,
+    "uac_removed_at": "2026-01-03T11:00+05:00",
+    "alternative_access_available": false,
+    "retention_reason": "единственный доступ"
+   },
+   "justifications": {
+    "NEC-002": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00",
+     "category": "clinical_indication"
+    }
+   },
+   "limitation": null
+  },
+  {
+   "id": "EDGE-08",
+   "rule": "NEC-003",
+   "group": "граничный",
+   "data": {
+    "nec_stage": "1б",
+    "gi_passage_restored": false,
+    "enteral_feeding_stopped": true,
+    "nec_onset_at": "2026-01-01T10:00+05:00"
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-09",
+   "rule": "NEC-004",
+   "group": "граничный",
+   "data": {
+    "nec_stage": "2а",
+    "nec_onset_at": "2026-01-01T10:00+05:00",
+    "nec_confirmed_at": "2026-01-02T10:00+05:00",
+    "enteral_feeding_resumed_at": "2026-01-07T10:00+05:00",
+    "improvement_signs": {
+     "abdomen_not_distended_not_tender": false
+    }
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-10",
+   "rule": "NEC-005",
+   "group": "граничный",
+   "data": {
+    "nec_stage": "2а",
+    "pn_type": "full",
+    "pn_running_at_nec_onset": true
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-11",
+   "rule": "NEC-006",
+   "group": "граничный",
+   "data": {
+    "nec_stage": "2а",
+    "nec_diagnosed_at": "2026-01-01T10:00+05:00",
+    "clinical_deterioration": true,
+    "deterioration_at": "2026-01-02T08:00+05:00",
+    "xrays": [
+     {
+      "at": "2026-01-02T09:00+05:00",
+      "position": "vertical",
+      "reason": "urgent"
+     }
+    ]
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-12",
+   "rule": "NEC-007",
+   "group": "граничный",
+   "data": {
+    "nec_stage": "1а",
+    "antibiotics_started": true,
+    "metronidazole_given": false
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-13",
+   "rule": "NEC-008",
+   "group": "граничный",
+   "data": {
+    "nec_stage": "2а",
+    "antibiotics_started": true,
+    "course_completed": false,
+    "abx_course_started_at": "2026-01-01T10:00+05:00"
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-14",
+   "rule": "NEC-009",
+   "group": "граничный",
+   "data": {
+    "nec_stage": "2а",
+    "facility_level": 2,
+    "surgeon_consult_status": "done",
+    "surgeon_consult_format": "remote",
+    "surgeon_conclusion": "консервативное лечение"
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-15",
+   "rule": "NEC-010",
+   "group": "граничный",
+   "data": {
+    "nec_stage": "2а",
+    "facility_level": 3,
+    "current_department": "nicu",
+    "transferred_to_surgery": false
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-16",
+   "rule": "SEP-001",
+   "group": "граничный",
+   "data": {
+    "red_flag_count": 1,
+    "antibiotics_started": true,
+    "first_abx_dose_administered_at": "2026-01-01T11:00+05:00"
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-17",
+   "rule": "SEP-002",
+   "group": "граничный",
+   "data": {
+    "sepsis_suspected": true,
+    "antibiotics_started": true,
+    "blood_culture_drawn_at": "2026-01-01T09:40+05:00",
+    "first_abx_dose_administered_at": "2026-01-01T10:00+05:00",
+    "culture_result_at": "2026-01-03T10:00+05:00"
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-18",
+   "rule": "SEP-003",
+   "group": "граничный",
+   "data": {
+    "sepsis_suspected": true,
+    "immunoglobulin_given": true,
+    "immunoglobulin_purpose": "other_indication",
+    "immunoglobulin_indication_text": "иное показание (синтетика)"
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-19",
+   "rule": "SEP-004",
+   "group": "граничный",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "antibiotics_started": true,
+    "initial_empirical_regimen": "другое",
+    "drug_availability": [
+     {
+      "drug": "гентамицин",
+      "available": false,
+      "checked_at": "2026-01-01T09:00+05:00",
+      "source": "аптека"
+     }
+    ]
+   },
+   "justifications": {
+    "SEP-004": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00",
+     "category": "drug_unavailable",
+     "drug_unavailable": {
+      "drug": "гентамицин",
+      "checked_at": "2026-01-01T09:00+05:00",
+      "confirmed_by": "старшая сестра (синтетика)"
+     }
+    }
+   },
+   "limitation": null
+  },
+  {
+   "id": "EDGE-20",
+   "rule": "SEP-005",
+   "group": "граничный",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_dose_mg_kg": 50,
+    "benzylpenicillin_interval_h": 12
+   },
+   "justifications": {
+    "SEP-005": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00",
+     "category": "local_practice"
+    }
+   },
+   "limitation": null
+  },
+  {
+   "id": "EDGE-21",
+   "rule": "SEP-006",
+   "group": "граничный",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "gentamicin_initial_dose_mg_kg": 4,
+    "gentamicin_interval_h": 24,
+    "very_ill": false,
+    "gestational_age_weeks": 27,
+    "postnatal_age_days": 2
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-22",
+   "rule": "SEP-006",
+   "group": "граничный",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "gentamicin_initial_dose_mg_kg": 4,
+    "nec_stage": "2а"
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-23",
+   "rule": "SEP-007",
+   "group": "граничный",
+   "data": {
+    "sepsis_suspected": true,
+    "antibiotics_started": true,
+    "first_abx_dose_ordered_at": "2026-01-01T10:00+05:00",
+    "first_abx_dose_administered_at": "2026-01-01T11:00+05:00",
+    "crp_samples": [
+     {
+      "drawn_at": "2026-01-02T06:00+05:00",
+      "purpose": "control",
+      "result_at": "2026-01-02T08:00+05:00"
+     }
+    ]
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-24",
+   "rule": "SEP-008",
+   "group": "граничный",
+   "data": {
+    "antibiotics_started": true,
+    "empirical_regimen": "ampicillin+gentamicin",
+    "improving": true,
+    "blood_culture_result": "отрицательный",
+    "high_risk_factors": false,
+    "sepsis_onset": "early",
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00",
+    "abx_course_ended_at": "2026-01-03T10:00+05:00"
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-25",
+   "rule": "SEP-009",
+   "group": "граничный",
+   "data": {
+    "antibiotics_started": true,
+    "empirical_regimen": "ampicillin+gentamicin",
+    "improving": true,
+    "blood_culture_result": "положительный",
+    "meningitis": false,
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00",
+    "abx_course_ended_at": "2026-01-07T10:00+05:00"
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-26",
+   "rule": "SEP-010",
+   "group": "граничный",
+   "data": {
+    "antibiotics_started": true,
+    "empirical_regimen": "ampicillin+gentamicin",
+    "improving": true,
+    "blood_culture_result": "положительный",
+    "meningitis": false,
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00",
+    "abx_course_ended_at": "2026-01-10T10:00+05:00"
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "EDGE-27",
+   "rule": "SEP-010",
+   "group": "граничный",
+   "data": {
+    "antibiotics_started": true,
+    "blood_culture_result": "отрицательный",
+    "high_risk_factors": true,
+    "meningitis": false,
+    "nec_stage": "2а",
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T10:00+05:00",
+    "abx_course_ended_at": "2026-01-12T10:00+05:00",
+    "extension_reason": [
+     "nec"
+    ],
+    "extension_justification_status": "found"
+   },
+   "justifications": null,
+   "limitation": null
+  },
+  {
+   "id": "ИСП-R3",
+   "rule": "RDS-007",
+   "group": "исправления этапа 6",
+   "purpose": "отмена АБТ и исключение ТБИ — одно время",
+   "data": {
+    "rds_diagnosed": true,
+    "serious_bacterial_infection_excluded": true,
+    "antibiotics_started": true,
+    "sbi_excluded_at": "2026-01-02T10:00+05:00",
+    "antibiotics_stopped_at": "2026-01-02T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-R4",
+   "rule": "RDS-007",
+   "group": "исправления этапа 6",
+   "purpose": "отмена через 1 минуту после исключения ТБИ",
+   "data": {
+    "rds_diagnosed": true,
+    "serious_bacterial_infection_excluded": true,
+    "antibiotics_started": true,
+    "sbi_excluded_at": "2026-01-02T10:00+05:00",
+    "antibiotics_stopped_at": "2026-01-02T10:01+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-R-start",
+   "rule": "RDS-007",
+   "group": "исправления этапа 6",
+   "purpose": "ТБИ не исключена, АБТ начата (часть «начало»)",
+   "data": {
+    "rds_diagnosed": true,
+    "serious_bacterial_infection_excluded": false,
+    "antibiotics_started": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-S1",
+   "rule": "SEP-003",
+   "group": "исправления этапа 6",
+   "purpose": "индивидуально: текст основания + консилиум",
+   "data": {
+    "sepsis_suspected": true,
+    "immunoglobulin_given": true,
+    "immunoglobulin_purpose": "sepsis_treatment_or_prophylaxis",
+    "immunoglobulin_use_type": "individualized",
+    "clinical_evidence": "синтетическое особое клиническое основание",
+    "consilium_documented": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-S2",
+   "rule": "SEP-003",
+   "group": "исправления этапа 6",
+   "purpose": "индивидуально: текст основания, консилиум не проводился",
+   "data": {
+    "sepsis_suspected": true,
+    "immunoglobulin_given": true,
+    "immunoglobulin_purpose": "sepsis_treatment_or_prophylaxis",
+    "immunoglobulin_use_type": "individualized",
+    "clinical_evidence": "синтетическое особое клиническое основание",
+    "consilium_documented": false
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-S4",
+   "rule": "SEP-003",
+   "group": "исправления этапа 6",
+   "purpose": "индивидуально: консилиум без текста основания",
+   "data": {
+    "sepsis_suspected": true,
+    "immunoglobulin_given": true,
+    "immunoglobulin_purpose": "sepsis_treatment_or_prophylaxis",
+    "immunoglobulin_use_type": "individualized",
+    "consilium_documented": true
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-S5",
+   "rule": "SEP-003",
+   "group": "исправления этапа 6",
+   "purpose": "индивидуально: ни текста, ни консилиума",
+   "data": {
+    "sepsis_suspected": true,
+    "immunoglobulin_given": true,
+    "immunoglobulin_purpose": "sepsis_treatment_or_prophylaxis",
+    "immunoglobulin_use_type": "individualized",
+    "consilium_documented": false
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-S7",
+   "rule": "SEP-003",
+   "group": "исправления этапа 6",
+   "purpose": "консилиум + публикация, текста основания нет",
+   "data": {
+    "sepsis_suspected": true,
+    "immunoglobulin_given": true,
+    "immunoglobulin_purpose": "sepsis_treatment_or_prophylaxis",
+    "immunoglobulin_use_type": "individualized",
+    "consilium_documented": true,
+    "research_reference": "doi:10.0000/синтетика"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-S8",
+   "rule": "SEP-003",
+   "group": "исправления этапа 6",
+   "purpose": "рутинное назначение (даже при тексте и консилиуме)",
+   "data": {
+    "sepsis_suspected": true,
+    "immunoglobulin_given": true,
+    "immunoglobulin_purpose": "sepsis_treatment_or_prophylaxis",
+    "immunoglobulin_use_type": "routine",
+    "clinical_evidence": "синтетическое особое клиническое основание",
+    "consilium_documented": true
+   },
+   "justifications": {
+    "SEP-003": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "ИСП-S10",
+   "rule": "SEP-003",
+   "group": "исправления этапа 6",
+   "purpose": "цель введения ИГ не указана",
+   "data": {
+    "sepsis_suspected": true,
+    "immunoglobulin_given": true,
+    "clinical_evidence": "синтетическое особое клиническое основание"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-D1",
+   "rule": "SEP-005",
+   "group": "исправления этапа 6",
+   "purpose": "30 мг / 1,2 кг, записано «25»",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_interval_h": 12,
+    "weight_kg": 1.2,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg": 30,
+    "benzylpenicillin_dose_mg_kg": "25"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-D2",
+   "rule": "SEP-005",
+   "group": "исправления этапа 6",
+   "purpose": "30,5 мг / 1,2 кг = 25,4167, записано «25»",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_interval_h": 12,
+    "weight_kg": 1.2,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg": 30.5,
+    "benzylpenicillin_dose_mg_kg": "25"
+   },
+   "justifications": {
+    "SEP-005": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "ИСП-D3",
+   "rule": "SEP-005",
+   "group": "исправления этапа 6",
+   "purpose": "30,5 мг / 1,2 кг, записано «25,0»",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_interval_h": 12,
+    "weight_kg": 1.2,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg": 30.5,
+    "benzylpenicillin_dose_mg_kg": "25,0"
+   },
+   "justifications": {
+    "SEP-005": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "ИСП-D6",
+   "rule": "SEP-005",
+   "group": "исправления этапа 6",
+   "purpose": "31 мг / 1,2 кг = 25,8333, записано «25»",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_interval_h": 12,
+    "weight_kg": 1.2,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg": 31,
+    "benzylpenicillin_dose_mg_kg": "25"
+   },
+   "justifications": {
+    "SEP-005": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "ИСП-D7",
+   "rule": "SEP-005",
+   "group": "исправления этапа 6",
+   "purpose": "только записанная доза «25» мг/кг",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_interval_h": 12,
+    "weight_kg": 1.2,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg_kg": "25"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-D8",
+   "rule": "SEP-005",
+   "group": "исправления этапа 6",
+   "purpose": "масса измерена накануне, записано «25»",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_interval_h": 12,
+    "weight_kg": 1.2,
+    "weight_measured_at": "2025-12-31T08:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg": 30.5,
+    "benzylpenicillin_dose_mg_kg": "25"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-D9",
+   "rule": "SEP-005",
+   "group": "исправления этапа 6",
+   "purpose": "масса накануне, записанной дозы в мг/кг нет",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_interval_h": 12,
+    "weight_kg": 1.2,
+    "weight_measured_at": "2025-12-31T08:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg": 30
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-D10",
+   "rule": "SEP-005",
+   "group": "исправления этапа 6",
+   "purpose": "только 29,6 мг / 1,2 кг = 24,6667",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_interval_h": 12,
+    "weight_kg": 1.2,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg": 29.6
+   },
+   "justifications": {
+    "SEP-005": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "ИСП-D16",
+   "rule": "SEP-005",
+   "group": "исправления этапа 6",
+   "purpose": "записи не согласованы и масса не подтверждена",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_interval_h": 12,
+    "weight_kg": 1.2,
+    "weight_measured_at": "2025-12-31T08:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg": 30.5,
+    "benzylpenicillin_dose_mg_kg": "25,0"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-D18",
+   "rule": "SEP-005",
+   "group": "исправления этапа 6",
+   "purpose": "взвешивание 12:00 позже назначения 10:00",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_interval_h": 12,
+    "weight_kg": 1.2,
+    "weight_measured_at": "2026-01-01T12:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg": 30.5,
+    "benzylpenicillin_dose_mg_kg": "25"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-D20",
+   "rule": "SEP-005",
+   "group": "исправления этапа 6",
+   "purpose": "у взвешивания только дата, записанной дозы нет",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_interval_h": 12,
+    "weight_kg": 1.2,
+    "weight_measured_at": "2026-01-01",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg": 30.5
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-D22",
+   "rule": "SEP-005",
+   "group": "исправления этапа 6",
+   "purpose": "взвешивание записано в UTC, пояс организации +05:00 — тот же день",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "benzylpenicillin_interval_h": 12,
+    "weight_kg": 1.2,
+    "weight_measured_at": "2025-12-31T20:00Z",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg": 30.5,
+    "benzylpenicillin_dose_mg_kg": "25",
+    "facility_utc_offset": "+05:00"
+   },
+   "justifications": {
+    "SEP-005": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "ИСП-D11",
+   "rule": "SEP-006",
+   "group": "исправления этапа 6",
+   "purpose": "гентамицин 4,9 мг / 1 кг, записано «5»",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "gentamicin_interval_h": 36,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "gentamicin_dose_mg": 4.9,
+    "weight_kg": 1,
+    "gentamicin_initial_dose_mg_kg": "5"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-D12",
+   "rule": "SEP-006",
+   "group": "исправления этапа 6",
+   "purpose": "гентамицин 6 мг / 1,2 кг, записано «5,0»",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "gentamicin_interval_h": 36,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "gentamicin_dose_mg": 6,
+    "weight_kg": 1.2,
+    "gentamicin_initial_dose_mg_kg": "5,0"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-D13",
+   "rule": "SEP-006",
+   "group": "исправления этапа 6",
+   "purpose": "местная практика 4 мг/кг каждые 24 ч",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "gentamicin_interval_h": 24,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "gentamicin_dose_mg": 4.8,
+    "weight_kg": 1.2,
+    "gentamicin_initial_dose_mg_kg": "4"
+   },
+   "justifications": {
+    "SEP-006": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00",
+     "category": "local_practice"
+    }
+   }
+  },
+  {
+   "id": "ИСП-P1",
+   "rule": "NEC-005",
+   "group": "исправления этапа 6",
+   "purpose": "«ПП не шло», а начато за сутки до НЭК",
+   "data": {
+    "nec_stage": "2а",
+    "pn_type": "full",
+    "nec_onset_at": "2026-01-02T10:00+05:00",
+    "pn_running_at_nec_onset": false,
+    "pn_started_at": "2026-01-01T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-P2",
+   "rule": "NEC-005",
+   "group": "исправления этапа 6",
+   "purpose": "«ПП шло», а начато через сутки после НЭК",
+   "data": {
+    "nec_stage": "2а",
+    "pn_type": "full",
+    "nec_onset_at": "2026-01-02T10:00+05:00",
+    "pn_running_at_nec_onset": true,
+    "pn_started_at": "2026-01-03T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-P3",
+   "rule": "NEC-005",
+   "group": "исправления этапа 6",
+   "purpose": "ПП шло на момент НЭК",
+   "data": {
+    "nec_stage": "2а",
+    "pn_type": "full",
+    "nec_onset_at": "2026-01-02T10:00+05:00",
+    "pn_running_at_nec_onset": true,
+    "pn_started_at": "2026-01-01T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-P4",
+   "rule": "NEC-005",
+   "group": "исправления этапа 6",
+   "purpose": "ПП начато на 2-й день от начала НЭК",
+   "data": {
+    "nec_stage": "2а",
+    "pn_type": "full",
+    "nec_onset_at": "2026-01-02T10:00+05:00",
+    "pn_running_at_nec_onset": false,
+    "pn_started_at": "2026-01-03T09:00+05:00"
+   },
+   "justifications": {
+    "NEC-005": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "ИСП-T11",
+   "rule": "NEC-005",
+   "group": "исправления этапа 6",
+   "purpose": "отметки в разных поясах, пояс организации не указан",
+   "data": {
+    "nec_stage": "2а",
+    "pn_type": "full",
+    "pn_running_at_nec_onset": false,
+    "nec_onset_at": "2026-01-01T18:30Z",
+    "pn_started_at": "2026-01-02T00:30+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-X1",
+   "rule": "NEC-006",
+   "group": "исправления этапа 6",
+   "purpose": "один снимок через 240 ч после диагноза",
+   "data": {
+    "nec_stage": "2а",
+    "nec_diagnosed_at": "2026-01-01T10:00+05:00",
+    "clinical_deterioration": false,
+    "xrays": [
+     {
+      "at": "2026-01-11T10:00+05:00",
+      "position": "horizontal"
+     }
+    ]
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-X3",
+   "rule": "NEC-006",
+   "group": "исправления этапа 6",
+   "purpose": "снимки через 48 ч и через 20 суток",
+   "data": {
+    "nec_stage": "2а",
+    "nec_diagnosed_at": "2026-01-01T10:00+05:00",
+    "clinical_deterioration": false,
+    "xrays": [
+     {
+      "at": "2026-01-03T10:00+05:00",
+      "position": "horizontal"
+     },
+     {
+      "at": "2026-01-23T10:00+05:00",
+      "position": "horizontal"
+     }
+    ]
+   },
+   "justifications": {
+    "NEC-006": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "ИСП-X4",
+   "rule": "NEC-006",
+   "group": "исправления этапа 6",
+   "purpose": "вертикальный снимок через 5 суток после ухудшения",
+   "data": {
+    "nec_stage": "2а",
+    "nec_diagnosed_at": "2026-01-01T10:00+05:00",
+    "clinical_deterioration": true,
+    "deterioration_at": "2026-01-03T10:00+05:00",
+    "xrays": [
+     {
+      "at": "2026-01-03T10:00+05:00",
+      "position": "horizontal"
+     },
+     {
+      "at": "2026-01-08T10:00+05:00",
+      "position": "vertical"
+     }
+    ]
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-X5",
+   "rule": "NEC-006",
+   "group": "исправления этапа 6",
+   "purpose": "снимков нет",
+   "data": {
+    "nec_stage": "2а",
+    "nec_diagnosed_at": "2026-01-01T10:00+05:00",
+    "clinical_deterioration": false
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-I1",
+   "rule": "NEC-004",
+   "group": "исправления этапа 6",
+   "purpose": "7 признаков улучшения «да», 1 «нет»",
+   "data": {
+    "nec_stage": "2а",
+    "nec_onset_at": "2026-01-01T10:00+05:00",
+    "nec_confirmed_at": "2026-01-01T12:00+05:00",
+    "enteral_feeding_resumed_at": "2026-01-09T10:00+05:00",
+    "improvement_signs": {
+     "abdomen_not_distended_not_tender": true,
+     "no_pathological_gastric_residuals": true,
+     "ileus_resolved": true,
+     "spontaneous_stool": true,
+     "labs_normalized": true,
+     "no_us_bowel_wall_inflammation": true,
+     "no_ascites": true,
+     "peristalsis_restored": false
+    }
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-N1",
+   "rule": "NEC-010",
+   "group": "исправления этапа 6",
+   "purpose": "хирургии в организации нет, перевода нет",
+   "data": {
+    "nec_stage": "2б",
+    "surgical_department_available": false,
+    "current_department": "nicu",
+    "transferred_to_surgery": false
+   },
+   "justifications": {
+    "NEC-010": {
+     "text": "синтетика: нетранспортабелен",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00",
+     "category": "physician_or_consilium_decision"
+    }
+   }
+  },
+  {
+   "id": "ИСП-N2",
+   "rule": "NEC-010",
+   "group": "исправления этапа 6",
+   "purpose": "хирургия в организации есть, ребёнок в ОРИТН",
+   "data": {
+    "nec_stage": "2б",
+    "surgical_department_available": true,
+    "current_department": "nicu",
+    "transferred_to_surgery": false
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-N3",
+   "rule": "NEC-010",
+   "group": "исправления этапа 6",
+   "purpose": "ребёнок в хирургическом отделении",
+   "data": {
+    "nec_stage": "2б",
+    "surgical_department_available": true,
+    "current_department": "neonatal_surgery"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ИСП-T13а",
+   "rule": "SEP-008",
+   "group": "исправления этапа 6",
+   "purpose": "курс 6 календарных суток по поясу организации",
+   "data": {
+    "antibiotics_started": true,
+    "empirical_regimen": "ampicillin+gentamicin",
+    "improving": true,
+    "blood_culture_result": "отрицательный",
+    "high_risk_factors": false,
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T18:30Z",
+    "abx_course_ended_at": "2026-01-06T10:00+05:00",
+    "facility_utc_offset": "+05:00"
+   },
+   "justifications": {
+    "SEP-008": {
+     "text": "синтетическое обоснование",
+     "author": "врач-синтетик",
+     "recorded_at": "2026-01-09T12:00+05:00"
+    }
+   }
+  },
+  {
+   "id": "ИСП-T13б",
+   "rule": "SEP-008",
+   "group": "исправления этапа 6",
+   "purpose": "тот же курс, отметки в разных поясах, пояс организации не указан",
+   "data": {
+    "antibiotics_started": true,
+    "empirical_regimen": "ampicillin+gentamicin",
+    "improving": true,
+    "blood_culture_result": "отрицательный",
+    "high_risk_factors": false,
+    "course_completed": true,
+    "abx_course_started_at": "2026-01-01T18:30Z",
+    "abx_course_ended_at": "2026-01-06T10:00+05:00"
+   },
+   "justifications": null
+  },
+  {
+   "id": "ТАБ-B1",
+   "rule": "SEP-005",
+   "group": "ТАБ (текст стр. 12 ↔ таблица стр. 18)",
+   "purpose": "30 мг/кг (≈50 000 Ед/кг) каждые 8 ч, состояние не «очень тяжёлое», 2 сут — режим таблицы стр. 18",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "weight_kg": 3,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg": 90,
+    "benzylpenicillin_interval_h": 8,
+    "very_severe_condition": false,
+    "postnatal_age_days": 2
+   },
+   "justifications": null
+  },
+  {
+   "id": "ТАБ-B2",
+   "rule": "SEP-005",
+   "group": "ТАБ (текст стр. 12 ↔ таблица стр. 18)",
+   "purpose": "то же, тяжесть состояния не указана",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "weight_kg": 3,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg": 90,
+    "benzylpenicillin_interval_h": 8,
+    "postnatal_age_days": 2
+   },
+   "justifications": null
+  },
+  {
+   "id": "ТАБ-B3",
+   "rule": "SEP-005",
+   "group": "ТАБ (текст стр. 12 ↔ таблица стр. 18)",
+   "purpose": "25 мг/кг каждые 8 ч при «очень тяжёлом» — текст п. 6 стр. 12",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "weight_kg": 3,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg": 75,
+    "benzylpenicillin_interval_h": 8,
+    "very_severe_condition": true,
+    "postnatal_age_days": 2
+   },
+   "justifications": null
+  },
+  {
+   "id": "ТАБ-B4",
+   "rule": "SEP-005",
+   "group": "ТАБ (текст стр. 12 ↔ таблица стр. 18)",
+   "purpose": "25 мг/кг каждые 12 ч — текст п. 6 стр. 12 (контроль)",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "weight_kg": 3,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_dose_mg": 75,
+    "benzylpenicillin_interval_h": 12,
+    "postnatal_age_days": 2
+   },
+   "justifications": null
+  },
+  {
+   "id": "ТАБ-B5",
+   "rule": "SEP-005",
+   "group": "ТАБ (текст стр. 12 ↔ таблица стр. 18)",
+   "purpose": "доза записана только в Ед/кг (50 000), каждые 8 ч — единицы программой не поддерживаются",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "benzylpenicillin_given": true,
+    "meningitis": false,
+    "weight_kg": 3,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_interval_h": 8,
+    "very_severe_condition": false,
+    "postnatal_age_days": 2,
+    "benzylpenicillin_dose_units_per_kg": 50000
+   },
+   "justifications": null
+  },
+  {
+   "id": "ТАБ-G1",
+   "rule": "SEP-006",
+   "group": "ТАБ (текст стр. 12 ↔ таблица стр. 18)",
+   "purpose": "ГВ 27 нед, 2 сут: 5 мг/кг каждые 48 ч — таблица стр. 18",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "gentamicin_dose_mg": 5,
+    "weight_kg": 1,
+    "gentamicin_interval_h": 48,
+    "gestational_age_weeks": 27,
+    "postnatal_age_days": 2,
+    "very_ill": false
+   },
+   "justifications": null
+  },
+  {
+   "id": "ТАБ-G2",
+   "rule": "SEP-006",
+   "group": "ТАБ (текст стр. 12 ↔ таблица стр. 18)",
+   "purpose": "ГВ 27 нед, 2 сут: 5 мг/кг каждые 36 ч — текст п. 7b (контроль)",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "gentamicin_dose_mg": 5,
+    "weight_kg": 1,
+    "gentamicin_interval_h": 36,
+    "gestational_age_weeks": 27,
+    "postnatal_age_days": 2
+   },
+   "justifications": null
+  },
+  {
+   "id": "ТАБ-G3",
+   "rule": "SEP-006",
+   "group": "ТАБ (текст стр. 12 ↔ таблица стр. 18)",
+   "purpose": "ГВ 27 нед, 15 сут: 4 мг/кг каждые 36 ч — таблица (8–28 сут)",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "gentamicin_dose_mg": 4,
+    "weight_kg": 1,
+    "gentamicin_interval_h": 36,
+    "gestational_age_weeks": 27,
+    "postnatal_age_days": 15
+   },
+   "justifications": null
+  },
+  {
+   "id": "ТАБ-G4",
+   "rule": "SEP-006",
+   "group": "ТАБ (текст стр. 12 ↔ таблица стр. 18)",
+   "purpose": "ГВ 27 нед, ровно 28 сут: 4 мг/кг каждые 36 ч — граница «8–28» / «28 и старше»",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "gentamicin_dose_mg": 4,
+    "weight_kg": 1,
+    "gentamicin_interval_h": 36,
+    "gestational_age_weeks": 27,
+    "postnatal_age_days": 28
+   },
+   "justifications": null
+  },
+  {
+   "id": "ТАБ-G5",
+   "rule": "SEP-006",
+   "group": "ТАБ (текст стр. 12 ↔ таблица стр. 18)",
+   "purpose": "ГВ 27 нед, ровно 28 сут: 4 мг/кг каждые 24 ч — та же граница",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "gentamicin_dose_mg": 4,
+    "weight_kg": 1,
+    "gentamicin_interval_h": 24,
+    "gestational_age_weeks": 27,
+    "postnatal_age_days": 28,
+    "very_ill": false
+   },
+   "justifications": null
+  },
+  {
+   "id": "ТАБ-G6",
+   "rule": "SEP-006",
+   "group": "ТАБ (текст стр. 12 ↔ таблица стр. 18)",
+   "purpose": "ГВ 32 нед, 3 сут: 4,5 мг/кг каждые 36 ч — таблица (30–34 нед, младше 7 сут)",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "gentamicin_dose_mg": 6.75,
+    "weight_kg": 1.5,
+    "gentamicin_interval_h": 36,
+    "gestational_age_weeks": 32,
+    "postnatal_age_days": 3
+   },
+   "justifications": null
+  },
+  {
+   "id": "ТАБ-G7",
+   "rule": "SEP-006",
+   "group": "ТАБ (текст стр. 12 ↔ таблица стр. 18)",
+   "purpose": "ГВ 32 нед, ровно 7 сут: 4 мг/кг каждые 24 ч — граница «младше / старше 7 суток»",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "gentamicin_dose_mg": 6,
+    "weight_kg": 1.5,
+    "gentamicin_interval_h": 24,
+    "gestational_age_weeks": 32,
+    "postnatal_age_days": 7,
+    "very_ill": false
+   },
+   "justifications": null
+  },
+  {
+   "id": "ТАБ-G8",
+   "rule": "SEP-006",
+   "group": "ТАБ (текст стр. 12 ↔ таблица стр. 18)",
+   "purpose": "ГВ 38 нед, 2 сут: 4 мг/кг каждые 24 ч — таблица (35 нед и старше)",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "gentamicin_dose_mg": 12,
+    "weight_kg": 3,
+    "gentamicin_interval_h": 24,
+    "gestational_age_weeks": 38,
+    "postnatal_age_days": 2,
+    "very_ill": false
+   },
+   "justifications": null
+  },
+  {
+   "id": "ТАБ-G9",
+   "rule": "SEP-006",
+   "group": "ТАБ (текст стр. 12 ↔ таблица стр. 18)",
+   "purpose": "ГВ 38 нед, 2 сут: 5 мг/кг каждые 36 ч — текст п. 7b; таблица даёт 4 мг/кг каждые 24 ч",
+   "data": {
+    "early_onset_sepsis_suspected": true,
+    "gentamicin_given": true,
+    "weight_measured_at": "2026-01-01T08:00+05:00",
+    "gentamicin_prescribed_at": "2026-01-01T10:00+05:00",
+    "benzylpenicillin_prescribed_at": "2026-01-01T10:00+05:00",
+    "gentamicin_dose_mg": 15,
+    "weight_kg": 3,
+    "gentamicin_interval_h": 36,
+    "gestational_age_weeks": 38,
+    "postnatal_age_days": 2
+   },
+   "justifications": null
+  }
+ ]
+}
