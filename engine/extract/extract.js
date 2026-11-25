@@ -65,6 +65,27 @@
     return { s, e };
   }
   const TIME_RE = /(?:(\d\d)\.(\d\d)\.(\d{4}) )?(?<![\d:.])([01]\d|2[0-3]):([0-5]\d)(?![\d:])/g;
+  /** Скобки, внутри которых стоит позиция: [открывающая, закрывающая] или null. */
+  function parenAt(line, i) { const o = line.lastIndexOf('(', i), c0 = line.lastIndexOf(')', i - 1); if (o < 0 || c0 > o) return null; const c = line.indexOf(')', i); return c < 0 ? null : [o, c]; }
+  /**
+   * Часть предложения, относящаяся к одному действию: границы — запятая, точка с запятой, тире, союзы «и», «а также»
+   * (вне скобок). Явное время приписывается только действию из той же части.
+   */
+  function actionSeg(line, i) {
+    const cl = clause(line, i); let s = cl.s, e = cl.e, depth = 0;
+    for (let k = cl.s; k < cl.e; k++) {
+      const ch = line[k];
+      if (ch === '(') { depth++; continue; } if (ch === ')') { depth = Math.max(0, depth - 1); continue; }
+      if (depth) continue;
+      let len = 0;
+      if ((ch === ',' || ch === ';') && !/\d/.test(line[k + 1] || '')) len = 1;
+      else { const w = /^ (?:и|а также|—|–) /.exec(line.slice(k, k + 10)); if (w && k > cl.s) len = w[0].length; }
+      if (!len) continue;
+      if (k < i) s = k + len; else { e = k; break; }
+      k += len - 1;
+    }
+    return { s, e };
+  }
   /**
    * Время события по позиции idx (этап 8, исправление ошибки привязки из слепого теста №1).
    * 1) Время в том же предложении важнее заголовка записи: «22.06.2026 08:30 — … Кормление прекращено в 08:40» → 08:40.
@@ -76,12 +97,17 @@
    */
   function eventDT(line, idx, tz) {
     const h = headerDT(line, idx), cl = clause(line, idx);
-    const own = []; TIME_RE.lastIndex = 0; let m;
+    const own = []; TIME_RE.lastIndex = 0; let m; const pe = parenAt(line, idx), seg = actionSeg(line, idx); let elsewhere = false;
     while ((m = TIME_RE.exec(line))) {
       if (m.index < cl.s || m.index >= cl.e) continue;
       if (h && m.index === h.index) continue; // сам заголовок записи
+      const pt = parenAt(line, m.index);
+      if (pe) { if (pt && pt[0] === pe[0]) own.push(m); continue; } // событие в скобках — только время из тех же скобок
+      if (pt) continue; // время в скобках относится к тому, что в скобках
+      if (m.index < seg.s || m.index >= seg.e) { elsewhere = true; continue; } // время другого действия
       own.push(m);
     }
+    if (!own.length && elsewhere) return null; // в предложении есть время другого действия — не подставляем ни его, ни заголовок
     const hv = h ? iso(h, 1, tz) : null;
     if (own.length) {
       const vals = own.map(t => {

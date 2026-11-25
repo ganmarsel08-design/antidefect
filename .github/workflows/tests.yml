@@ -5,7 +5,7 @@ name: tests
 
 on:
   push:
-    branches: [feature/stage5-rules-pilot, feature/stage7-ui-pilot, blind1/evaluator-1.4]
+    branches: [feature/stage5-rules-pilot, feature/stage7-ui-pilot, blind1/evaluator-1.4, 'fix/**']
   pull_request:
     branches: [feature/stage4-registry]
   workflow_dispatch:
