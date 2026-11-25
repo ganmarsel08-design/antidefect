@@ -24,7 +24,7 @@
 }(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.7.0-stage7';
+  const VERSION = '0.8.0-dev';
   const DT = '(\\d\\d)\\.(\\d\\d)\\.(\\d{4}) (\\d\\d):(\\d\\d)';
   const L = 'А-Яа-яЁё';
   const NOT_BEFORE = `(?<![${L}])`; // начало слова для кириллицы (\b в JS не работает с кириллицей)
@@ -49,12 +49,106 @@
     return out;
   }
 
-  /** Ближайшая слева отметка «ДД.ММ.ГГГГ ЧЧ:ММ —» в той же записи (время события). */
-  function eventDT(line, idx, tz) {
+  /** Ближайшая слева отметка «ДД.ММ.ГГГГ ЧЧ:ММ —» в той же записи (время заголовка записи). */
+  function headerDT(line, idx) {
     const re = new RegExp(DT + ' — ', 'g'); let m, best = null;
     while ((m = re.exec(line)) && m.index <= idx) best = m;
-    return best ? { value: iso(best, 1, tz), index: best.index } : null;
+    return best;
   }
+  /** Границы предложения (части записи), в котором стоит позиция idx: «.», «;», «!», «?» + пробел. */
+  function clause(line, idx) {
+    let s = 0, e = line.length; const re = /[.;!?](?=\s)/g; let m;
+    while ((m = re.exec(line))) {
+      if (/\d/.test(line[m.index - 1] || '') && /\d/.test(line[m.index + 2] || '')) continue; // 22. 06 — не граница
+      if (m.index < idx) s = m.index + 1; else { e = m.index; break; }
+    }
+    return { s, e };
+  }
+  const TIME_RE = /(?:(\d\d)\.(\d\d)\.(\d{4}) )?(?<![\d:.])([01]\d|2[0-3]):([0-5]\d)(?![\d:])/g;
+  /** Число сказуемых (краткие причастия и глаголы прошедшего времени) в части предложения. Ложное «лишнее» сказуемое ведёт только к отказу. */
+  const PRED = /(?<![А-Яа-яЁё])(?:[А-Яа-яЁё]{3,}(?:ен|ён|ена|ено|ены|ана|ано|аны|ята|ято|яты|ита|ито|иты|ута|уто|уты|ыта|ыто|ыты)|[А-Яа-яЁё]{3,}(?:ил|ила|или|ило|ал|ала|али|ало|ял|яла|яли|ел|ела|ели)|взят|начат|снят|ввел[аи]?|взял[аи]?)(?![А-Яа-яЁё])/g; // + прошедшее время: «поставили», «установили», «взяли»
+  const predicates = t => (t.match(PRED) || []).length;
+  /**
+   * Время «примыкает» к событию: между ними только дата, предлоги «в», «с», «около», наречия «уже», «немедленно», «сразу»,
+   * знаки препинания и не больше одного сказуемого («В 06:40 выставлено подозрение…»). Любое другое слово («зонд стоит с»,
+   * «зонд на месте с») — время принадлежит другому.
+   */
+  function attached(line, evS, evE, tS, tE) {
+    let gap;
+    if (tE <= evS) gap = line.slice(tE, evS);
+    else if (tS >= evE) gap = line.slice(evE, tS).replace(/^[А-Яа-яЁё]*/, '');
+    else return true;
+    gap = gap.replace(/\d\d[.\/]\d\d[.\/]\d{2,4}/g, ' ').replace(/(?<![А-Яа-яЁё])(?:в|с|около|примерно|уже|немедленно|сразу|г)(?![А-Яа-яЁё])/gi, ' ').replace(/[\s,.:;()|—–-]+/g, ' ').trim();
+    if (!gap) return true;
+    const w = gap.split(' ');
+    return w.length === 1 && predicates(w[0]) === 1;
+  }
+  /** Скобки, внутри которых стоит позиция: [открывающая, закрывающая] или null. */
+  function parenAt(line, i) { const o = line.lastIndexOf('(', i), c0 = line.lastIndexOf(')', i - 1); if (o < 0 || c0 > o) return null; const c = line.indexOf(')', i); return c < 0 ? null : [o, c]; }
+  /**
+   * Часть предложения, относящаяся к одному действию: границы — запятая, точка с запятой, тире, союзы «и», «а также»
+   * (вне скобок). Явное время приписывается только действию из той же части.
+   */
+  function actionSeg(line, i) {
+    const cl = clause(line, i); let s = cl.s, e = cl.e, depth = 0;
+    for (let k = cl.s; k < cl.e; k++) {
+      const ch = line[k];
+      if (ch === '(') { depth++; continue; } if (ch === ')') { depth = Math.max(0, depth - 1); continue; }
+      if (depth) continue;
+      let len = 0;
+      if ((ch === ',' || ch === ';') && !/\d/.test(line[k + 1] || '')) len = 1;
+      else { const w = /^ (?:и|а также|—|–) /.exec(line.slice(k, k + 10)); if (w && k > cl.s) len = w[0].length; }
+      if (!len) continue;
+      if (k < i) s = k + len; else { e = k; break; }
+      k += len - 1;
+    }
+    return { s, e };
+  }
+  /**
+   * Время события по позиции idx (этап 8, исправление ошибки привязки из слепого теста №1).
+   * 1) Время в том же предложении важнее заголовка записи: «22.06.2026 08:30 — … Кормление прекращено в 08:40» → 08:40.
+   * 2) В предложении больше одного разного времени → неоднозначно → null (нет значения лучше неверного).
+   * 3) Время без даты берёт дату заголовка записи; если оно раньше времени заголовка (возможен переход через
+   *    полночь или запись задним числом) → null.
+   * 4) Своего времени в предложении нет → время заголовка записи, как раньше.
+   * Возвращает {value, index, end} — фрагмент должен покрывать и событие, и использованное время.
+   */
+  function eventDT(line, idx, tz, evEnd) {
+    const h = headerDT(line, idx), cl = clause(line, idx);
+    const own = []; TIME_RE.lastIndex = 0; let m; const pe = parenAt(line, idx), seg = actionSeg(line, idx); let elsewhere = false;
+    while ((m = TIME_RE.exec(line))) {
+      if (m.index < cl.s || m.index >= cl.e) continue;
+      if (h && m.index === h.index) continue; // сам заголовок записи
+      const pt = parenAt(line, m.index);
+      if (pe) { if (pt && pt[0] === pe[0]) own.push(m); continue; } // событие в скобках — только время из тех же скобок
+      if (pt) continue; // время в скобках относится к тому, что в скобках
+      if (m.index < seg.s || m.index >= seg.e) { elsewhere = true; continue; } // время другого действия
+      own.push(m);
+    }
+    if (!own.length && elsewhere) return null; // в предложении есть время другого действия — не подставляем ни его, ни заголовок
+    // два действия без разделителя («Кормление прекращено зонд установлен в 08:50»): своё время не определить — отказ
+    if (own.length && predicates(line.slice(seg.s, seg.e)) > 1) return null;
+    // принадлежность времени событию: между событием и временем — только служебные слова (ревью ChatGPT к 1bd14d0:
+    // «Кормление прекращено зонд стоит с 08:50» — 08:50 относится к зонду). Время есть, но не примыкает → отказ.
+    if (new Set(own.map(t => t[0])).size > 1) return null; // разные времена в одной части («в 08:40 или в 08:45») — неоднозначно
+    if (own.length) { const e = evEnd === undefined ? idx : evEnd; const att = own.filter(t => attached(line, idx, e, t.index, t.index + t[0].length)); if (!att.length) return null; own.length = 0; own.push(...att); }
+    const hv = h ? iso(h, 1, tz) : null;
+    if (own.length) {
+      const vals = own.map(t => {
+        if (t[1]) return `${t[3]}-${t[2]}-${t[1]}T${t[4]}:${t[5]}${tz}`;
+        if (!h) return null; // дата неизвестна
+        if (`${t[4]}:${t[5]}` < `${h[4]}:${h[5]}`) return null; // раньше заголовка — не угадываем дату
+        return `${h[3]}-${h[2]}-${h[1]}T${t[4]}:${t[5]}${tz}`;
+      });
+      const uniq = [...new Set(vals)];
+      if (uniq.length !== 1 || uniq[0] === null) return null;
+      if (hv && vals.length === 1 && uniq[0] === hv) return { value: hv, index: h.index, end: h.index + 16 };
+      const t = own[0]; return { value: uniq[0], index: t.index, end: t.index + t[0].length };
+    }
+    return h ? { value: hv, index: h.index, end: h.index + 16 } : null;
+  }
+  /** Кандидат «поле = время события»: фрагмент охватывает и событие, и время. */
+  const atField = (f, d, m) => ({ f, v: d.value, s: Math.min(d.index, m.index), e: Math.max(d.end, m.index + m[0].length) });
   /** Отметка с датой без времени в начале записи («08.06.2026 — …»). */
   function eventDateOnly(line, idx) {
     const m = /^(\d\d)\.(\d\d)\.(\d{4}) — /.exec(line) || /(?:^|[.;] )(\d\d)\.(\d\d)\.(\d{4}) — /.exec(line.slice(0, idx + 1));
@@ -123,16 +217,16 @@
     { re: /[Аа]нтибактериальная терапия продолжается/g, emit: () => [{ f: 'course_completed', v: false }] },
     { re: /(?:антибиотик(?:а|ов): |[Аа]нтибактериальная терапия: |[Пп]ервичная схема: )((?:(?:ABX)(?:, | \+ )?)+)/g, special: 'regimen' },
     { re: /[Мм]етронидазол не назначен/g, emit: () => [{ f: 'metronidazole_given', v: false }] },
-    { re: /[Аа]нтибиотики отменены|[Аа]нтибактериальная терапия отменена/g, emit: (m, c) => { const d = eventDT(c.line, m.index, c.tz); return d ? [{ f: 'antibiotics_stopped_at', v: d.value, s: d.index }] : []; } },
+    { re: /[Аа]нтибиотики отменены|[Аа]нтибактериальная терапия отменена/g, emit: (m, c) => { const d = eventDT(c.line, m.index, c.tz, m.index + m[0].length); return d ? [atField('antibiotics_stopped_at', d, m)] : []; } },
 
     // ── посев, ТБИ
-    { re: /посев крови (отрицательный|положительный)/g, emit: (m, c) => { const r = [{ f: 'blood_culture_result', v: m[1] }]; const d = eventDT(c.line, m.index, c.tz); if (d) r.push({ f: 'culture_result_at', v: d.value, s: d.index }); return r; } },
+    { re: /посев крови (отрицательный|положительный)/g, emit: (m, c) => { const r = [{ f: 'blood_culture_result', v: m[1] }]; const d = eventDT(c.line, m.index, c.tz, m.index + m[0].length); if (d) r.push(atField('culture_result_at', d, m)); return r; } },
     { re: /посев крови положительный: ([A-Z]\. [a-z]+)/g, emit: m => { const s = m.index + m[0].indexOf(m[1]); const r = [{ f: 'pathogen', v: m[1], s, e: s + m[1].length }];
         if (GRAM_NEGATIVE.includes(m[1])) r.push({ f: 'gram_negative_culture', v: true, note: 'предложено по справочнику грамотрицательных возбудителей; подтверждает врач' }); return r; } },
-    { re: /(?<!не )тяжёлая бактериальная инфекция исключена/g, emit: (m, c) => { const r = [{ f: 'serious_bacterial_infection_excluded', v: true }]; const d = eventDT(c.line, m.index, c.tz); if (d) r.push({ f: 'sbi_excluded_at', v: d.value, s: d.index }); return r; } },
+    { re: /(?<!не )тяжёлая бактериальная инфекция исключена/g, emit: (m, c) => { const r = [{ f: 'serious_bacterial_infection_excluded', v: true }]; const d = eventDT(c.line, m.index, c.tz, m.index + m[0].length); if (d) r.push(atField('sbi_excluded_at', d, m)); return r; } },
 
     // ── сепсис
-    { re: /показание к антибактериальной терапии/g, emit: (m, c) => { const d = eventDT(c.line, m.index, c.tz); return d ? [{ f: 'sepsis_indication_identified_at', v: d.value, s: d.index }] : []; } },
+    { re: /показание к антибактериальной терапии/g, emit: (m, c) => { const d = eventDT(c.line, m.index, c.tz, m.index + m[0].length); return d ? [atField('sepsis_indication_identified_at', d, m)] : []; } },
     { re: /факторов риска(?: и клинических признаков сепсиса)? — (\d+)/g, emit: m => [{ f: 'risk_factor_or_sign_count', v: +m[1] }] },
     { re: /признаков «Красного флага» нет/g, emit: () => [{ f: 'red_flag_count', v: 0 }] },
     { re: /«Красный флаг» — (\d+)/g, emit: m => [{ f: 'red_flag_count', v: +m[1] }] },
@@ -152,13 +246,13 @@
     { re: /Основание: ([^\n]+?)\.?$/g, when: l => /иммуноглобулин/i.test(l), emit: m => { const s = m.index + m[0].indexOf(m[1]); return [{ f: 'clinical_evidence', v: m[1], s, e: s + m[1].length }]; } },
 
     // ── НЭК
-    { re: /Подозрение на НЭК/g, emit: (m, c) => { const r = [{ f: 'nec_suspected', v: true }]; const d = eventDT(c.line, m.index, c.tz); if (d) r.push({ f: 'nec_suspected_at', v: d.value, s: d.index }); return r; } },
+    { re: /Подозрение на НЭК/g, emit: (m, c) => { const r = [{ f: 'nec_suspected', v: true }]; const d = eventDT(c.line, m.index, c.tz, m.index + m[0].length); if (d) r.push(atField('nec_suspected_at', d, m)); return r; } },
     { re: new RegExp('Начало заболевания — ' + DT, 'g'), emit: (m, c) => [{ f: 'nec_onset_at', v: iso(m, 1, c.tz) }] },
     { re: /[Ээ]нтеральное кормление (?:на момент подозрения )?проводилось/g, when: (l, all) => /НЭК/.test(all), emit: () => [{ f: 'feeding_at_nec_suspicion', v: 'active' }] },
-    { re: /(?<!не )[Кк]ормление прекращено/g, emit: (m, c) => { const r = [{ f: 'enteral_feeding_stopped', v: true }]; const d = eventDT(c.line, m.index, c.tz); if (d) r.push({ f: 'enteral_feeding_stopped_at', v: d.value, s: d.index }); return r; } },
+    { re: /(?<!не )[Кк]ормление прекращено/g, emit: (m, c) => { const r = [{ f: 'enteral_feeding_stopped', v: true }]; const d = eventDT(c.line, m.index, c.tz, m.index + m[0].length); if (d) r.push(atField('enteral_feeding_stopped_at', d, m)); return r; } },
     { re: /[Кк]ормление не прекращено/g, emit: () => [{ f: 'enteral_feeding_stopped', v: false }] },
     { re: /установлен назогастральный зонд(?: (\d+) Fr)?/g, emit: (m, c) => { const r = [{ f: 'ng_tube_placed', v: true }]; if (m[1]) r.push({ f: 'ng_tube_size_f', v: +m[1] });
-        const d = eventDT(c.line, m.index, c.tz); if (d) r.push({ f: 'ng_tube_placed_at', v: d.value, s: d.index }); return r; } },
+        const d = eventDT(c.line, m.index, c.tz, m.index + m[0].length); if (d) r.push(atField('ng_tube_placed_at', d, m)); return r; } },
     { re: /[Нн]азогастральный зонд стоял/g, emit: () => [{ f: 'ng_tube_present_at_suspicion', v: true }] },
     { re: /исправно функционировал/g, when: l => /зонд/.test(l), emit: () => [{ f: 'ng_tube_functioning_at_suspicion', v: true }] },
     { re: /стоял пупочный венозный катетер/g, emit: () => [{ f: 'uvc_present', v: true }] },
@@ -170,16 +264,16 @@
     { re: /только \d+% глюкоза/g, emit: () => [{ f: 'pn_type', v: 'glucose_only' }] },
     { re: /частичное парентеральное питание/g, emit: () => [{ f: 'pn_type', v: 'partial' }] },
     { re: /НЭК (\d[абв])(?![А-Яа-я])/g, emit: (m, c) => { const r = [{ f: 'nec_stage', v: m[1] }];
-        if (/диагноз/i.test(c.line.slice(Math.max(0, m.index - 20), m.index))) { const d = eventDT(c.line, m.index, c.tz); if (d) r.push({ f: 'nec_diagnosed_at', v: d.value, s: d.index }, { f: 'nec_confirmed_at', v: d.value, s: d.index }); } return r; } },
+        if (/диагноз/i.test(c.line.slice(Math.max(0, m.index - 20), m.index))) { const d = eventDT(c.line, m.index, c.tz, m.index + m[0].length); if (d) r.push(atField('nec_diagnosed_at', d, m), atField('nec_confirmed_at', d, m)); } return r; } },
     { re: /(очная|дистанционная) консультация детского хирурга(?: [^:(]*?\((телемедицина)\))?(?:[^:]*): ([^\n]+?)\.?$/g, special: 'surgeon' },
     { re: new RegExp(DT + ' — (?:(контрольная|плановая) )?рентгенография в (горизонтальном|вертикальном|латеральном) положении: ([^.\\n]+)', 'g'), list: 'xrays',
       emit: (m, c) => [{ f: 'xrays', v: { at: iso(m, 1, c.tz), position: { горизонтальном: 'horizontal', вертикальном: 'vertical', латеральном: 'lateral' }[m[7]], reason: m[6] ? 'planned' : null, result: m[8] } }] },
     { re: /[Кк]линического ухудшения не было/g, emit: () => [{ f: 'clinical_deterioration', v: false }] },
-    { re: new RegExp(NOT_BEFORE + '(?<!не )клиническое ухудшение', 'g'), emit: (m, c) => { const r = [{ f: 'clinical_deterioration', v: true }]; const d = eventDT(c.line, m.index, c.tz); if (d) r.push({ f: 'deterioration_at', v: d.value, s: d.index }); return r; } },
+    { re: new RegExp(NOT_BEFORE + '(?<!не )клиническое ухудшение', 'g'), emit: (m, c) => { const r = [{ f: 'clinical_deterioration', v: true }]; const d = eventDT(c.line, m.index, c.tz, m.index + m[0].length); if (d) r.push(atField('deterioration_at', d, m)); return r; } },
     { re: /(?<!не )клинико-лабораторное улучшение(?! в записи не)/g, emit: () => [{ f: 'clinical_lab_improvement_documented', v: true }] },
     { re: /пассаж(?: по ЖКТ)? не восстановлен/g, special: 'passage_false' },
     { re: /(?<!не )пассаж восстановлен/g, special: 'passage_true' },
-    { re: /[Ээ]нтеральная нагрузка возобновлена/g, emit: (m, c) => { const d = eventDT(c.line, m.index, c.tz); return d ? [{ f: 'enteral_feeding_resumed_at', v: d.value, s: d.index }] : []; } },
+    { re: /[Ээ]нтеральная нагрузка возобновлена/g, emit: (m, c) => { const d = eventDT(c.line, m.index, c.tz, m.index + m[0].length); return d ? [atField('enteral_feeding_resumed_at', d, m)] : []; } },
     { re: /[Рр]ебёнок находится в ОРИТН/g, emit: () => [{ f: 'current_department', v: 'nicu' }] },
     { re: /в хирургический стационар не переведён/g, emit: () => [{ f: 'transferred_to_surgery', v: false }] },
   ];
@@ -193,7 +287,7 @@
       const r = [{ f: 'abx_regimen', v: drugs, s, e: s + m[1].length }];
       if (drugs.includes('метронидазол')) {
         r.push({ f: 'metronidazole_given', v: true, s, e: s + m[1].length });
-        const d = eventDT(c.line, m.index, c.tz); if (d) r.push({ f: 'metronidazole_given_at', v: d.value, s: d.index });
+        const d = eventDT(c.line, m.index, c.tz, m.index + m[0].length); if (d) r.push(atField('metronidazole_given_at', d, m));
       }
       if (/[Пп]ервичная схема/.test(m[0])) {
         const set = drugs.slice().sort().join('+');
@@ -208,7 +302,7 @@
       const sk = L0 + m[0].indexOf('(');
       if (m[4] === 'мг/кг') r.push({ f: 'benzylpenicillin_dose_mg_kg', v: num(m[3]), s: sk, e: sk + m[3].length + 7 });
       if (m[4] === 'ЕД/кг') r.push({ f: 'benzylpenicillin_dose_units_per_kg', v: num(m[3]), s: sk, e: sk + m[3].length + 7 });
-      const d = eventDT(c.line, m.index, c.tz); if (d) r.push({ f: 'benzylpenicillin_prescribed_at', v: d.value, s: d.index, e: d.index + 16 });
+      const d = eventDT(c.line, m.index, c.tz, m.index + m[0].length); if (d) r.push(atField('benzylpenicillin_prescribed_at', d, m));
       // эмпирическая схема: бензилпенициллин и гентамицин назначены в одной и той же записи
       const g = /гентамицин (\d+(?:,\d+)?) мг/.exec(c.line.slice(m.index));
       if (g) { const e = m.index + g.index + g[0].length; r.push({ f: 'initial_empirical_regimen', v: 'benzylpenicillin+gentamicin', s: L0, e }, { f: 'empirical_regimen', v: 'benzylpenicillin+gentamicin', s: L0, e }); }
@@ -219,22 +313,22 @@
       const sk = L0 + m[0].indexOf('(');
       r.push({ f: 'gentamicin_initial_dose_mg_kg', v: num(m[2]), s: sk, e: sk + m[2].length + 7 });
       if (m[3] || m[4]) r.push({ f: 'gentamicin_interval_h', v: +(m[3] || m[4]), s: L0 + m[0].search(/каждые|вторая доза/) });
-      const d = eventDT(c.line, m.index, c.tz); if (d) r.push({ f: 'gentamicin_prescribed_at', v: d.value, s: d.index, e: d.index + 16 });
+      const d = eventDT(c.line, m.index, c.tz, m.index + m[0].length); if (d) r.push(atField('gentamicin_prescribed_at', d, m));
       return r;
     }
     if (kind === 'surgeon') {
       const r = [{ f: 'surgeon_consult_status', v: 'done' }, { f: 'surgeon_consult_format', v: m[1] === 'очная' ? 'in_person' : 'remote' }];
-      const d = eventDT(c.line, m.index, c.tz); if (d) r.push({ f: 'surgeon_consult_at', v: d.value, s: d.index });
+      const d = eventDT(c.line, m.index, c.tz, m.index + m[0].length); if (d) r.push(atField('surgeon_consult_at', d, m));
       const s = L0 + m[0].lastIndexOf(m[3]);
       r.push({ f: /показано/.test(m[3]) ? 'surgeon_conclusion' : 'surgeon_recommendations', v: m[3], s, e: s + m[3].length });
       return r;
     }
     if (kind === 'passage_false' || kind === 'passage_true') {
       const v = kind === 'passage_true';
-      const d = eventDT(c.line, m.index, c.tz), dd = d ? null : eventDateOnly(c.line, m.index);
+      const d = eventDT(c.line, m.index, c.tz, m.index + m[0].length), dd = d ? null : eventDateOnly(c.line, m.index);
       const obs = { v, at: d ? d.value : null, date: d ? d.value.slice(0, 10) : dd ? dd.date : null };
-      const r = [{ f: 'gi_passage_restored', obs, s: d ? d.index : dd ? dd.index : m.index }];
-      if (v && d) r.push({ f: 'gi_passage_restored_at', v: d.value, s: d.index });
+      const r = [{ f: 'gi_passage_restored', obs, s: d ? Math.min(d.index, m.index) : dd ? dd.index : m.index, e: d ? Math.max(d.end, m.index + m[0].length) : m.index + m[0].length }];
+      if (v && d) r.push(atField('gi_passage_restored_at', d, m));
       return r;
     }
     return [];
