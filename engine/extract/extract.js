@@ -103,10 +103,23 @@
   const FOREIGN_TIME = /(?:назнач[\wА-Яа-яЁё]*|планир[\wА-Яа-яЁё]*|ошибочно[^,]*|вместо|после\s+\S+(?:\s+\S+)?|через\s+\S+(?:\s+\S+)?|до\s+\S+)\s*\(?\s*(?:в\s+)?$/;
   /** Скобки, внутри которых стоит позиция: [открывающая, закрывающая] или null. */
   function parenAt(line, i) { const o = line.lastIndexOf('(', i), c0 = line.lastIndexOf(')', i - 1); if (o < 0 || c0 > o) return null; const c = line.indexOf(')', i); return c < 0 ? null : [o, c]; }
-  /** Часть предложения между запятыми/точками с запятой (без учёта запятых внутри скобок). */
+  /**
+   * Часть предложения, относящаяся к одному действию: границы — запятая, точка с запятой, тире, союзы «и», «а также»
+   * (вне скобок). Явное время приписывается только действию из той же части.
+   */
   function commaSeg(line, i) {
     const cl = clause(line, i); let s = cl.s, e = cl.e, depth = 0;
-    for (let k = cl.s; k < cl.e; k++) { const ch = line[k]; if (ch === '(') depth++; else if (ch === ')') depth = Math.max(0, depth - 1); else if ((ch === ',' || ch === ';') && depth === 0 && !/\d/.test(line[k + 1] || '')) { if (k < i) s = k + 1; else { e = k; break; } } }
+    for (let k = cl.s; k < cl.e; k++) {
+      const ch = line[k];
+      if (ch === '(') { depth++; continue; } if (ch === ')') { depth = Math.max(0, depth - 1); continue; }
+      if (depth) continue;
+      let len = 0;
+      if ((ch === ',' || ch === ';') && !/\d/.test(line[k + 1] || '')) len = 1;
+      else { const w = /^ (?:и|а также|—|–) /.exec(line.slice(k, k + 10)); if (w && k > cl.s) len = w[0].length; }
+      if (!len) continue;
+      if (k < i) s = k + len; else { e = k; break; }
+      k += len - 1;
+    }
     return { s, e };
   }
   const minutes = t => +t.slice(0, 2) * 60 + +t.slice(3, 5);
