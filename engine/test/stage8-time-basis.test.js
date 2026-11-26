@@ -48,3 +48,10 @@ test('время записи не попадает в случай без от�
   assert.ok(!('enteral_feeding_stopped_at' in b.case.data), 'групповое подтверждение не берёт время записи');
   assert.ok(!('nec_suspected_at' in b.case.data));
 });
+
+test('наблюдения пассажа: тип времени по каждому наблюдению, форма timeline не меняется', () => {
+  const c = cand('05.06.2026 10:00 — Пассаж по ЖКТ ещё не восстановлен.\n08.06.2026 09:00 — Осмотр. Пассаж восстановлен 08.06.2026 в 08:30.', 'gi_passage_restored');
+  assert.deepEqual(c.timeline.map(x => Object.keys(x).sort()), [['at', 'date', 'fragment', 'v'], ['at', 'date', 'fragment', 'v']]);
+  assert.deepEqual(c.timeline_basis.map(x => x.time_basis), ['document_time', 'event_time']);
+  assert.equal(c.critical, true);
+});
