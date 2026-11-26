@@ -26,14 +26,26 @@
    * в журнал и в источник значения. Тип берётся у выбранной альтернативы / наблюдения (по индексу), у списка — у элементов.
    */
   const RISKY = b => b === 'document_time' || b === 'unknown';
+  const ISO_DT = /^\d{4}-\d\d-\d\dT\d\d:\d\d/;
+  // Временное поле: *_at, значение-дата-время, список с типами элементов. Тип времени у такого поля обязателен;
+  // если его нет (старое извлечение, ручная правка) — на границе case-builder он считается unknown (ревью ae85d85).
+  const isTimeField = (c, v) => !c.manual && (/_at$/.test(c.field || '') || (typeof v === 'string' && ISO_DT.test(v)) || Array.isArray(c.time_basis_items));
   function basisOf(c, choice) {
-    if (choice && c.alternatives && c.alternatives[choice.index]) return c.alternatives[choice.index].time_basis || null;
-    if (choice && c.timeline_basis && c.timeline_basis[choice.index]) return c.timeline_basis[choice.index].time_basis || null;
-    if (c.timeline_basis && c.timeline && c.timeline.length === 1) return c.timeline_basis[0].time_basis || null;
-    if (c.time_basis_items) return c.time_basis_items.some(x => RISKY(x.time_basis)) ? (c.time_basis_items.some(x => x.time_basis === 'unknown') ? 'unknown' : 'document_time') : 'event_time';
-    return c.time_basis || null;
+    let b;
+    if (choice && c.alternatives && c.alternatives[choice.index]) b = c.alternatives[choice.index].time_basis;
+    else if (choice && c.timeline_basis && c.timeline_basis[choice.index]) b = c.timeline_basis[choice.index].time_basis;
+    else if (c.timeline_basis && c.timeline && c.timeline.length === 1) b = c.timeline_basis[0].time_basis;
+    else if (c.time_basis_items) b = c.time_basis_items.some(x => x.time_basis === 'unknown' || !x.time_basis) ? 'unknown' : c.time_basis_items.some(x => RISKY(x.time_basis)) ? 'document_time' : 'event_time';
+    else b = c.time_basis;
+    if (b) return b;
+    const v = choice && c.alternatives && c.alternatives[choice.index] ? c.alternatives[choice.index].value : c.value;
+    return isTimeField(c, v) ? 'unknown' : null;
   }
   const needsTimeConfirm = it => RISKY(basisOf(it.candidate, it.choice));
+  // основание — непустая строка после trim
+  const reasonOf = r => (typeof r === 'string' && r.trim() ? r.trim() : null);
+  const explicitEvent = o => !!(o && o.timeIsEvent === true && reasonOf(o.basisReason));
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
   /**
    * createSession({extraction, actor, now, synthetic}) — extraction = результат AntidefectExtract.extract().
@@ -77,20 +89,23 @@
     const fr = c.alternatives ? c.alternatives[index].fragments[0] : c.timeline ? c.timeline[index].fragment : null;
     it.value = clone(list[index].value); it.choice = Object.assign({ index, fragment_start: fr ? fr.start : null, fragment_end: fr ? fr.end : null }, list[index]);
     const basis = basisOf(c, it.choice);
-    // выбор с временем записи / неизвестного типа — ещё не подтверждение времени события
-    it.status = RISKY(basis) && !(opts && opts.timeIsEvent && opts.basisReason) ? STATUS.NEW : STATUS.OK;
+    // выбор с временем записи / неизвестного типа — ещё не подтверждение времени события; перевыбор снимает прежнее подтверждение
+    const conf = RISKY(basis) && explicitEvent(opts) ? { basis, reason: reasonOf(opts.basisReason) } : null;
+    it.time_confirmation = conf;
+    it.status = RISKY(basis) && !conf ? STATUS.NEW : STATUS.OK;
     log(s, it, 'выбор значения', from, it.value, { chosen_index: index, chosen_fragment: list[index].fragment, chosen_fragment_start: it.choice.fragment_start, chosen_at: list[index].at || list[index].date || null,
-      time_basis: basis, time_confirmation: RISKY(basis) && opts && opts.timeIsEvent && opts.basisReason ? opts.basisReason : null, reason: opts && opts.reason || null });
+      time_basis: basis, time_confirmation: conf ? conf.reason : null, reason: opts && opts.reason || null });
   }
 
   function confirm(s, id, opts) {
     const it = find(s, id);
     if (needsChoice(it.candidate) && !it.choice) throw new Error('confirm: у сведения ' + it.candidate.field + ' несколько значений — сначала выберите одно');
     const basis = basisOf(it.candidate, it.choice);
-    if (RISKY(basis) && !(opts && opts.timeIsEvent === true && opts.basisReason))
+    if (RISKY(basis) && !(opts && opts.timeIsEvent === true))
       throw new Error('confirm: у сведения ' + it.candidate.field + ' время записи врача или время неизвестного типа — подтвердите явно, что это время события, и укажите основание (или исправьте значение)');
-    const from = it.status; it.status = STATUS.OK; it.time_confirmation = RISKY(basis) ? { basis, reason: opts.basisReason } : null;
-    log(s, it, 'подтверждено', from, it.value, { time_basis: basis, time_confirmation: it.time_confirmation ? opts.basisReason : null });
+    if (RISKY(basis) && !reasonOf(opts.basisReason)) throw new Error('confirm: у сведения ' + it.candidate.field + ' не указано основание, почему это время события');
+    const from = it.status; it.status = STATUS.OK; it.time_confirmation = RISKY(basis) ? { basis, reason: reasonOf(opts.basisReason) } : null;
+    log(s, it, 'подтверждено', from, it.value, { time_basis: basis, time_confirmation: it.time_confirmation ? it.time_confirmation.reason : null });
   }
 
   /** Групповое подтверждение некритических неподтверждённых сведений группы (после просмотра). */
@@ -98,7 +113,7 @@
     const done = [], skipped = [];
     for (const it of s.items) {
       if (it.candidate.group !== group || it.status !== STATUS.NEW) continue;
-      if (it.candidate.critical || needsChoice(it.candidate)) { skipped.push(it.candidate.id); continue; }
+      if (it.candidate.critical || needsChoice(it.candidate) || needsTimeConfirm(it)) { skipped.push(it.candidate.id); continue; }
       it.status = STATUS.OK; done.push(it.candidate.id);
     }
     s.version++;
@@ -109,13 +124,19 @@
 
   function edit(s, id, value, opts) {
     const it = find(s, id);
+    const basis = basisOf(it.candidate, it.choice), reason = reasonOf(opts && opts.reason);
+    // время записи / неизвестного типа: «исправление» на то же значение — не исправление, а обход явного подтверждения
+    // (ревью ae85d85). Для прочих полей контракт этапа 7 сохранён: правка на то же значение допустима и не меняет данные.
+    if (RISKY(basis) && same(value, it.value)) throw new Error('edit: значение сведения ' + it.candidate.field + ' не изменено — время записи подтверждается только явно («это время события» + основание)');
+    if (RISKY(basis) && !reason) throw new Error('edit: у сведения ' + it.candidate.field + ' время записи врача или время неизвестного типа — укажите основание исправления (откуда время события)');
     const from = it.value; it.value = clone(value); it.status = STATUS.EDITED; it.choice = it.choice || null;
-    log(s, it, 'исправлено', from, value, { reason: opts && opts.reason || null });
+    it.time_confirmation = RISKY(basis) ? { basis, reason, by: 'исправление' } : null;
+    log(s, it, 'исправлено', from, value, { reason: reason, time_basis: basis, time_confirmation: it.time_confirmation ? reason : null });
   }
 
   function reject(s, id, opts) {
     const it = find(s, id);
-    const from = it.value; it.status = STATUS.REJECTED;
+    const from = it.value; it.status = STATUS.REJECTED; it.time_confirmation = null;
     log(s, it, 'отклонено', from, null, { reason: opts && opts.reason || null });
   }
 
@@ -142,10 +163,13 @@
       if (it.status === STATUS.NEW) { pending.push(c.field); continue; }
       if (it.status === STATUS.REJECTED) { rejected.push(c.field); continue; }
       if (it.value === undefined) { pending.push(c.field); continue; }
+      // защита на границе: время записи / неизвестного типа без явного подтверждения не передаётся, как бы ни был выставлен статус
+      if (!c.manual && RISKY(basisOf(c, it.choice)) && !(it.time_confirmation && reasonOf(it.time_confirmation.reason))) { pending.push(c.field); continue; }
       data[c.field] = clone(it.value);
       sources[c.field] = { document: s.document_id, fragment: c.manual ? null : it.choice ? it.choice.fragment : c.fragment,
         author: s.actor, confidence: c.manual ? 'введено врачом' : it.status === STATUS.EDITED ? 'исправлено врачом' : 'подтверждено врачом' };
-      if (!c.manual) { const b = basisOf(c, it.choice); if (b) { sources[c.field].time_basis = b; if (it.time_confirmation) sources[c.field].time_confirmation = it.time_confirmation.reason; } }
+      if (!c.manual) { const b = basisOf(c, it.choice); if (b) { sources[c.field].time_basis = b; if (it.time_confirmation) sources[c.field].time_confirmation = it.time_confirmation.reason; }
+        if (c.time_basis_items) sources[c.field].time_basis_items = clone(c.time_basis_items); }
       used.push(c.field);
     }
     const total = s.items.length, decided = total - s.items.filter(x => x.status === STATUS.NEW).length;
