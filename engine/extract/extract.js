@@ -419,7 +419,7 @@
       const v = kind === 'passage_true';
       const d = eventDT(c.line, m.index, c.tz, c.ctx, m.index + m[0].length), dd = d ? null : eventDateOnly(c.line, m.index);
       const obs = { v, at: d ? d.value : null, date: d ? d.value.slice(0, 10) : dd ? dd.date : null };
-      const r = [{ f: 'gi_passage_restored', obs, s: d ? Math.min(d.index, m.index) : dd ? dd.index : m.index, e: d ? Math.max(d.end, m.index + m[0].length) : m.index + m[0].length }];
+      const r = [{ f: 'gi_passage_restored', obs, tb: d ? d.basis : null, ts: d ? d.source : null, s: d ? Math.min(d.index, m.index) : dd ? dd.index : m.index, e: d ? Math.max(d.end, m.index + m[0].length) : m.index + m[0].length }];
       if (v && d) r.push(atField('gi_passage_restored_at', d, m));
       return r;
     }
@@ -800,6 +800,9 @@
         const c = Object.assign(base, { timeline, fragment: timeline[0].fragment.text, start: timeline[0].fragment.start, end: timeline[0].fragment.end, fragments: timeline.map(t => t.fragment) });
         if (values.length === 1 && timeline.length === 1) c.value = timeline[0].v; // одно наблюдение — обычное значение
         else c.note = 'Несколько наблюдений во времени. Движок принимает одно значение — выбирает врач; автоматического выбора нет.';
+        // тип времени наблюдений — отдельным массивом (форма timeline этапа 7 не меняется)
+        if (hs.some(h => h.tb)) { c.timeline_basis = hs.map(h => ({ at: h.obs.at, time_basis: h.tb || null, time_source: h.ts || null }));
+          if (hs.some(h => h.tb === 'document_time')) { c.critical = true; c.note = (c.note ? c.note + ' ' : '') + 'Время части наблюдений — время записи врача, а не доказанное время события: подтвердите или исправьте.'; } }
         candidates.push(c); continue;
       }
       if (hs[0].list) {
