@@ -123,7 +123,9 @@
       const td = tr.querySelector('.vcell'); clear(td);
       const inp = h('input', { value: typeof it.value === 'object' ? JSON.stringify(it.value) : fmt(it.value), style: 'width:95%' });
       const msg = h('span', { class: 'err' });
-      td.append(inp, h('button', { onclick: () => { try { CB.edit(S.session, c.id, parseValue(it.value, inp.value.trim())); renderData(); } catch (e) { msg.textContent = e.message; } } }, 'Сохранить'), msg);
+      // время записи / неизвестного типа: исправление — только с основанием (откуда время события)
+      const rsn = !c.manual && CB.needsTimeConfirm(it) ? h('input', { placeholder: 'основание исправления (откуда время события)', 'data-edit-reason': c.id, style: 'width:95%' }) : null;
+      td.append(inp, rsn, h('button', { 'data-act': 'save', onclick: () => { try { CB.edit(S.session, c.id, parseValue(it.value, inp.value.trim()), rsn ? { reason: rsn.value } : undefined); renderData(); } catch (e) { msg.textContent = e.message; } } }, 'Сохранить'), msg);
       inp.focus();
     };
     const tr = h('tr', { 'data-c': c.id, 'data-field': c.field },
