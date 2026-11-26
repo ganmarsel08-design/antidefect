@@ -43,6 +43,23 @@ const res = []; const step = (n, ok) => { res.push(ok); console.log((ok ? 'ok   
     await p.fill(ng + ' [data-edit-reason]', 'лист наблюдения: зонд в 08:55');
     await p.click(ng + ' button[data-act="save"]');
     step('новое значение с основанием — «исправлено»', (await p.textContent(ng + ' .st')) === 'исправлено');
+    // ревью цикла 16:30: список подтверждается поэлементно — своё время, своя цитата, своё основание
+    await p.goto(URL);
+    await p.fill('#text', '02.03.2026 08:00 — pH 7,31, PaCO2 48 мм рт. ст.\n02.03.2026 14:00 — pH 7,44, PaCO2 32 мм рт. ст.');
+    await p.check('#synth'); await p.fill('#tz', '+05:00'); await p.check('.prot[value="РДС"]'); await p.click('#go');
+    const bg = R('blood_gases');
+    await p.waitForSelector(bg);
+    step('список: два элемента, у каждого своё время и цитата, общего флажка нет',
+      (await p.$$(bg + ' [data-time-elem]')).length === 2 && !(await p.$(bg + ' [data-time-event]')) &&
+      /08:00.*pH 7,31/.test(await p.textContent(bg + ' [data-elem-at="2026-03-02T08:00+05:00"]')) && /14:00.*pH 7,44/.test(await p.textContent(bg + ' [data-elem-at="2026-03-02T14:00+05:00"]')));
+    await p.check(bg + ' [data-time-elem$=":0"]'); await p.fill(bg + ' [data-time-elem-reason$=":0"]', 'лист газов 08:00');
+    step('подтверждён один элемент из двух — кнопка недоступна', await p.isDisabled(bg + ' button[data-act="ok"]'));
+    await p.check(bg + ' [data-time-elem$=":1"]'); await p.fill(bg + ' [data-time-elem-reason$=":1"]', '   ');
+    step('второе основание из пробелов — кнопка недоступна', await p.isDisabled(bg + ' button[data-act="ok"]'));
+    await p.fill(bg + ' [data-time-elem-reason$=":1"]', 'лист газов 14:00');
+    step('оба элемента с основаниями — подтверждение доступно', !(await p.isDisabled(bg + ' button[data-act="ok"]')));
+    await p.click(bg + ' button[data-act="ok"]');
+    step('список подтверждён поэлементно', (await p.textContent(bg + ' .st')) === 'подтверждено');
     step('без ошибок страницы и сетевых обращений', errs.length === 0);
   } finally { await b.close(); }
   const ok = res.filter(Boolean).length; console.log(`этап 8, подтверждение времени в браузере: ${ok}/${res.length}`); process.exit(ok === res.length ? 0 : 1);

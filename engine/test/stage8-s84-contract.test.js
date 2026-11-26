@@ -20,7 +20,7 @@ for (const h of D.EX.histories) {
     for (const it of s.items) if (CB.needsChoice(it.candidate)) CB.choose(s, it.candidate.id, 0);
     for (const it of s.items) if (it.status === CB.STATUS.NEW && !CB.needsTimeConfirm(it)) CB.confirm(s, it.candidate.id);
     for (const g of [...new Set(s.items.map(i => i.candidate.group))]) CB.confirmGroup(s, g);
-    for (const it of s.items) if (it.status === CB.STATUS.NEW && CB.needsTimeConfirm(it)) assert.throws(() => CB.confirm(s, it.candidate.id), /подтвердите явно/);
+    for (const it of s.items) if (it.status === CB.STATUS.NEW && CB.needsTimeConfirm(it)) assert.throws(() => CB.confirm(s, it.candidate.id), /подтвердите явно|поэлементно/);
     const b = CB.build(s);
     for (const it of s.items) if (CB.needsTimeConfirm(it)) assert.ok(!(it.candidate.field in b.case.data), it.candidate.field + ' не передан');
     assert.equal(b.completeness.complete, false, 'проверка не завершена, пока время записи не решено');
@@ -39,7 +39,12 @@ test('явное подтверждение пишет тип и основан�
   D.reviewExplicit(s, 0);
   const b = CB.build(s);
   for (const it of s.items) if (CB.needsTimeConfirm(it) && it.status !== CB.STATUS.REJECTED) {
-    assert.equal(b.case.sources[it.candidate.field].time_confirmation, D.OK.basisReason, it.candidate.field);
+    const src = b.case.sources[it.candidate.field];
+    if (CB.riskyElems(it.candidate).length) {
+      // список: основание у каждого рискового элемента, со ссылкой на его цитату; общего основания нет
+      assert.ok(!('time_confirmation' in src), it.candidate.field);
+      for (const e of CB.riskyElems(it.candidate)) assert.match(src.time_basis_items.find(x => x.index === e.index).time_confirmation, new RegExp('элемент №' + (e.index + 1)));
+    } else assert.equal(src.time_confirmation, D.OK.basisReason, it.candidate.field);
     assert.ok(['document_time', 'unknown'].includes(b.case.sources[it.candidate.field].time_basis));
   }
 });

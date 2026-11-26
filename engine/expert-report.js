@@ -60,6 +60,35 @@
    * buildReport({view, built, journal, documentId, tz, text, sourceWarnings, comments, justifications, generatedAt})
    * comments[rule] = {text, by, at}; justifications[rule] = {text, fragment:{text,start,end}|null, by, at}
    */
+  /**
+   * Время событий (S8-4): у каждого времени записи / неизвестного типа в выгрузке — тип, точная цитата из истории и
+   * основание врача; у списка — поэлементно. Неподтверждённые — отдельно, с пометкой «в расчёт не передано».
+   */
+  const BL = { document_time: 'время записи врача', unknown: 'время неизвестного типа', event_time: 'время события' };
+  const RK = b => b === 'document_time' || b === 'unknown';
+  function timeSection(o) {
+    const src = (o.built.case && o.built.case.sources) || {}, rows = [];
+    const q = f => (f ? '«' + esc(f) + '»' + (o.text && occurrences(o.text, f) > 1 ? ` <b>(встречается в документе ${occurrences(o.text, f)} раз — место однозначно не установлено)</b>` : '') : '<b>цитата отсутствует</b>');
+    for (const [field, x] of Object.entries(src)) {
+      if (Array.isArray(x.time_basis_items)) {
+        for (const e of x.time_basis_items) if (RK(e.time_basis))
+          rows.push(`<tr data-time-field="${esc(field)}"><td>${esc(field)} №${(e.index | 0) + 1}</td><td>${esc(BL[e.time_basis])}</td><td>${q(e.fragment)}</td><td>${e.time_confirmation ? esc(e.time_confirmation) : '<b>основание отсутствует</b>'}</td></tr>`);
+      } else if (RK(x.time_basis))
+        rows.push(`<tr data-time-field="${esc(field)}"><td>${esc(field)}</td><td>${esc(BL[x.time_basis])}</td><td>${q(x.fragment)}</td><td>${x.time_confirmation ? esc(x.time_confirmation) : '<b>основание отсутствует</b>'}</td></tr>`);
+    }
+    const un = (o.built.completeness && o.built.completeness.time_unconfirmed) || [];
+    const NO = '<td><b>НЕ ПОДТВЕРЖДЕНО врачом как время события — в расчёт не передано</b></td></tr>';
+    for (const u of un) {
+      if (u.elements && u.elements.length) for (const e of u.elements) rows.push(`<tr data-time-field="${esc(u.field)}" data-unconfirmed><td>${esc(u.field)} №${(e.index | 0) + 1}</td><td>${esc(BL[u.time_basis] || u.time_basis)}</td><td>${q(e.fragment)}</td>` + NO);
+      else rows.push(`<tr data-time-field="${esc(u.field)}" data-unconfirmed><td>${esc(u.field)}</td><td>${esc(BL[u.time_basis] || u.time_basis)}</td><td>${q(u.fragment)}</td>` + NO);
+    }
+    if (!rows.length) return '';
+    return `<h2>Время событий: тип и подтверждение врача</h2>
+<p>Время записи врача и время неизвестного типа становятся временем события только по явному подтверждению врача с основанием.</p>
+<table border="1" cellpadding="4"><tr><th>Сведение</th><th>Тип времени</th><th>Цитата из истории</th><th>Основание врача</th></tr>
+${rows.join('\n')}</table>`;
+  }
+
   function buildReport(o) {
     const st = auditState(o.built), v = o.view;
     const rules = v.shown.map(r => r.rule_id);
@@ -92,6 +121,7 @@ ${warn.map(w => `<p style="color:#a00;font-weight:bold">${esc(w)}</p>`).join('\n
 <p>Обоснования и комментарии эксперта не меняют результат проверки правил и не считаются клинически подтверждёнными.</p>
 <table border="1" cellpadding="4"><tr><th>Правило</th><th>Результат (предварительно)</th><th>Комментарий эксперта</th><th>Обоснование отклонения</th></tr>
 ${rules.map(row).join('\n')}</table>
+${timeSection(o)}
 <h2>Журнал</h2><ol>${(o.journal || []).map(j => `<li>${esc(j.at)} · ${esc(j.actor)} · ${esc(j.action)} ${esc(j.field || j.rule_id || '')}</li>`).join('')}</ol>
 </body></html>`;
   }
