@@ -24,7 +24,7 @@
 }(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.8.1-dev';
+  const VERSION = '0.8.2-dev';
   const DT = '(\\d\\d)\\.(\\d\\d)\\.(\\d{4}) (\\d\\d):(\\d\\d)';
   const L = 'А-Яа-яЁё';
   const NOT_BEFORE = `(?<![${L}])`; // начало слова для кириллицы (\b в JS не работает с кириллицей)
@@ -663,6 +663,75 @@
     return out;
   }
 
+  /*
+   * Этап 6 issue #10 — табличные данные: газы крови, настройки ИВЛ, рентгенограммы.
+   * Таблица = строка-заголовок с «|» и следующие строки с тем же числом ячеек. Колонки узнаются по заголовку.
+   * Строка берётся, только если в ней есть своя дата и время (время забора / исследования — время события).
+   * Защиты: единица pCO2 в кПа — не извлекается (пересчёта нет); значения вне физиологически возможного диапазона —
+   * не извлекаются; скопированные строки — не источник. Изменения ИВЛ из таблицы вычисляются по соседним строкам
+   * и помечаются «вычислено из таблицы» — подтверждает врач.
+   */
+  const COL = [
+    ['at', /^(?:дата\s*(?:и|\/)?\s*время|время(?:\s+забора|\s+исследования)?|дата)$/i],
+    ['ph', /^p[hн]$/i],
+    ['paco2', /^(?:p?a?co2|ра?со2|р?асо2|pco2|рсо2|раco2|pаco2)(?:\s*,?\s*(мм\s*рт\.?\s*ст\.?|кпа|kpa))?$/i],
+    ['pip', /^pip(?:\s*,?\s*см\s*(?:h2o|н2о|вод\.?\s*ст\.?))?$/i],
+    ['peep', /^peep(?:\s*,?\s*см\s*(?:h2o|н2о|вод\.?\s*ст\.?))?$/i],
+    ['fio2', /^fio2(?:\s*,?\s*(доля|%))?$/i],
+    ['rate', /^(?:частота|чд|f)(?:\s*,?\s*(?:\/мин|в\s*мин))?$/i],
+    ['study', /^(?:исследование|рентген\S*|вид исследования)$/i],
+    ['position', /^положение$/i],
+    ['reason', /^(?:показание|причина|экстренно\s*\/\s*планово|срочность)$/i],
+    ['result', /^(?:заключение|результат|описание)$/i],
+  ];
+  const cells = l => l.split('|').map(x => x.trim());
+  function tableHits(text, tz) {
+    const recs = records(text), out = [];
+    for (let i = 0; i < recs.length; i++) {
+      const hc = cells(recs[i].line); if (hc.length < 2 || !/\|/.test(recs[i].line)) continue;
+      const map = {}; const unit = {};
+      hc.forEach((h, k) => { for (const [key, re] of COL) { const m = re.exec(h); if (m && !(key in map)) { map[key] = k; unit[key] = (m[1] || '').toLowerCase(); break; } } });
+      if (!('at' in map) || Object.keys(map).length < 2) continue;
+      const rows = [];
+      for (let j = i + 1; j < recs.length && /\|/.test(recs[j].line); j++) {
+        const c = cells(recs[j].line); if (c.length !== hc.length) break;
+        if (/скопир|копи[яи]/i.test(recs[j].line)) continue;
+        const t = timesIn(c[map.at]).find(x => x.date);
+        if (!t) continue; // строка без своей даты и времени — не источник
+        rows.push({ c, at: `${t.date}T${t.time}${tz}`, start: recs[j].start, end: recs[j].start + recs[j].line.length });
+      }
+      const n = (cell) => { const v = /^-?\d+(?:,\d+)?$/.test((cell || '').trim()) ? num(cell.trim()) : NaN; return v; };
+      for (const r of rows) {
+        // газы крови: pH и pCO2 в мм рт. ст.
+        if ('ph' in map && 'paco2' in map && !/кпа|kpa/.test(unit.paco2)) {
+          const ph = n(r.c[map.ph]), pc = n(r.c[map.paco2]);
+          if (ph >= 6.5 && ph <= 7.8 && pc >= 10 && pc <= 150) out.push({ f: 'blood_gases', v: { drawn_at: r.at, ph, paco2_mmhg: pc }, start: r.start, end: r.end, list: 'blood_gases', tb: 'event_time', ts: 'время забора в строке таблицы' });
+        }
+        // рентгенограммы
+        if ('study' in map && /рентген|ОБП|брюшн/i.test(r.c[map.study] + ' ' + (r.c[map.result] || ''))) {
+          const pos = 'position' in map ? r.c[map.position] : r.c[map.study];
+          const position = /вертик/i.test(pos) ? 'vertical' : /латер|на боку/i.test(pos) ? 'lateral' : /горизонт|лёжа|лежа/i.test(pos) ? 'horizontal' : null;
+          const rs = 'reason' in map ? r.c[map.reason] : '';
+          const reason = /экстрен|срочн/i.test(rs) ? 'urgent' : /планов|контрол/i.test(rs) ? 'planned' : null;
+          if (position) out.push({ f: 'xrays', v: { at: r.at, position, reason, result: 'result' in map ? r.c[map.result] : null }, start: r.start, end: r.end, list: 'xrays', tb: 'event_time', ts: 'время исследования в строке таблицы' });
+        }
+      }
+      // изменения ИВЛ: соседние строки с разными значениями одного параметра
+      const VP = { pip: 'PIP', peep: 'PEEP', fio2: 'FiO2', rate: 'Частота' };
+      for (const key of Object.keys(VP)) {
+        if (!(key in map)) continue;
+        if (key === 'fio2' && unit.fio2 === '%') continue; // проценты не приводятся к доле
+        for (let k = 1; k < rows.length; k++) {
+          const a = n(rows[k - 1].c[map[key]]), b = n(rows[k].c[map[key]]);
+          if (isNaN(a) || isNaN(b) || a === b) continue;
+          if (key === 'fio2' && (a < 0.21 || a > 1 || b < 0.21 || b > 1)) continue;
+          out.push({ f: 'vent_changes', v: { at: rows[k].at, parameter: VP[key], from: a, to: b }, start: rows[k].start, end: rows[k].end, list: 'vent_changes', tb: 'event_time', ts: 'время строки таблицы', note: 'Изменение вычислено по соседним строкам таблицы — подтвердите.' });
+        }
+      }
+    }
+    return out;
+  }
+
   /**
    * extract(text, {tz, documentId}) → {version, document_id, tz, candidates[], warnings[]}
    * Кандидат: {id, field, value | timeline, alternatives?, fragment, start, end, fragments[], status:'не подтверждено',
@@ -709,6 +778,7 @@
         }
       }
     }
+    for (const th of tableHits(text, tz)) hits.push(th);
     // одинаковые значения одного поля из пересекающихся фрагментов (старое и новое правило) — одно попадание
     const key = h => h.f + '|' + JSON.stringify(h.v !== undefined ? h.v : h.obs);
     for (let i = hits.length - 1; i >= 0; i--) if (hits.some((x, j) => j < i && key(x) === key(hits[i]) && x.start < hits[i].end && hits[i].start < x.end)) hits.splice(i, 1);
@@ -736,6 +806,7 @@
         const items = []; const frs = [];
         for (const h of hs) if (!items.some(x => same(x, h.v))) { items.push(h.v); frs.push(frag(h)); }
         const lc = Object.assign(base, { value: items, fragment: frs[0].text, start: frs[0].start, end: frs[0].end, fragments: frs });
+        if (hs.some(h => h.note)) { lc.critical = true; lc.note = [...new Set(hs.filter(h => h.note).map(h => h.note))].join(' '); }
         const tbs = hs.filter(h => h.tb).map(h => h.tb);
         if (tbs.length) { lc.time_basis_items = hs.filter(h => h.tb).map(h => ({ value: h.v, time_basis: h.tb, time_source: h.ts })); if (tbs.includes('document_time')) { lc.critical = true; lc.note = 'В части элементов время — время записи врача, а не доказанное время события: подтвердите или исправьте.'; } }
         candidates.push(lc); continue;
