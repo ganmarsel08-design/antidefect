@@ -55,3 +55,74 @@ test('наблюдения пассажа: тип времени по каждо
   assert.deepEqual(c.timeline_basis.map(x => x.time_basis), ['document_time', 'event_time']);
   assert.equal(c.critical, true);
 });
+
+// ── Ревью ChatGPT к ce81b66 / b128244: сквозной путь extract → подтверждение → case → derive.
+const Derive = require('../derive.js');
+const T_OK = { timeIsEvent: true, basisReason: 'врач: в записи это время события' };
+function sess(text) { let k = 0; return CB.createSession({ extraction: X.extract(text, { tz: TZ }), actor: 'тест', now: () => new Date(Date.UTC(2026, 5, 22, 5, 0, k++)).toISOString() }); }
+const item = (s, f) => s.items.find(i => i.candidate.field === f);
+
+test('унаследованное правило без привязки времени → unknown, не event_time', () => {
+  for (const t of ['14.01.2026 07:30 — кровь на посев взята.', '14.01.2026 07:30 — введена первая доза антибиотиков.']) {
+    for (const c of X.extract(t, { tz: TZ }).candidates.filter(x => /_at$/.test(x.field)))
+      assert.ok(['document_time', 'unknown'].includes(c.time_basis), t + ' ' + c.field + ' = ' + c.time_basis);
+  }
+});
+
+test('время записи: обычное подтверждение запрещено; явное — с основанием в журнале и источнике', () => {
+  const s = sess('22.06.2026 08:30 — Подозрение на НЭК. На фоне энтерального кормления вздутие живота.\n22.06.2026 09:00 — Кормление прекращено.');
+  const it = item(s, 'enteral_feeding_stopped_at');
+  assert.throws(() => CB.confirm(s, it.candidate.id), /подтвердите явно, что это время события/);
+  assert.throws(() => CB.confirm(s, it.candidate.id, { timeIsEvent: true }), /основание/);
+  assert.ok(!('enteral_feeding_stopped_at' in CB.build(s).case.data));
+  CB.confirm(s, it.candidate.id, T_OK);
+  const b = CB.build(s);
+  assert.equal(b.case.data.enteral_feeding_stopped_at, '2026-06-22T09:00+05:00');
+  assert.equal(b.case.sources.enteral_feeding_stopped_at.time_basis, 'document_time');
+  assert.equal(b.case.sources.enteral_feeding_stopped_at.time_confirmation, T_OK.basisReason);
+  const j = s.journal.find(x => x.action === 'подтверждено' && x.field === 'enteral_feeding_stopped_at');
+  assert.equal(j.time_basis, 'document_time'); assert.equal(j.time_confirmation, T_OK.basisReason);
+});
+
+test('без явного подтверждения derive не считает интервал от подозрения до прекращения кормления', () => {
+  const s = sess('22.06.2026 08:30 — Подозрение на НЭК. На фоне энтерального кормления вздутие живота.\n22.06.2026 09:00 — Кормление прекращено.');
+  for (const it of s.items) if (!CB.needsTimeConfirm(it) && !CB.needsChoice(it.candidate)) CB.confirm(s, it.candidate.id);
+  const d1 = Derive.derive(CB.build(s).case.data);
+  assert.ok(!('minutes_suspicion_to_feeding_stop' in d1.derived), 'интервала нет');
+  for (const it of s.items) if (it.status === CB.STATUS.NEW && CB.needsTimeConfirm(it)) CB.confirm(s, it.candidate.id, T_OK);
+  const d2 = Derive.derive(CB.build(s).case.data);
+  assert.equal(d2.derived.minutes_suspicion_to_feeding_stop, 30, 'после явного подтверждения обоих времён — 30 мин');
+});
+
+test('два наблюдения с одинаковым at, разные значения и тип времени: выбор по индексу и цитате; время записи не подтверждается обычным выбором', () => {
+  const text = '05.06.2026 10:00 — Пассаж по ЖКТ не восстановлен. Пассаж восстановлен в 10:00.';
+  const s = sess(text); const it = item(s, 'gi_passage_restored');
+  assert.deepEqual(it.candidate.timeline.map(t => t.at), ['2026-06-05T10:00+05:00', '2026-06-05T10:00+05:00']);
+  // выбор второго (время события) — подтверждено сразу, метаданные — второго наблюдения
+  CB.choose(s, it.candidate.id, 1);
+  assert.equal(it.status, CB.STATUS.OK); assert.equal(it.choice.index, 1);
+  assert.equal(text.slice(it.choice.fragment_start, it.choice.fragment_start + 19), 'Пассаж восстановлен');
+  let b = CB.build(s); assert.equal(b.case.data.gi_passage_restored, true); assert.equal(b.case.sources.gi_passage_restored.time_basis, 'event_time');
+  // перевыбор первого (время записи) — значение не передаётся, пока не подтверждено явно
+  CB.choose(s, it.candidate.id, 0);
+  assert.equal(it.status, CB.STATUS.NEW); assert.equal(it.choice.index, 0);
+  b = CB.build(s); assert.ok(!('gi_passage_restored' in b.case.data));
+  assert.throws(() => CB.confirm(s, it.candidate.id), /подтвердите явно/);
+  CB.confirm(s, it.candidate.id, T_OK);
+  b = CB.build(s); assert.equal(b.case.data.gi_passage_restored, false); assert.equal(b.case.sources.gi_passage_restored.time_basis, 'document_time');
+  const js = s.journal.filter(x => x.field === 'gi_passage_restored').map(x => [x.action, x.chosen_index, x.time_basis]);
+  assert.deepEqual(js, [['выбор значения', 1, 'event_time'], ['выбор значения', 0, 'document_time'], ['подтверждено', undefined, 'document_time']]);
+});
+
+test('дедуп совпадающих фрагментов не теряет тип времени; явное время цитируется, даже если равно заголовку', () => {
+  const t = '14.01.2026 07:30 — введена первая доза антибиотиков в 07:30.';
+  const c = X.extract(t, { tz: TZ }).candidates.find(x => x.field === 'first_abx_dose_administered_at');
+  assert.equal(c.time_basis, 'event_time');
+  assert.ok(c.fragments.some(f => /в 07:30/.test(f.text) || f.start > 20), 'фрагмент включает явное время');
+});
+
+test('групповое подтверждение не подтверждает время записи и время неизвестного типа', () => {
+  const s = sess('14.01.2026 07:30 — кровь на посев взята.');
+  for (const g of [...new Set(s.items.map(i => i.candidate.group))]) CB.confirmGroup(s, g);
+  assert.ok(!('blood_culture_drawn_at' in CB.build(s).case.data));
+});

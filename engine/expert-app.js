@@ -95,6 +95,7 @@
     return raw;
   }
 
+  const BLBL = { event_time: 'время события', document_time: 'время записи врача', unknown: 'тип времени не определён' };
   function row(it) {
     const c = it.candidate, st = it.status;
     const sc = st === CB.STATUS.OK ? 's-ok' : st === CB.STATUS.EDITED ? 's-ed' : st === CB.STATUS.REJECTED ? 's-rej' : '';
@@ -102,12 +103,21 @@
     if (c.timeline && !('value' in c)) {
       valCell = h('div', null, h('div', { class: 'tl' }, c.timeline.map((t, i) => h('label', { class: t.v ? 't' : 'f' },
         h('input', { type: 'radio', name: 'tl-' + c.id, checked: it.choice && it.choice.index === i, onchange: () => { CB.choose(S.session, c.id, i); renderData(); } }),
-        ' ', t.at ? t.at.slice(0, 16).replace('T', ' ') : (t.date + ' (без времени)'), h('br'), h('b', null, t.v ? 'да' : 'нет')))),
+        ' ', t.at ? t.at.slice(0, 16).replace('T', ' ') : (t.date + ' (без времени)'), h('br'), h('b', null, t.v ? 'да' : 'нет'),
+        c.timeline_basis && c.timeline_basis[i] && c.timeline_basis[i].time_basis ? h('div', { class: 'muted', 'data-basis': c.timeline_basis[i].time_basis }, BLBL[c.timeline_basis[i].time_basis]) : null))),
         h('span', { class: 'muted' }, 'Динамика во времени. Движок принимает одно значение — выберите, какое передать.'));
     } else if (c.alternatives) {
-      valCell = h('div', null, c.alternatives.map((a, i) => h('label', { style: 'display:block' }, h('input', { type: 'radio', name: 'alt-' + c.id, checked: it.choice && it.choice.index === i, onchange: () => { CB.choose(S.session, c.id, i); renderData(); } }), ' ', fmt(a.value))),
+      valCell = h('div', null, c.alternatives.map((a, i) => h('label', { style: 'display:block' }, h('input', { type: 'radio', name: 'alt-' + c.id, checked: it.choice && it.choice.index === i, onchange: () => { CB.choose(S.session, c.id, i); renderData(); } }), ' ', fmt(a.value),
+        a.time_basis ? h('span', { class: 'muted', 'data-basis': a.time_basis }, ' · ' + BLBL[a.time_basis]) : null)),
         h('span', { class: 'muted' }, 'В тексте разные значения — выберите одно.'));
-    } else valCell = h('b', null, fmt(it.value));
+    } else valCell = h('div', null, h('b', null, fmt(it.value)),
+      c.time_basis ? h('div', { class: 'muted', 'data-basis': c.time_basis }, BLBL[c.time_basis] + (c.time_source ? ' — ' + c.time_source : '')) : null,
+      c.time_basis_items ? h('div', { class: 'muted' }, c.time_basis_items.map(x => h('div', { 'data-basis': x.time_basis }, BLBL[x.time_basis] + ': ' + fmt(x.value)))) : null);
+    // время записи / неизвестного типа: подтверждение — только явное «это время события» с основанием
+    const risky = !c.manual && CB.needsTimeConfirm(it) && it.status === CB.STATUS.NEW;
+    const tchk = risky ? h('input', { type: 'checkbox', 'data-time-event': c.id }) : null;
+    const treason = risky ? h('input', { placeholder: 'основание (например: в записи указано время введения)', 'data-time-reason': c.id, style: 'width:95%' }) : null;
+    const terr = h('div', { class: 'err' });
     const frs = c.manual ? [h('span', { class: 'muted' }, 'внесено врачом')] : (c.fragments || []).map(f => h('div', { class: 'frag', onclick: () => focusFragment(c.id) }, '«' + f.text + '»'));
     const edit = () => {
       const td = tr.querySelector('.vcell'); clear(td);
@@ -118,12 +128,14 @@
     };
     const tr = h('tr', { 'data-c': c.id, 'data-field': c.field },
       h('td', null, c.critical ? h('span', { class: 'crit', title: 'критическое' }, '★ ') : null, lbl(c.field), h('div', { class: 'code' }, c.field), c.note ? h('div', { class: 'muted' }, c.note) : null),
-      h('td', { class: 'vcell' }, valCell), h('td', null, frs),
+      h('td', { class: 'vcell' }, valCell, risky ? h('div', { class: 'warnbox' }, h('label', null, tchk, ' Это время события, а не только время записи'), treason) : null, terr), h('td', null, frs),
       h('td', null, h('span', { class: 'st ' + sc }, st)),
       h('td', { style: 'white-space:nowrap' },
-        h('button', { title: 'подтвердить', 'data-act': 'ok', disabled: CB.needsChoice(c) && !it.choice, onclick: () => { CB.confirm(S.session, c.id); renderData(); } }, '✓'),
+        h('button', { title: 'подтвердить', 'data-act': 'ok', disabled: (CB.needsChoice(c) && !it.choice) || risky, onclick: () => { try { CB.confirm(S.session, c.id, risky ? { timeIsEvent: tchk.checked, basisReason: treason.value.trim() } : undefined); renderData(); } catch (e) { terr.textContent = e.message; } } }, '✓'),
         h('button', { title: 'исправить', 'data-act': 'ed', onclick: edit }, '✎'),
         h('button', { title: 'отклонить', 'data-act': 'rej', onclick: () => { CB.reject(S.session, c.id); renderData(); } }, '✕')));
+    // кнопка «подтвердить» для времени записи доступна только после отметки «это время события» и основания
+    if (risky) { const ok = tr.querySelector('button[data-act="ok"]'); const upd = () => { ok.disabled = !(tchk.checked && treason.value.trim()) || (CB.needsChoice(c) && !it.choice); }; tchk.addEventListener('change', upd); treason.addEventListener('input', upd); }
     return tr;
   }
 

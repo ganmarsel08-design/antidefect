@@ -182,7 +182,7 @@
       });
       const uniq = [...new Set(vals)];
       if (uniq.length !== 1 || uniq[0] === null) return null;
-      if (hv && uniq[0] === hv) return { value: hv, index: h.index, end: h.end, basis: 'event_time', source: 'время в той же части записи совпадает со временем записи' };
+      if (hv && uniq[0] === hv) { const t = own[0]; return { value: hv, index: t.index, end: t.end, basis: 'event_time', source: 'явное время в той же части записи (совпадает со временем записи)' }; }
       const t = own[0]; return { value: uniq[0], index: t.index, end: t.end, basis: 'event_time', source: t.date ? 'время события с датой в тексте' : (h ? 'время события; дата — из записи' : 'время события; дата — из заголовка раздела') };
     }
     return h ? { value: hv, index: h.index, end: h.end, basis: 'document_time', source: h.date && line.slice(h.index, h.index + 10).match(/\d\d[.\/]/) ? 'время записи (заголовок записи)' : 'время записи; дата — из заголовка раздела' } : null;
@@ -487,6 +487,8 @@
   const drugName = w => DRUGS[w] || DRUGS[w.toLowerCase()] || null;
   const tm = (f, val) => (m, c) => { const r = val === undefined ? [] : [{ f: val[0], v: val[1] }]; const d = eventDT(c.line, m.index, c.tz, c.ctx, m.index + m[0].length); if (d) r.push(atField(f, d, m)); return r; };
   const T = (f, v) => () => [{ f, v }];
+  const TIME_LISTS = { crp_samples: 'drawn_at', blood_gases: 'drawn_at', vent_changes: 'at', xrays: 'at' };
+  const isTimeHit = h => /_at$/.test(h.f) || (h.f in TIME_LISTS) || h.f === 'gi_passage_restored';
   /** Время записи (заголовка) не выдаётся за время решения, если решение записано в другом предложении той же записи. */
   function farFromHeader(c, m, d) { const cl = clause(c.line, m.index); return d.end <= cl.s && !/(?:[01]\d|2[0-3]):[0-5]\d/.test(c.line.slice(cl.s, cl.e).replace(/\([^)]*\)/g, '')); }
   /**
@@ -704,6 +706,8 @@
             const e = rec.start + (o.e !== undefined ? o.e : m.index + m[0].length);
             if (UNCERTAIN_FIELDS.test(o.f) && uncertain(line, m.index, m.index + m[0].length, o.f)) continue; // предварительное, под вопросом, исключить
             const hit = Object.assign({}, o, { start: s, end: Math.max(e, s + 1), list: rule.list || null });
+            // тип времени обязателен у каждого временного значения; не определён правилом → unknown (не event_time)
+            if (isTimeHit(hit) && !hit.tb) { hit.tb = 'unknown'; hit.ts = 'тип времени не определён (правило без привязки времени)'; }
             if (old) superseded.push(hit); else hits.push(hit);
           }
         }
@@ -711,7 +715,16 @@
     }
     // одинаковые значения одного поля из пересекающихся фрагментов (старое и новое правило) — одно попадание
     const key = h => h.f + '|' + JSON.stringify(h.v !== undefined ? h.v : h.obs);
-    for (let i = hits.length - 1; i >= 0; i--) if (hits.some((x, j) => j < i && key(x) === key(hits[i]) && x.start < hits[i].end && hits[i].start < x.end)) hits.splice(i, 1);
+    for (let i = hits.length - 1; i >= 0; i--) {
+      const j = hits.findIndex((x, k) => k < i && key(x) === key(hits[i]) && x.start < hits[i].end && hits[i].start < x.end);
+      if (j < 0) continue;
+      // дедуп не теряет тип времени: типизированное значение важнее unknown; разные известные типы → unknown
+      const a = hits[j], b = hits[i];
+      // фрагмент — объединение, чтобы цитата содержала и явное время, и событие
+      if (b.tb === 'event_time' && a.tb !== 'event_time') { a.start = Math.min(a.start, b.start); a.end = Math.max(a.end, b.end); }
+      if (a.tb !== b.tb) { if (!a.tb || a.tb === 'unknown') { a.tb = b.tb; a.ts = b.ts; } else if (b.tb && b.tb !== 'unknown') { a.tb = 'unknown'; a.ts = 'противоречивый тип времени в совпадающих фрагментах'; } }
+      hits.splice(i, 1);
+    }
     // значение, прямо названное ошибочным («ошибочно указано X, верно Y»), убирается и в других местах
     for (let i = hits.length - 1; i >= 0; i--) if (superseded.some(x => x.f === hits[i].f && JSON.stringify(x.v) === JSON.stringify(hits[i].v) && x.v !== undefined)) hits.splice(i, 1);
     // группировка по полю
@@ -732,7 +745,7 @@
         else c.note = 'Несколько наблюдений во времени. Движок принимает одно значение — выбирает врач; автоматического выбора нет.';
         // тип времени наблюдений — отдельным массивом (форма timeline этапа 7 не меняется)
         if (hs.some(h => h.tb)) { c.timeline_basis = hs.map(h => ({ at: h.obs.at, time_basis: h.tb || null, time_source: h.ts || null }));
-          if (hs.some(h => h.tb === 'document_time')) { c.critical = true; c.note = (c.note ? c.note + ' ' : '') + 'Время части наблюдений — время записи врача, а не доказанное время события: подтвердите или исправьте.'; } }
+          if (hs.some(h => h.tb === 'document_time' || h.tb === 'unknown')) { c.critical = true; c.note = (c.note ? c.note + ' ' : '') + 'Время части наблюдений — время записи врача, а не доказанное время события: подтвердите или исправьте.'; } }
         candidates.push(c); continue;
       }
       if (hs[0].list) {
@@ -740,7 +753,7 @@
         for (const h of hs) if (!items.some(x => same(x, h.v))) { items.push(h.v); frs.push(frag(h)); }
         const lc = Object.assign(base, { value: items, fragment: frs[0].text, start: frs[0].start, end: frs[0].end, fragments: frs });
         const tbs = hs.filter(h => h.tb).map(h => h.tb);
-        if (tbs.length) { lc.time_basis_items = hs.filter(h => h.tb).map(h => ({ value: h.v, time_basis: h.tb, time_source: h.ts })); if (tbs.includes('document_time')) { lc.critical = true; lc.note = 'В части элементов время — время записи врача, а не доказанное время события: подтвердите или исправьте.'; } }
+        if (tbs.length) { lc.time_basis_items = hs.filter(h => h.tb).map(h => ({ value: h.v, time_basis: h.tb, time_source: h.ts })); if (tbs.includes('document_time') || tbs.includes('unknown')) { lc.critical = true; lc.note = 'В части элементов время — время записи врача, а не доказанное время события: подтвердите или исправьте.'; } }
         candidates.push(lc); continue;
       }
       const distinct = [];
@@ -750,7 +763,7 @@
       // тип времени (этап 2 issue #10): время записи ≠ время события; такое значение — только с отдельным подтверждением врача
       if (distinct.some(d => d.tb)) {
         if (distinct.length === 1) { c.time_basis = distinct[0].tb; c.time_source = distinct[0].ts; }
-        if (distinct.some(d => d.tb === 'document_time')) { c.critical = true; c.note = (c.note ? c.note + ' ' : '') + 'Время записи врача, а не доказанное время события: подтвердите или исправьте. До подтверждения интервалы по нему не считаются.'; }
+        if (distinct.some(d => d.tb === 'document_time' || d.tb === 'unknown')) { c.critical = true; c.note = (c.note ? c.note + ' ' : '') + 'Время записи врача или время неизвестного типа, а не доказанное время события: подтвердите явно, что это время события, или исправьте. До подтверждения интервалы по нему не считаются.'; }
       }
       if (/^(gentamicin|benzylpenicillin|metronidazole)_given$/.test(f)) c.note = (c.note ? c.note + ' ' : '') + 'Поле означает «назначен / включён в терапию»; факт и время введения подтверждаются отдельно.';
       if (distinct.length > 1) {
