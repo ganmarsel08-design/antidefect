@@ -715,7 +715,9 @@
         for (const h of hs) if (!items.some(x => same(x, h.v))) { items.push(h.v); frs.push(frag(h)); }
         const lc = Object.assign(base, { value: items, fragment: frs[0].text, start: frs[0].start, end: frs[0].end, fragments: frs });
         const tbs = hs.filter(h => h.tb).map(h => h.tb);
-        if (tbs.length) { lc.time_basis_items = hs.filter(h => h.tb).map(h => ({ value: h.v, time_basis: h.tb, time_source: h.ts })); if (tbs.includes('document_time') || tbs.includes('unknown')) { lc.critical = true; lc.note = 'В части элементов время — время записи врача, а не доказанное время события: подтвердите или исправьте.'; } }
+        // поэлементно: индекс элемента в value, его цитата и смещения — чтобы подтверждение врача было привязано
+        // к конкретному времени и цитате, а не ко всему списку одним основанием (ревью цикла 16:30, issue #10)
+        if (tbs.length) { lc.time_basis_items = hs.filter(h => h.tb).map(h => { const i = items.findIndex(x => same(x, h.v)); return { value: h.v, time_basis: h.tb, time_source: h.ts, index: i, fragment: text.slice(h.start, h.end), start: h.start, end: h.end }; }); if (tbs.includes('document_time') || tbs.includes('unknown')) { lc.critical = true; lc.note = 'В части элементов время — время записи врача, а не доказанное время события: подтвердите или исправьте.'; } }
         candidates.push(lc); continue;
       }
       const distinct = [];

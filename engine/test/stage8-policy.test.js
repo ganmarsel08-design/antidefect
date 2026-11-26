@@ -46,13 +46,14 @@ const MANUAL = {
   'СИН-СЕП-01': [['sample_site', 'separate_vein', 'врач уточнил: периферическая вена — отдельная от катетера']],
   'СИН-СЕП-03': [['immunoglobulin_given', true, 'врач уточнил по листу введения: иммуноглобулин введён']],
 };
+const SIM = require('./tools/time-confirm-sim.js');
 let tick = 0;
 const now = () => new Date(Date.UTC(2026, 10, 26, 3, 0, tick++)).toISOString();
 function reviewAll(s) {
   // время записи / неизвестного типа врач подтверждает ЯВНО как время события, с основанием (сценарий, не доказательство)
   const T = { timeIsEvent: true, basisReason: 'врач: по записи это время события (синтетический сценарий)' };
   for (const it of s.items) if (CB.needsChoice(it.candidate)) CB.choose(s, it.candidate.id, 0);
-  for (const it of s.items) if (it.candidate.critical && it.status === CB.STATUS.NEW) CB.confirm(s, it.candidate.id, CB.needsTimeConfirm(it) ? T : undefined);
+  for (const it of s.items) if (it.candidate.critical && it.status === CB.STATUS.NEW) CB.confirm(s, it.candidate.id, CB.needsTimeConfirm(it) ? SIM.confirmOpts(it, T.basisReason) : undefined);
   for (const g of [...new Set(s.items.map(i => i.candidate.group))]) CB.confirmGroup(s, g);
 }
 for (const id of Object.keys(MANUAL)) {

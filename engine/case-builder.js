@@ -47,6 +47,54 @@
   const explicitEvent = o => !!(o && o.timeIsEvent === true && reasonOf(o.basisReason));
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
+  // ── Списки: подтверждение поэлементно (ревью цикла 16:30, issue #10). Каждый элемент со временем записи / unknown
+  // подтверждается отдельно: индекс, точное время элемента (сверяется) и непустое основание; цитата берётся из
+  // извлечения. Одно основание на весь список не принимается.
+  const atOf = v => { if (typeof v === 'string' && ISO_DT.test(v)) return v; if (v && typeof v === 'object') for (const k of Object.keys(v)) if (typeof v[k] === 'string' && ISO_DT.test(v[k])) return v[k]; return null; };
+  const RANK = { event_time: 0, document_time: 1, unknown: 2 };
+  function listElems(c) {
+    if (!Array.isArray(c.time_basis_items) || !Array.isArray(c.value)) return null;
+    return c.value.map((v, i) => {
+      const es = c.time_basis_items.filter(x => (x.index != null ? x.index === i : same(x.value, v)));
+      const basis = es.length ? es.map(x => (x.time_basis in RANK ? x.time_basis : 'unknown')).sort((a, b) => RANK[b] - RANK[a])[0] : (atOf(v) ? 'unknown' : null);
+      const fe = es.find(x => x.fragment), fr = c.fragments && c.fragments[i];
+      return { index: i, value: v, at: atOf(v), basis, fragment: fe ? fe.fragment : fr ? fr.text : null, start: fe ? fe.start : fr ? fr.start : null };
+    });
+  }
+  const riskyElems = c => (listElems(c) || []).filter(e => RISKY(e.basis));
+  /** Элементы, которые должны быть подтверждены: при исправлении — только те, чьё время осталось в новом значении. */
+  function requiredElems(it) {
+    const r = riskyElems(it.candidate);
+    if (it.status === STATUS.EDITED && Array.isArray(it.value)) return r.filter(e => it.value.some(v => atOf(v) === e.at));
+    return r;
+  }
+  function elemConfirm(c, need, items, where) {
+    if (!Array.isArray(items)) throw new Error(where + ': у списка ' + c.field + ' время записи / неизвестного типа подтверждается поэлементно — для каждого такого элемента укажите его время и основание');
+    const out = [];
+    for (const e of need) {
+      const g = items.find(x => x && x.index === e.index);
+      if (!g || g.timeIsEvent !== true) throw new Error(where + ': ' + c.field + ', элемент №' + (e.index + 1) + ' (' + e.at + ') не подтверждён как время события');
+      if (g.at !== e.at) throw new Error(where + ': ' + c.field + ', элемент №' + (e.index + 1) + ': время элемента не совпадает (' + g.at + ' ≠ ' + e.at + ')');
+      const r = reasonOf(g.basisReason);
+      if (!r) throw new Error(where + ': ' + c.field + ', элемент №' + (e.index + 1) + ': не указано основание');
+      out.push({ index: e.index, at: e.at, basis: e.basis, fragment: e.fragment, start: e.start, reason: r });
+    }
+    for (const g of items) if (!g || !need.some(e => e.index === g.index)) throw new Error(where + ': ' + c.field + ': элемент ' + (g && g.index != null ? '№' + (g.index + 1) : '?') + ' не требует подтверждения времени или не существует');
+    return out;
+  }
+  /** Подтверждение времени действительно для текущего значения. */
+  function confirmedOK(it) {
+    const tc = it.time_confirmation;
+    if (!tc) return false;
+    if (riskyElems(it.candidate).length) {
+      const need = requiredElems(it);
+      if (!need.length) return !!reasonOf(tc.reason);
+      return Array.isArray(tc.items) && need.every(e => tc.items.some(x => x.index === e.index && x.at === e.at && reasonOf(x.reason)));
+    }
+    return !!reasonOf(tc.reason);
+  }
+  const tcLog = tc => (!tc ? null : tc.items ? tc.items.map(x => ({ index: x.index, at: x.at, reason: x.reason })) : tc.reason);
+
   /**
    * createSession({extraction, actor, now, synthetic}) — extraction = результат AntidefectExtract.extract().
    * now — функция времени (для тестов); по умолчанию new Date().toISOString().
@@ -101,6 +149,12 @@
     const it = find(s, id);
     if (needsChoice(it.candidate) && !it.choice) throw new Error('confirm: у сведения ' + it.candidate.field + ' несколько значений — сначала выберите одно');
     const basis = basisOf(it.candidate, it.choice);
+    if (RISKY(basis) && riskyElems(it.candidate).length) {
+      const items = elemConfirm(it.candidate, riskyElems(it.candidate), opts && opts.items, 'confirm');
+      const from = it.status; it.status = STATUS.OK; it.time_confirmation = { basis, items };
+      log(s, it, 'подтверждено', from, it.value, { time_basis: basis, time_confirmation: tcLog(it.time_confirmation) });
+      return it;
+    }
     if (RISKY(basis) && !(opts && opts.timeIsEvent === true))
       throw new Error('confirm: у сведения ' + it.candidate.field + ' время записи врача или время неизвестного типа — подтвердите явно, что это время события, и укажите основание (или исправьте значение)');
     if (RISKY(basis) && !reasonOf(opts.basisReason)) throw new Error('confirm: у сведения ' + it.candidate.field + ' не указано основание, почему это время события');
@@ -129,9 +183,15 @@
     // (ревью ae85d85). Для прочих полей контракт этапа 7 сохранён: правка на то же значение допустима и не меняет данные.
     if (RISKY(basis) && same(value, it.value)) throw new Error('edit: значение сведения ' + it.candidate.field + ' не изменено — время записи подтверждается только явно («это время события» + основание)');
     if (RISKY(basis) && !reason) throw new Error('edit: у сведения ' + it.candidate.field + ' время записи врача или время неизвестного типа — укажите основание исправления (откуда время события)');
+    // список: элементы со временем записи, чьё время осталось в новом значении, подтверждаются поэлементно
+    let items = null;
+    if (RISKY(basis) && riskyElems(it.candidate).length) {
+      const keep = Array.isArray(value) ? riskyElems(it.candidate).filter(e => value.some(v => atOf(v) === e.at)) : [];
+      if (keep.length) items = elemConfirm(it.candidate, keep, opts && opts.items, 'edit');
+    }
     const from = it.value; it.value = clone(value); it.status = STATUS.EDITED; it.choice = it.choice || null;
-    it.time_confirmation = RISKY(basis) ? { basis, reason, by: 'исправление' } : null;
-    log(s, it, 'исправлено', from, value, { reason: reason, time_basis: basis, time_confirmation: it.time_confirmation ? reason : null });
+    it.time_confirmation = RISKY(basis) ? Object.assign({ basis, reason, by: 'исправление' }, items ? { items } : {}) : null;
+    log(s, it, 'исправлено', from, value, { reason: reason, time_basis: basis, time_confirmation: tcLog(it.time_confirmation) });
   }
 
   function reject(s, id, opts) {
@@ -157,26 +217,34 @@
   /** Сбор случая. Неподтверждённое и отклонённое не попадает в data. */
   function build(s) {
     const data = { facility_utc_offset: s.tz }, sources = {};
-    const pending = [], rejected = [], used = [];
+    const pending = [], rejected = [], used = [], unconfirmed = [];
     for (const it of s.items) {
       const c = it.candidate;
-      if (it.status === STATUS.NEW) { pending.push(c.field); continue; }
+      const unconf = () => unconfirmed.push({ field: c.field, time_basis: basisOf(c, it.choice), status: it.status, fragment: it.choice ? it.choice.fragment : c.fragment,
+        elements: riskyElems(c).map(e => ({ index: e.index, at: e.at, fragment: e.fragment })) });
+      if (it.status === STATUS.NEW) { pending.push(c.field); if (!c.manual && RISKY(basisOf(c, it.choice))) unconf(); continue; }
       if (it.status === STATUS.REJECTED) { rejected.push(c.field); continue; }
       if (it.value === undefined) { pending.push(c.field); continue; }
       // защита на границе: время записи / неизвестного типа без явного подтверждения не передаётся, как бы ни был выставлен статус
-      if (!c.manual && RISKY(basisOf(c, it.choice)) && !(it.time_confirmation && reasonOf(it.time_confirmation.reason))) { pending.push(c.field); continue; }
+      if (!c.manual && RISKY(basisOf(c, it.choice)) && !confirmedOK(it)) {
+        pending.push(c.field); unconf(); continue; }
       data[c.field] = clone(it.value);
       sources[c.field] = { document: s.document_id, fragment: c.manual ? null : it.choice ? it.choice.fragment : c.fragment,
         author: s.actor, confidence: c.manual ? 'введено врачом' : it.status === STATUS.EDITED ? 'исправлено врачом' : 'подтверждено врачом' };
-      if (!c.manual) { const b = basisOf(c, it.choice); if (b) { sources[c.field].time_basis = b; if (it.time_confirmation) sources[c.field].time_confirmation = it.time_confirmation.reason; }
-        if (c.time_basis_items) sources[c.field].time_basis_items = clone(c.time_basis_items); }
+      if (!c.manual) { const b = basisOf(c, it.choice); if (b) { sources[c.field].time_basis = b; if (it.time_confirmation && it.time_confirmation.reason) sources[c.field].time_confirmation = it.time_confirmation.reason; }
+        if (c.time_basis_items) sources[c.field].time_basis_items = clone(c.time_basis_items).map(x => {
+          const ci = it.time_confirmation && it.time_confirmation.items && it.time_confirmation.items.find(y => y.index === x.index);
+          return ci ? Object.assign(x, { time_confirmation: ci.reason }) : x; }); }
       used.push(c.field);
     }
     const total = s.items.length, decided = total - s.items.filter(x => x.status === STATUS.NEW).length;
     return {
       case: { synthetic: s.synthetic, data, sources },
       // complete — решение есть по всем извлечённым сведениям; source_complete — исходный документ прочитан полностью
-      completeness: { total, decided, pending: pending.length, rejected: rejected.length, used: used.length, complete: decided === total,
+      // complete требует и решения по каждому сведению, и отсутствия задержанных (время записи без подтверждения):
+      // статус, выставленный в обход подтверждения, не делает проверку завершённой и не открывает выгрузку
+      completeness: { total, decided, pending: pending.length, rejected: rejected.length, used: used.length, complete: decided === total && pending.length === 0,
+        time_unconfirmed: unconfirmed,
         source_complete: s.warnings.length === 0, source_warnings: s.warnings.slice() },
       pending_fields: pending, rejected_fields: rejected,
       version: s.version,
@@ -186,5 +254,5 @@
   /** Отпечаток передаваемых в движок данных: карточки «устарели», только если он изменился. */
   function fingerprint(built) { return JSON.stringify(built.case.data); }
 
-  return { VERSION, STATUS, createSession, choose, confirm, confirmGroup, edit, reject, addManual, build, fingerprint, needsChoice, needsTimeConfirm, basisOf };
+  return { VERSION, STATUS, createSession, choose, confirm, confirmGroup, edit, reject, addManual, build, fingerprint, needsChoice, needsTimeConfirm, basisOf, listElems, riskyElems };
 }));

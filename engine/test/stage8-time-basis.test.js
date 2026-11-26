@@ -226,12 +226,57 @@ test('групповое подтверждение пропускает вре�
   assert.ok(!('enteral_feeding_stopped_at' in CB.build(s).case.data));
 });
 
-test('список (СРБ): источник содержит тип времени каждого элемента', () => {
+test('список: поэлементное подтверждение — одно основание на весь список не принимается', () => {
   const s = sess('05.03.2026 09:20 — Исходный СРБ взят.');
   const it = item(s, 'crp_samples');
-  assert.throws(() => CB.confirm(s, it.candidate.id), /подтвердите явно/);
-  CB.confirm(s, it.candidate.id, T_OK);
+  const [e] = CB.riskyElems(it.candidate);
+  assert.equal(e.at, '2026-03-05T09:20+05:00'); assert.equal(e.fragment, '05.03.2026 09:20 — Исходный СРБ', 'точная цитата из извлечения');
+  assert.throws(() => CB.confirm(s, it.candidate.id), /поэлементно/);
+  assert.throws(() => CB.confirm(s, it.candidate.id, T_OK), /поэлементно/, 'общее основание на список');
+  assert.throws(() => CB.confirm(s, it.candidate.id, { items: [{ index: 0, at: e.at, timeIsEvent: true, basisReason: '  ' }] }), /основание/);
+  assert.throws(() => CB.confirm(s, it.candidate.id, { items: [{ index: 0, at: '2026-03-05T09:00+05:00', timeIsEvent: true, basisReason: 'x' }] }), /не совпадает/);
+  assert.throws(() => CB.confirm(s, it.candidate.id, { items: [{ index: 0, at: e.at, timeIsEvent: 'да', basisReason: 'x' }] }), /не подтверждён/);
+  assert.equal(it.status, CB.STATUS.NEW); assert.ok(!('crp_samples' in CB.build(s).case.data));
+  CB.confirm(s, it.candidate.id, { items: [{ index: 0, at: e.at, timeIsEvent: true, basisReason: ' лаб. журнал: забор 09:20 ' }] });
   const src = CB.build(s).case.sources.crp_samples;
-  assert.deepEqual(src.time_basis_items.map(x => x.time_basis), ['document_time']);
-  assert.equal(src.time_confirmation, T_OK.basisReason);
+  assert.ok(!('time_confirmation' in src), 'общего основания нет');
+  assert.deepEqual(src.time_basis_items.map(x => [x.index, x.time_basis, x.time_confirmation]), [[0, 'document_time', 'лаб. журнал: забор 09:20']]);
+  assert.equal(src.time_basis_items[0].fragment, e.fragment);
+  const j = s.journal.at(-1);
+  assert.deepEqual(j.time_confirmation, [{ index: 0, at: e.at, reason: 'лаб. журнал: забор 09:20' }]);
+});
+
+test('список из двух элементов: подтверждение только одного не передаёт список; лишний/несуществующий элемент отклоняется', () => {
+  const s = sess('02.03.2026 08:00 — pH 7,31, PaCO2 48 мм рт. ст.\n02.03.2026 14:00 — pH 7,44, PaCO2 32 мм рт. ст.');
+  const it = item(s, 'blood_gases');
+  const r = CB.riskyElems(it.candidate);
+  assert.equal(r.length, 2);
+  assert.deepEqual(r.map(e => e.at), ['2026-03-02T08:00+05:00', '2026-03-02T14:00+05:00']);
+  assert.ok(r[0].fragment.includes('pH 7,31') && r[1].fragment.includes('pH 7,44'), 'у каждого элемента своя цитата');
+  const one = { index: 0, at: r[0].at, timeIsEvent: true, basisReason: 'КОС 08:00 в листе газов' };
+  assert.throws(() => CB.confirm(s, it.candidate.id, { items: [one] }), /элемент №2/);
+  assert.throws(() => CB.confirm(s, it.candidate.id, { items: [one, { index: 1, at: r[0].at, timeIsEvent: true, basisReason: 'x' }] }), /не совпадает/, 'время первого элемента подставлено во второй');
+  assert.throws(() => CB.confirm(s, it.candidate.id, { items: [one, { index: 1, at: r[1].at, timeIsEvent: true, basisReason: 'y' }, { index: 5, at: r[1].at, timeIsEvent: true, basisReason: 'z' }] }), /не существует/);
+  assert.ok(!('blood_gases' in CB.build(s).case.data));
+  CB.confirm(s, it.candidate.id, { items: [one, { index: 1, at: r[1].at, timeIsEvent: true, basisReason: 'КОС 14:00 в листе газов' }] });
+  assert.equal(CB.build(s).case.data.blood_gases.length, 2);
+  // обход: подмена подтверждения на одно общее основание — build не передаёт
+  it.time_confirmation = { basis: 'unknown', reason: 'всё верно' };
+  assert.ok(!('blood_gases' in CB.build(s).case.data));
+});
+
+test('список: исправление одним основанием при сохранённых временах записи не принимается; новое время — врача', () => {
+  const s = sess('02.03.2026 08:00 — pH 7,31, PaCO2 48 мм рт. ст.\n02.03.2026 14:00 — pH 7,44, PaCO2 32 мм рт. ст.');
+  const it = item(s, 'blood_gases'); const r = CB.riskyElems(it.candidate);
+  const v = JSON.parse(JSON.stringify(it.value)); v[0].ph = 7.30;          // pH исправлен, оба времени прежние
+  assert.throws(() => CB.edit(s, it.candidate.id, v, { reason: 'опечатка pH' }), /поэлементно/);
+  assert.throws(() => CB.edit(s, it.candidate.id, v, { reason: 'опечатка pH', items: [{ index: 0, at: r[0].at, timeIsEvent: true, basisReason: 'a' }] }), /элемент №2/);
+  CB.edit(s, it.candidate.id, v, { reason: 'опечатка pH', items: r.map(e => ({ index: e.index, at: e.at, timeIsEvent: true, basisReason: 'лист газов ' + e.at })) });
+  assert.equal(CB.build(s).case.data.blood_gases[0].ph, 7.30);
+  // оба времени заменены врачом — поэлементное подтверждение не нужно, достаточно основания правки
+  const s2 = sess('02.03.2026 08:00 — pH 7,31, PaCO2 48 мм рт. ст.\n02.03.2026 14:00 — pH 7,44, PaCO2 32 мм рт. ст.');
+  const it2 = item(s2, 'blood_gases'); const w = JSON.parse(JSON.stringify(it2.value));
+  w[0].drawn_at = '2026-03-02T07:50+05:00'; w[1].drawn_at = '2026-03-02T13:50+05:00';
+  CB.edit(s2, it2.candidate.id, w, { reason: 'лист газов: заборы 07:50 и 13:50' });
+  assert.deepEqual(CB.build(s2).case.data.blood_gases.map(x => x.drawn_at), ['2026-03-02T07:50+05:00', '2026-03-02T13:50+05:00']);
 });

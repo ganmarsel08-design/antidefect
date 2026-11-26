@@ -8,7 +8,9 @@ const env = { RulesEngine: require('../../rules-engine.js'), Derive: require('..
 const DIR = path.join(__dirname, '..', 'fixtures/stage7');
 const EX = JSON.parse(fs.readFileSync(path.join(DIR, 'stage7-extraction-gold.json'), 'utf8'));
 const TE = JSON.parse(fs.readFileSync(path.join(DIR, 'stage7-engine-technical.json'), 'utf8'));
-const TZ = '+05:00', OK = { timeIsEvent: true, basisReason: 'диагностика S8-4: явное подтверждение врачом' };
+const SIM = require('./time-confirm-sim.js');
+const TZ = '+05:00', OK = { timeIsEvent: true, basisReason: 'диагностика S8-4 (техническая симуляция): явное подтверждение врачом' };
+const okFor = it => SIM.confirmOpts(it, OK.basisReason);
 let k = 0; const now = () => new Date(Date.UTC(2026, 10, 20, 9, 0, k++)).toISOString();
 const labels = v => v.rules.map(r => [r.rule_id, r.label]);
 
@@ -30,9 +32,9 @@ function risky(h) {
 /** Путь этапа 7 + явное подтверждение времени записи там, где без него confirm/choose отказывают. */
 function reviewExplicit(s, pick) {
   for (const it of s.items) if (CB.needsChoice(it.candidate)) CB.choose(s, it.candidate.id, pick || 0, OK);
-  for (const it of s.items) if (it.candidate.critical && it.status === CB.STATUS.NEW) CB.confirm(s, it.candidate.id, CB.needsTimeConfirm(it) ? OK : undefined);
+  for (const it of s.items) if (it.candidate.critical && it.status === CB.STATUS.NEW) CB.confirm(s, it.candidate.id, CB.needsTimeConfirm(it) ? okFor(it) : undefined);
   for (const g of [...new Set(s.items.map(i => i.candidate.group))]) CB.confirmGroup(s, g);
-  for (const it of s.items) if (it.status === CB.STATUS.NEW && CB.needsTimeConfirm(it)) CB.confirm(s, it.candidate.id, OK);
+  for (const it of s.items) if (it.status === CB.STATUS.NEW && CB.needsTimeConfirm(it)) CB.confirm(s, it.candidate.id, okFor(it));
 }
 
 function endToEnd(h) {
