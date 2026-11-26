@@ -245,8 +245,8 @@
     { re: /[Нн]ачата антибактериальная терапия/g, emit: () => [{ f: 'antibiotics_started', v: true }] },
     { re: /[Аа]нтибактериальная терапия: /g, emit: () => [{ f: 'antibiotics_started', v: true }] },
     { re: /[Аа]нтибактериальная терапия не назначалась/g, emit: () => [{ f: 'antibiotics_started', v: false }] },
-    { re: /[Кк]ровь на посев взята (\d\d)\.(\d\d)\.(\d{4}) (\d\d):(\d\d)/g, emit: (m, c) => [{ f: 'blood_culture_drawn_at', v: iso(m, 1, c.tz) }] },
-    { re: /[Пп]ервая доза (?!антибиотик)[а-яё]+ введена (\d\d)\.(\d\d)\.(\d{4}) (\d\d):(\d\d)/g, emit: (m, c) => [{ f: 'first_abx_dose_administered_at', v: iso(m, 1, c.tz) }] },
+    { inline: true, re: /[Кк]ровь на посев взята (\d\d)\.(\d\d)\.(\d{4}) (\d\d):(\d\d)/g, emit: (m, c) => [{ f: 'blood_culture_drawn_at', v: iso(m, 1, c.tz) }] },
+    { inline: true, re: /[Пп]ервая доза (?!антибиотик)[а-яё]+ введена (\d\d)\.(\d\d)\.(\d{4}) (\d\d):(\d\d)/g, emit: (m, c) => [{ f: 'first_abx_dose_administered_at', v: iso(m, 1, c.tz) }] },
     { re: new RegExp(DT + ' — кровь на посев взята', 'g'), emit: (m, c) => [{ f: 'blood_culture_drawn_at', v: iso(m, 1, c.tz) }] },
     // «из периферической вены» не доказывает отдельную вену (ревью ChatGPT к PR №13) — только явное «отдельной»
     { re: /из отдельной (?:периферической )?вены/g, when: l => /посев/.test(l), emit: () => [{ f: 'sample_site', v: 'separate_vein' }] },
@@ -443,6 +443,19 @@
   const PLAN = /планиру|запланир|решено начать|решить вопрос|рассмотреть|при необходимости|в случае|(?:^|\s)если\s|рекомендован|показано|продолжен[\wА-Яа-яЁё]* до получения/i;
   const COND_CLAUSE = /^\s*(?:\d\d:\d\d\s*—\s*)?(?:При|при)\s/;
   const OTHER = /[Мм]атер|[Мм]ать[\s:,]|у матери|[Мм]атеринск|у (?:первого|второго|другого|соседн)[\wА-Яа-яЁё]* ребён|соседн[\wА-Яа-яЁё]* койк|предыдущ[\wА-Яа-яЁё]* ребён|в анамнезе|[Дд]ля справки/;
+  /** Привязка явного времени к действию: одна отметка времени во фразе и никаких признаков плана, условия, отрицания,
+   *  неопределённости, другого пациента, результата. Иначе — unknown, как раньше. */
+  function inlineEvent(line, s, e) {
+    const cl = clause(line, s);
+    // заголовок записи в начале строки («ДД.ММ.ГГГГ ЧЧ:ММ —», «ЧЧ:ММ —») — время записи, не второе время фразы
+    const hd = /^\s*(?:\d\d\.\d\d\.\d{4}\s+)?\d\d:\d\d\s*(?:—|–|-)\s*/.exec(line);
+    const t = line.slice(Math.max(cl.s, hd && cl.s < hd[0].length ? hd[0].length : cl.s), cl.e);
+    if (timesIn(t).length !== 1) return false;
+    if (/^\s*\?/.test(line.slice(e))) return false;
+    if (PLAN.test(t) || COND_CLAUSE.test(t) || OTHER.test(t) || UNKNOWN.test(t) || /\?|предполож|возможно|результат|ответ/i.test(t)) return false;
+    if (NEG.test(line.slice(cl.s, e).replace(line.slice(s, e), ' '))) return false;
+    return true;
+  }
   function blocked(g, line, s, e) {
     const sg = segment(line, s), seg = line.slice(sg.s, sg.e), cl = clause(line, s), cls = line.slice(cl.s, cl.e);
     if (g.includes('u') && UNKNOWN.test(seg)) return true;
@@ -901,6 +914,9 @@
             if (UNCERTAIN_FIELDS.test(o.f) && uncertain(line, m.index, m.index + m[0].length, o.f)) continue; // предварительное, под вопросом, исключить
             const hit = Object.assign({}, o, { start: s, end: Math.max(e, s + 1), list: rule.list || null });
             // тип времени обязателен у каждого временного значения; не определён правилом → unknown (не event_time)
+            // явные дата и время сразу после глагола действия в той же фразе — время события, если во фразе одно время,
+            // нет плана/условия, отрицания, неопределённости, другого пациента (разрешено рецензентом 26.11, ответ 2)
+            if (isTimeHit(hit) && !hit.tb && rule.inline && inlineEvent(line, m.index, m.index + m[0].length)) { hit.tb = 'event_time'; hit.ts = 'явные дата и время сразу после действия в той же фразе'; }
             if (isTimeHit(hit) && !hit.tb) { hit.tb = 'unknown'; hit.ts = 'тип времени не определён (правило без привязки времени)'; }
             if (old) superseded.push(hit); else hits.push(hit);
           }
