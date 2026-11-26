@@ -13,9 +13,10 @@ const X = require(path.join(ROOT, 'engine/extract/extract.js'));
 const EX = JSON.parse(fs.readFileSync(path.join(ROOT, 'engine/test/fixtures/stage7/stage7-extraction-gold.json'), 'utf8'));
 let bad = [];
 
+const UI_ONLY = process.argv.includes('--ui-only');
 // 1) счёт значений уровня 1 (значение совпало — без проверки фрагментов; честный итог)
 let total = 0, matched = 0; const missing = [];
-for (const h of EX.histories) {
+for (const h of UI_ONLY ? [] : EX.histories) {
   const got = new Map(X.extract(h.text, { tz: EX.facility_utc_offset_default }).candidates.map(c => [c.field, c]));
   for (const it of h.items) {
     total++; const c = got.get(it.field);
@@ -23,17 +24,17 @@ for (const h of EX.histories) {
     if (ok) matched++; else missing.push(h.id + ' ' + it.field);
   }
 }
-console.log(`этап 7 (неизменённый контроль): значения ${matched} из ${total}`);
-if (total !== EXP.values.total || matched !== EXP.values.expected_matched) bad.push(`ожидалось ${EXP.values.expected_matched} из ${EXP.values.total}`);
+if (!UI_ONLY) console.log(`этап 7 (неизменённый контроль): значения ${matched} из ${total}`);
+if (!UI_ONLY && (total !== EXP.values.total || matched !== EXP.values.expected_matched)) bad.push(`ожидалось ${EXP.values.expected_matched} из ${EXP.values.total}`);
 const expMissing = EXP.incompatibilities.filter(x => x.history).map(x => x.history + ' ' + x.field).sort();
-if (JSON.stringify(missing.sort()) !== JSON.stringify(expMissing)) bad.push('не совпали значения: ' + JSON.stringify(missing));
+if (!UI_ONLY && JSON.stringify(missing.sort()) !== JSON.stringify(expMissing)) bad.push('не совпали значения: ' + JSON.stringify(missing));
 
 // 2) тесты этапа 7 как есть
 const files = [...new Set(EXP.expected_failing_tests.map(t => t.file))];
 for (const f of fs.readdirSync(path.join(ROOT, 'engine/test')).filter(n => /^stage7-.*\.test\.js$/.test(n))) {
   const rel = 'engine/test/' + f; if (!files.includes(rel)) files.push(rel);
 }
-for (const rel of files) {
+for (const rel of UI_ONLY ? [] : files) {
   const r = spawnSync(process.execPath, ['--test', '--test-reporter=tap', rel], { cwd: ROOT, encoding: 'utf8', timeout: 600000 });
   // авария процесса не должна выглядеть как «ожидаемые падения» (ревью ChatGPT к e690664)
   if (r.error) { bad.push(`${rel}: процесс не запустился или прерван: ${r.error.message}`); continue; }
@@ -68,9 +69,12 @@ for (const rel of files) {
 }
 
 // 3) браузерный сценарий этапа 7 как есть
-if (process.argv.includes('--ui')) {
-  const r = spawnSync(process.execPath, [path.join(ROOT, 'engine/test/ui/expert.scenario.js')], { cwd: ROOT, encoding: 'utf8', env: process.env, timeout: 600000 });
+if (process.argv.includes('--ui') || process.argv.includes('--ui-only')) {
+  const uiScript = process.env.STAGE7_UI_SCRIPT || path.join(ROOT, 'engine/test/ui/expert.scenario.js'); // подмена — только для теста самого контроля
+  const r = spawnSync(process.execPath, [uiScript], { cwd: ROOT, encoding: 'utf8', env: process.env, timeout: 600000 });
   if (r.error || r.signal) bad.push(`UI: процесс прерван (${r.error ? r.error.message : r.signal})`);
+  // код выхода: при ровно ожидаемых падениях — только записанный (ревью ChatGPT к 0c1462d: авария после корректного вывода)
+  else if (r.status !== EXP.expected_ui.exit_status) bad.push(`UI: код выхода ${r.status}, ожидался ${EXP.expected_ui.exit_status}`);
   const out = (r.stdout || '') + (r.stderr || '');
   const sm = /этап 7, браузер: (\d+)\/(\d+)/.exec(out);
   if (!sm) bad.push('UI: нет итоговой строки «этап 7, браузер: N/M» — прогон неполный');

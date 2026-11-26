@@ -107,6 +107,8 @@
   },
   "expected_ui": {
     "passed": 50,
-    "total": 51
+    "total": 51,
+    "exit_status": 1,
+    "exit_status_note": "expert.scenario.js завершается с кодом 1, если упал хотя бы один шаг; при ровно ожидаемом падении S8-2 допустим только код 1"
   }
 }
