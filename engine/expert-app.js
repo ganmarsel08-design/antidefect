@@ -118,10 +118,15 @@
     // список: каждый элемент со временем записи подтверждается отдельно — своё время, своя цитата, своё основание
     const elemBox = (elems, tag) => elems.map(e => ({ e,
       chk: h('input', { type: 'checkbox', ['data-' + tag + '-elem']: c.id + ':' + e.index }),
+      rej: tag === 'time' ? h('input', { type: 'checkbox', ['data-' + tag + '-elem-reject']: c.id + ':' + e.index }) : null,
       rsn: h('input', { placeholder: 'основание для элемента №' + (e.index + 1), ['data-' + tag + '-elem-reason']: c.id + ':' + e.index, style: 'width:95%' }) }));
-    const elemNodes = boxes => boxes.map(b => h('div', { class: 'elem', 'data-elem-at': b.e.at }, h('label', null, b.chk, ' №' + (b.e.index + 1) + ' ' + (b.e.at || '') + ' «' + (b.e.fragment || '') + '» — это время события'), b.rsn));
-    const elemItems = boxes => boxes.map(b => ({ index: b.e.index, at: b.e.at, timeIsEvent: b.chk.checked, basisReason: b.rsn.value }));
-    const elemReady = boxes => boxes.every(b => b.chk.checked && b.rsn.value.trim());
+    const elemNodes = boxes => boxes.map(b => h('div', { class: 'elem', 'data-elem-at': b.e.at },
+      h('label', null, b.chk, ' №' + (b.e.index + 1) + ' ' + (b.e.at || '') + ' «' + (b.e.fragment || '') + '» — ' + (b.e.from_table ? 'строка таблицы верна, время — время события' : 'это время события')),
+      b.rej ? h('label', null, ' ', b.rej, ' отклонить элемент') : null, b.rsn));
+    // элемент либо подтверждён, либо отклонён — с основанием/причиной в том же поле
+    const elemItems = boxes => boxes.map(b => (b.rej && b.rej.checked ? { index: b.e.index, at: b.e.at, reject: true, reason: b.rsn.value }
+      : { index: b.e.index, at: b.e.at, timeIsEvent: b.chk.checked, basisReason: b.rsn.value }));
+    const elemReady = boxes => boxes.every(b => (b.chk.checked !== !!(b.rej && b.rej.checked)) && b.rsn.value.trim());
     const elems = risky ? CB.riskyElems(c) : [];
     const ebox = elemBox(elems, 'time');
     const tchk = risky && !elems.length ? h('input', { type: 'checkbox', 'data-time-event': c.id }) : null;
@@ -153,7 +158,7 @@
     // кнопка «подтвердить» для времени записи доступна только после отметки «это время события» и основания
     if (risky) { const ok = tr.querySelector('button[data-act="ok"]');
       const upd = () => { ok.disabled = !(elems.length ? elemReady(ebox) : (tchk.checked && treason.value.trim())) || (CB.needsChoice(c) && !it.choice); };
-      for (const n of elems.length ? ebox.flatMap(b => [b.chk, b.rsn]) : [tchk, treason]) { n.addEventListener('change', upd); n.addEventListener('input', upd); } }
+      for (const n of elems.length ? ebox.flatMap(b => [b.chk, b.rsn, b.rej].filter(Boolean)) : [tchk, treason]) { n.addEventListener('change', upd); n.addEventListener('input', upd); } }
     return tr;
   }
 
@@ -167,6 +172,13 @@
     if (me.length) dw.appendChild(h('details', { class: 'muted', 'data-test': 'med-status' }, h('summary', null, `Препараты в тексте: план / назначено / введено / отменено (${me.length}) — для сведения, в случай не входит`),
       h('table', null, h('tr', null, h('th', null, 'Препарат'), h('th', null, 'Статус в записи'), h('th', null, 'Время введения (только своё время события)'), h('th', null, 'Фрагмент')),
         me.map(e => h('tr', { 'data-status': e.status }, h('td', null, e.drug), h('td', null, e.status_label, e.note ? h('div', { class: 'muted' }, e.note) : null), h('td', null, e.at ? e.at.slice(0, 16).replace('T', ' ') : '—'), h('td', null, '«' + e.fragment.text + '»'))))));
+    const to = (S.extraction && S.extraction.table_observations) || { observations: [], changes: [] };
+    if (to.observations.length) dw.appendChild(h('details', { class: 'muted', 'data-test': 'table-obs' }, h('summary', null, `Наблюдения ИВЛ / FiO2 из таблиц (${to.observations.length}) — вне словаря, в случай не входят`),
+      h('table', null, h('tr', null, h('th', null, 'Время строки'), h('th', null, 'Режим'), h('th', null, 'Значения (как записано)'), h('th', null, 'Строка')),
+        to.observations.map(o => h('tr', { 'data-obs': o.at }, h('td', null, o.at.slice(0, 16).replace('T', ' ') + (o.time_basis === 'unknown' ? ' (тип времени не известен)' : '')), h('td', null, o.mode || '—'),
+          h('td', null, Object.entries(o.values).map(([k, v]) => k + ' ' + v.written + (v.unit ? ' ' + v.unit : '')).join('; ')), h('td', null, '«' + o.fragment.text + '»')))),
+      to.changes.length ? h('div', null, h('b', null, 'Изменения между наблюдениями (время действия врача неизвестно):'),
+        h('ul', null, to.changes.map(c2 => h('li', { 'data-change': c2.parameter }, `${c2.parameter}: ${c2.from} → ${c2.to}${c2.unit ? ' ' + c2.unit : ''} в интервале ${c2.between[0].slice(11, 16)} … ${c2.between[1].slice(0, 16).replace('T', ' ')}`)))) : null));
     const groups = new Map();
     for (const it of s.items) { const g = it.candidate.group; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(it); }
     const G = clear($('groups'));
