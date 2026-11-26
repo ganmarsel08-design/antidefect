@@ -24,7 +24,7 @@
 }(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.8.0-dev';
+  const VERSION = '0.8.1-dev';
   const DT = '(\\d\\d)\\.(\\d\\d)\\.(\\d{4}) (\\d\\d):(\\d\\d)';
   const L = 'А-Яа-яЁё';
   const NOT_BEFORE = `(?<![${L}])`; // начало слова для кириллицы (\b в JS не работает с кириллицей)
@@ -182,13 +182,13 @@
       });
       const uniq = [...new Set(vals)];
       if (uniq.length !== 1 || uniq[0] === null) return null;
-      if (hv && uniq[0] === hv) return { value: hv, index: h.index, end: h.end };
-      const t = own[0]; return { value: uniq[0], index: t.index, end: t.end };
+      if (hv && uniq[0] === hv) return { value: hv, index: h.index, end: h.end, basis: 'event_time', source: 'время в той же части записи совпадает со временем записи' };
+      const t = own[0]; return { value: uniq[0], index: t.index, end: t.end, basis: 'event_time', source: t.date ? 'время события с датой в тексте' : (h ? 'время события; дата — из записи' : 'время события; дата — из заголовка раздела') };
     }
-    return h ? { value: hv, index: h.index, end: h.end } : null;
+    return h ? { value: hv, index: h.index, end: h.end, basis: 'document_time', source: h.date && line.slice(h.index, h.index + 10).match(/\d\d[.\/]/) ? 'время записи (заголовок записи)' : 'время записи; дата — из заголовка раздела' } : null;
   }
   /** Кандидат «поле = время события»: фрагмент охватывает и событие, и время. */
-  const atField = (f, d, m) => ({ f, v: d.value, s: Math.min(d.index, m.index), e: Math.max(d.end, m.index + m[0].length) });
+  const atField = (f, d, m) => ({ f, v: d.value, s: Math.min(d.index, m.index), e: Math.max(d.end, m.index + m[0].length), tb: d.basis, ts: d.source });
   /** Отметка с датой без времени в начале записи («08.06.2026 — …»). */
   function eventDateOnly(line, idx) {
     const m = /^(\d\d)\.(\d\d)\.(\d{4}) — /.exec(line) || /(?:^|[.;] )(\d\d)\.(\d\d)\.(\d{4}) — /.exec(line.slice(0, idx + 1));
@@ -419,7 +419,7 @@
       const v = kind === 'passage_true';
       const d = eventDT(c.line, m.index, c.tz, c.ctx, m.index + m[0].length), dd = d ? null : eventDateOnly(c.line, m.index);
       const obs = { v, at: d ? d.value : null, date: d ? d.value.slice(0, 10) : dd ? dd.date : null };
-      const r = [{ f: 'gi_passage_restored', obs, s: d ? Math.min(d.index, m.index) : dd ? dd.index : m.index, e: d ? Math.max(d.end, m.index + m[0].length) : m.index + m[0].length }];
+      const r = [{ f: 'gi_passage_restored', obs, tb: d ? d.basis : null, ts: d ? d.source : null, s: d ? Math.min(d.index, m.index) : dd ? dd.index : m.index, e: d ? Math.max(d.end, m.index + m[0].length) : m.index + m[0].length }];
       if (v && d) r.push(atField('gi_passage_restored_at', d, m));
       return r;
     }
@@ -692,20 +692,31 @@
         const c = Object.assign(base, { timeline, fragment: timeline[0].fragment.text, start: timeline[0].fragment.start, end: timeline[0].fragment.end, fragments: timeline.map(t => t.fragment) });
         if (values.length === 1 && timeline.length === 1) c.value = timeline[0].v; // одно наблюдение — обычное значение
         else c.note = 'Несколько наблюдений во времени. Движок принимает одно значение — выбирает врач; автоматического выбора нет.';
+        // тип времени наблюдений — отдельным массивом (форма timeline этапа 7 не меняется)
+        if (hs.some(h => h.tb)) { c.timeline_basis = hs.map(h => ({ at: h.obs.at, time_basis: h.tb || null, time_source: h.ts || null }));
+          if (hs.some(h => h.tb === 'document_time')) { c.critical = true; c.note = (c.note ? c.note + ' ' : '') + 'Время части наблюдений — время записи врача, а не доказанное время события: подтвердите или исправьте.'; } }
         candidates.push(c); continue;
       }
       if (hs[0].list) {
         const items = []; const frs = [];
         for (const h of hs) if (!items.some(x => same(x, h.v))) { items.push(h.v); frs.push(frag(h)); }
-        candidates.push(Object.assign(base, { value: items, fragment: frs[0].text, start: frs[0].start, end: frs[0].end, fragments: frs })); continue;
+        const lc = Object.assign(base, { value: items, fragment: frs[0].text, start: frs[0].start, end: frs[0].end, fragments: frs });
+        const tbs = hs.filter(h => h.tb).map(h => h.tb);
+        if (tbs.length) { lc.time_basis_items = hs.filter(h => h.tb).map(h => ({ value: h.v, time_basis: h.tb, time_source: h.ts })); if (tbs.includes('document_time')) { lc.critical = true; lc.note = 'В части элементов время — время записи врача, а не доказанное время события: подтвердите или исправьте.'; } }
+        candidates.push(lc); continue;
       }
       const distinct = [];
-      for (const h of hs) { const d = distinct.find(x => same(x.v, h.v)); if (d) d.frs.push(frag(h)); else distinct.push({ v: h.v, frs: [frag(h)], note: h.note }); }
+      for (const h of hs) { const d = distinct.find(x => same(x.v, h.v)); if (d) { d.frs.push(frag(h)); if (h.tb === 'event_time') { d.tb = 'event_time'; d.ts = h.ts; } } else distinct.push({ v: h.v, frs: [frag(h)], note: h.note, tb: h.tb, ts: h.ts }); }
       const c = Object.assign(base, { value: distinct[0].v, fragment: distinct[0].frs[0].text, start: distinct[0].frs[0].start, end: distinct[0].frs[0].end, fragments: distinct[0].frs });
       if (distinct[0].note) c.note = distinct[0].note;
+      // тип времени (этап 2 issue #10): время записи ≠ время события; такое значение — только с отдельным подтверждением врача
+      if (distinct.some(d => d.tb)) {
+        if (distinct.length === 1) { c.time_basis = distinct[0].tb; c.time_source = distinct[0].ts; }
+        if (distinct.some(d => d.tb === 'document_time')) { c.critical = true; c.note = (c.note ? c.note + ' ' : '') + 'Время записи врача, а не доказанное время события: подтвердите или исправьте. До подтверждения интервалы по нему не считаются.'; }
+      }
       if (/^(gentamicin|benzylpenicillin|metronidazole)_given$/.test(f)) c.note = (c.note ? c.note + ' ' : '') + 'Поле означает «назначен / включён в терапию»; факт и время введения подтверждаются отдельно.';
       if (distinct.length > 1) {
-        c.alternatives = distinct.map(d => ({ value: d.v, fragments: d.frs }));
+        c.alternatives = distinct.map(d => Object.assign({ value: d.v, fragments: d.frs }, d.tb ? { time_basis: d.tb, time_source: d.ts } : {}));
         delete c.value; c.note = 'В тексте разные значения. Выбирает врач.';
       }
       candidates.push(c);
