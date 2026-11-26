@@ -115,8 +115,17 @@
       c.time_basis_items ? h('div', { class: 'muted' }, c.time_basis_items.map(x => h('div', { 'data-basis': x.time_basis }, BLBL[x.time_basis] + ': ' + fmt(x.value)))) : null);
     // время записи / неизвестного типа: подтверждение — только явное «это время события» с основанием
     const risky = !c.manual && CB.needsTimeConfirm(it) && it.status === CB.STATUS.NEW;
-    const tchk = risky ? h('input', { type: 'checkbox', 'data-time-event': c.id }) : null;
-    const treason = risky ? h('input', { placeholder: 'основание (например: в записи указано время введения)', 'data-time-reason': c.id, style: 'width:95%' }) : null;
+    // список: каждый элемент со временем записи подтверждается отдельно — своё время, своя цитата, своё основание
+    const elemBox = (elems, tag) => elems.map(e => ({ e,
+      chk: h('input', { type: 'checkbox', ['data-' + tag + '-elem']: c.id + ':' + e.index }),
+      rsn: h('input', { placeholder: 'основание для элемента №' + (e.index + 1), ['data-' + tag + '-elem-reason']: c.id + ':' + e.index, style: 'width:95%' }) }));
+    const elemNodes = boxes => boxes.map(b => h('div', { class: 'elem', 'data-elem-at': b.e.at }, h('label', null, b.chk, ' №' + (b.e.index + 1) + ' ' + (b.e.at || '') + ' «' + (b.e.fragment || '') + '» — это время события'), b.rsn));
+    const elemItems = boxes => boxes.map(b => ({ index: b.e.index, at: b.e.at, timeIsEvent: b.chk.checked, basisReason: b.rsn.value }));
+    const elemReady = boxes => boxes.every(b => b.chk.checked && b.rsn.value.trim());
+    const elems = risky ? CB.riskyElems(c) : [];
+    const ebox = elemBox(elems, 'time');
+    const tchk = risky && !elems.length ? h('input', { type: 'checkbox', 'data-time-event': c.id }) : null;
+    const treason = risky && !elems.length ? h('input', { placeholder: 'основание (например: в записи указано время введения)', 'data-time-reason': c.id, style: 'width:95%' }) : null;
     const terr = h('div', { class: 'err' });
     const frs = c.manual ? [h('span', { class: 'muted' }, 'внесено врачом')] : (c.fragments || []).map(f => h('div', { class: 'frag', onclick: () => focusFragment(c.id) }, '«' + f.text + '»'));
     const edit = () => {
@@ -125,19 +134,26 @@
       const msg = h('span', { class: 'err' });
       // время записи / неизвестного типа: исправление — только с основанием (откуда время события)
       const rsn = !c.manual && CB.needsTimeConfirm(it) ? h('input', { placeholder: 'основание исправления (откуда время события)', 'data-edit-reason': c.id, style: 'width:95%' }) : null;
-      td.append(inp, rsn, h('button', { 'data-act': 'save', onclick: () => { try { CB.edit(S.session, c.id, parseValue(it.value, inp.value.trim()), rsn ? { reason: rsn.value } : undefined); renderData(); } catch (e) { msg.textContent = e.message; } } }, 'Сохранить'), msg);
+      // список: элементы, чьё время записи остаётся в новом значении, подтверждаются поэлементно
+      const eb = rsn ? elemBox(CB.riskyElems(c), 'edit') : [];
+      td.append(inp, rsn, ...elemNodes(eb), h('button', { 'data-act': 'save', onclick: () => { try {
+        const nv = parseValue(it.value, inp.value.trim());
+        const keep = eb.filter(b => Array.isArray(nv) && nv.some(v => v && Object.values(v).includes(b.e.at)));
+        CB.edit(S.session, c.id, nv, rsn ? Object.assign({ reason: rsn.value }, eb.length ? { items: elemItems(keep) } : {}) : undefined); renderData(); } catch (e) { msg.textContent = e.message; } } }, 'Сохранить'), msg);
       inp.focus();
     };
     const tr = h('tr', { 'data-c': c.id, 'data-field': c.field },
       h('td', null, c.critical ? h('span', { class: 'crit', title: 'критическое' }, '★ ') : null, lbl(c.field), h('div', { class: 'code' }, c.field), c.note ? h('div', { class: 'muted' }, c.note) : null),
-      h('td', { class: 'vcell' }, valCell, risky ? h('div', { class: 'warnbox' }, h('label', null, tchk, ' Это время события, а не только время записи'), treason) : null, terr), h('td', null, frs),
+      h('td', { class: 'vcell' }, valCell, risky ? h('div', { class: 'warnbox' }, elems.length ? [h('div', null, 'Подтвердите каждый элемент отдельно:'), ...elemNodes(ebox)] : [h('label', null, tchk, ' Это время события, а не только время записи'), treason]) : null, terr), h('td', null, frs),
       h('td', null, h('span', { class: 'st ' + sc }, st)),
       h('td', { style: 'white-space:nowrap' },
-        h('button', { title: 'подтвердить', 'data-act': 'ok', disabled: (CB.needsChoice(c) && !it.choice) || risky, onclick: () => { try { CB.confirm(S.session, c.id, risky ? { timeIsEvent: tchk.checked, basisReason: treason.value.trim() } : undefined); renderData(); } catch (e) { terr.textContent = e.message; } } }, '✓'),
+        h('button', { title: 'подтвердить', 'data-act': 'ok', disabled: (CB.needsChoice(c) && !it.choice) || risky, onclick: () => { try { CB.confirm(S.session, c.id, !risky ? undefined : elems.length ? { items: elemItems(ebox) } : { timeIsEvent: tchk.checked, basisReason: treason.value.trim() }); renderData(); } catch (e) { terr.textContent = e.message; } } }, '✓'),
         h('button', { title: 'исправить', 'data-act': 'ed', onclick: edit }, '✎'),
         h('button', { title: 'отклонить', 'data-act': 'rej', onclick: () => { CB.reject(S.session, c.id); renderData(); } }, '✕')));
     // кнопка «подтвердить» для времени записи доступна только после отметки «это время события» и основания
-    if (risky) { const ok = tr.querySelector('button[data-act="ok"]'); const upd = () => { ok.disabled = !(tchk.checked && treason.value.trim()) || (CB.needsChoice(c) && !it.choice); }; tchk.addEventListener('change', upd); treason.addEventListener('input', upd); }
+    if (risky) { const ok = tr.querySelector('button[data-act="ok"]');
+      const upd = () => { ok.disabled = !(elems.length ? elemReady(ebox) : (tchk.checked && treason.value.trim())) || (CB.needsChoice(c) && !it.choice); };
+      for (const n of elems.length ? ebox.flatMap(b => [b.chk, b.rsn]) : [tchk, treason]) { n.addEventListener('change', upd); n.addEventListener('input', upd); } }
     return tr;
   }
 
