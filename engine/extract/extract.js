@@ -625,6 +625,44 @@
   // формулировки в начале предложения пишутся с заглавной: регистр в правилах этапа 8 не важен
   for (const r of RULES8) { if (!r.re.flags.includes('i')) r.re = new RegExp(r.re.source, r.re.flags + 'i'); RULES.push(r); }
 
+  /*
+   * Этап 3 issue #10 — статус препарата в записи: план / назначено / введено / отменено / не введено.
+   * Это СВЕДЕНИЯ ДЛЯ ВРАЧА, они не входят в случай и не меняют поля словаря. Поля *_given по-прежнему означают то,
+   * что сказано в словаре («назначен», «включён», «введён»), а время фактического введения — только
+   * first_abx_dose_administered_at и подобные поля «…_administered_at».
+   */
+  const MED_RE = new RegExp(LW + '(' + DRUG_ALT + '|иммуноглобулин[а-яё]*|сурфактант[а-яё]*|' + SURF + ')' + RW, 'gi');
+  const MED_STATUS = [
+    ['not_administered', /не вводил|не введ[её]н|не получал|фактически не/i],
+    ['cancelled', /отмен[её]н\S*|отменены|прекращ[её]н\S*|снят[аоы]? с /i],
+    ['planned', null],
+    ['administered', /введ[её]н(?:а|о|ы)?(?![а-яё])|вводил(?:ся|ась|ись)?|получа(?:ет|л)|начат[аыо]?(?![а-яё])/i],
+    ['prescribed', /назнач|лист назначений|^\s*\d\d[.\/]\d\d[.\/]\d{2,4}[^|]*\|/i],
+  ];
+  const MED_LABEL = { not_administered: 'не введено', cancelled: 'отменено', planned: 'план / условие', administered: 'введено', prescribed: 'назначено', mentioned: 'упомянуто' };
+  function medicationEvents(text, tz) {
+    const out = [];
+    for (const rec of records(text)) {
+      const line = rec.line; MED_RE.lastIndex = 0; let m;
+      while ((m = MED_RE.exec(line))) {
+        const raw = m[1]; const drug = drugName(raw) || raw.toLowerCase().replace(/(иммуноглобулин|сурфактант)[а-яё]*/, '$1');
+        if (OTHER.test(line.slice(clause(line, m.index).s, clause(line, m.index).e))) continue; // мать, другой ребёнок
+        const sent = ownSentences(line, m.index), sg = segment(line, m.index), cl = clause(line, m.index);
+        let status = 'mentioned';
+        for (const [st, re] of MED_STATUS) {
+          if (st === 'planned') { if (PLAN.test(line.slice(sg.s, sg.e)) || PLAN.test(line.slice(cl.s, cl.e)) || COND_CLAUSE.test(line.slice(cl.s, cl.e))) { status = st; break; } continue; }
+          if (re.test(sent) || (st === 'prescribed' && /\|/.test(line))) { status = st; break; }
+        }
+        // время введения — по глаголу введения в том же предложении, а не по названию препарата
+        let d = null;
+        if (status === 'administered') { const vr = /введ[её]н(?:а|о|ы)?(?![а-яё])|вводил(?:ся|ась|ись)?/ig; vr.lastIndex = cl.s; const v = vr.exec(line); if (v && v.index < cl.e) d = eventDT(line, v.index, tz, null, v.index + v[0].length); }
+        out.push({ drug, status, status_label: MED_LABEL[status], at: status === 'administered' && d && d.basis === 'event_time' ? d.value : null,
+          fragment: { text: line.slice(cl.s, cl.e).trim(), start: rec.start + cl.s, end: rec.start + cl.e } });
+      }
+    }
+    return out;
+  }
+
   /**
    * extract(text, {tz, documentId}) → {version, document_id, tz, candidates[], warnings[]}
    * Кандидат: {id, field, value | timeline, alternatives?, fragment, start, end, fragments[], status:'не подтверждено',
@@ -720,7 +758,7 @@
     }
     candidates.sort((a, b) => a.start - b.start);
     candidates.forEach((c, i) => { c.id = 'c' + (i + 1); });
-    return { version: VERSION, document_id: opts.documentId || null, tz, candidates, warnings: opts.warnings ? opts.warnings.slice() : [] };
+    return { version: VERSION, document_id: opts.documentId || null, tz, candidates, warnings: opts.warnings ? opts.warnings.slice() : [], medication_events: medicationEvents(text, tz) };
   }
 
   return { VERSION, extract, CRITICAL, group, records };
