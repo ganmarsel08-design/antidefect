@@ -16,10 +16,24 @@
 }(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.7.0-stage7';
+  const VERSION = '0.8.0-dev';
   const STATUS = { NEW: 'не подтверждено', OK: 'подтверждено', EDITED: 'исправлено', REJECTED: 'отклонено' };
   const clone = v => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
   const needsChoice = c => Array.isArray(c.alternatives) || (Array.isArray(c.timeline) && !('value' in c));
+  /*
+   * Этап 8 (issue #10, ревью №15): время записи (document_time) и время неизвестного типа (unknown) нельзя превратить
+   * во время события обычным подтверждением. Нужно явное подтверждение «это время события» и основание; оба пишутся
+   * в журнал и в источник значения. Тип берётся у выбранной альтернативы / наблюдения (по индексу), у списка — у элементов.
+   */
+  const RISKY = b => b === 'document_time' || b === 'unknown';
+  function basisOf(c, choice) {
+    if (choice && c.alternatives && c.alternatives[choice.index]) return c.alternatives[choice.index].time_basis || null;
+    if (choice && c.timeline_basis && c.timeline_basis[choice.index]) return c.timeline_basis[choice.index].time_basis || null;
+    if (c.timeline_basis && c.timeline && c.timeline.length === 1) return c.timeline_basis[0].time_basis || null;
+    if (c.time_basis_items) return c.time_basis_items.some(x => RISKY(x.time_basis)) ? (c.time_basis_items.some(x => x.time_basis === 'unknown') ? 'unknown' : 'document_time') : 'event_time';
+    return c.time_basis || null;
+  }
+  const needsTimeConfirm = it => RISKY(basisOf(it.candidate, it.choice));
 
   /**
    * createSession({extraction, actor, now, synthetic}) — extraction = результат AntidefectExtract.extract().
@@ -60,15 +74,23 @@
       : c.timeline ? c.timeline.map(t => ({ value: t.v, fragment: t.fragment.text, at: t.at, date: t.date })) : null;
     if (!list || !list[index]) throw new Error('choose: у сведения ' + id + ' нет варианта ' + index);
     const from = it.value;
-    it.value = clone(list[index].value); it.choice = Object.assign({ index }, list[index]); it.status = STATUS.OK;
-    log(s, it, 'выбор значения', from, it.value, { chosen_fragment: list[index].fragment, chosen_at: list[index].at || list[index].date || null, reason: opts && opts.reason || null });
+    const fr = c.alternatives ? c.alternatives[index].fragments[0] : c.timeline ? c.timeline[index].fragment : null;
+    it.value = clone(list[index].value); it.choice = Object.assign({ index, fragment_start: fr ? fr.start : null, fragment_end: fr ? fr.end : null }, list[index]);
+    const basis = basisOf(c, it.choice);
+    // выбор с временем записи / неизвестного типа — ещё не подтверждение времени события
+    it.status = RISKY(basis) && !(opts && opts.timeIsEvent && opts.basisReason) ? STATUS.NEW : STATUS.OK;
+    log(s, it, 'выбор значения', from, it.value, { chosen_index: index, chosen_fragment: list[index].fragment, chosen_fragment_start: it.choice.fragment_start, chosen_at: list[index].at || list[index].date || null,
+      time_basis: basis, time_confirmation: RISKY(basis) && opts && opts.timeIsEvent && opts.basisReason ? opts.basisReason : null, reason: opts && opts.reason || null });
   }
 
-  function confirm(s, id) {
+  function confirm(s, id, opts) {
     const it = find(s, id);
     if (needsChoice(it.candidate) && !it.choice) throw new Error('confirm: у сведения ' + it.candidate.field + ' несколько значений — сначала выберите одно');
-    const from = it.status; it.status = STATUS.OK;
-    log(s, it, 'подтверждено', from, it.value);
+    const basis = basisOf(it.candidate, it.choice);
+    if (RISKY(basis) && !(opts && opts.timeIsEvent === true && opts.basisReason))
+      throw new Error('confirm: у сведения ' + it.candidate.field + ' время записи врача или время неизвестного типа — подтвердите явно, что это время события, и укажите основание (или исправьте значение)');
+    const from = it.status; it.status = STATUS.OK; it.time_confirmation = RISKY(basis) ? { basis, reason: opts.basisReason } : null;
+    log(s, it, 'подтверждено', from, it.value, { time_basis: basis, time_confirmation: it.time_confirmation ? opts.basisReason : null });
   }
 
   /** Групповое подтверждение некритических неподтверждённых сведений группы (после просмотра). */
@@ -123,6 +145,7 @@
       data[c.field] = clone(it.value);
       sources[c.field] = { document: s.document_id, fragment: c.manual ? null : it.choice ? it.choice.fragment : c.fragment,
         author: s.actor, confidence: c.manual ? 'введено врачом' : it.status === STATUS.EDITED ? 'исправлено врачом' : 'подтверждено врачом' };
+      if (!c.manual) { const b = basisOf(c, it.choice); if (b) { sources[c.field].time_basis = b; if (it.time_confirmation) sources[c.field].time_confirmation = it.time_confirmation.reason; } }
       used.push(c.field);
     }
     const total = s.items.length, decided = total - s.items.filter(x => x.status === STATUS.NEW).length;
@@ -139,5 +162,5 @@
   /** Отпечаток передаваемых в движок данных: карточки «устарели», только если он изменился. */
   function fingerprint(built) { return JSON.stringify(built.case.data); }
 
-  return { VERSION, STATUS, createSession, choose, confirm, confirmGroup, edit, reject, addManual, build, fingerprint, needsChoice };
+  return { VERSION, STATUS, createSession, choose, confirm, confirmGroup, edit, reject, addManual, build, fingerprint, needsChoice, needsTimeConfirm, basisOf };
 }));
