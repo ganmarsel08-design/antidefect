@@ -457,7 +457,7 @@
     const cre = /скопирован[\wА-Яа-яЁё]*|копи[яию]\s|копипаст[\wА-Яа-яЁё]*/gi;
     while ((m = cre.exec(line))) { const rest = line.slice(m.index); const f = /фактически|исправленному верить|верно\s/i.exec(rest); const cl = clause(line, m.index); copy.push([m.index, f ? m.index + f.index : cl.e]); }
     const wre = /ошибочно\s+(?!скопир)(?:указан[\wА-Яа-яЁё]*|написан[\wА-Яа-яЁё]*|было|записан[\wА-Яа-яЁё]*)?/gi;
-    while ((m = wre.exec(line))) { const rest = line.slice(m.index); const f = /верно\s|исправленному верить|исправлено на/i.exec(rest); if (f) wrong.push([m.index, m.index + f.index]); }
+    while ((m = wre.exec(line))) { const rest = line.slice(m.index); const f = /верно[:\s]|исправленному верить|исправлено на/i.exec(rest); if (f) wrong.push([m.index, m.index + f.index]); }
     return { copy, wrong };
   }
   /*
@@ -634,35 +634,119 @@
    * first_abx_dose_administered_at и подобные поля «…_administered_at».
    */
   const MED_RE = new RegExp(LW + '(' + DRUG_ALT + '|иммуноглобулин[а-яё]*|сурфактант[а-яё]*|' + SURF + ')' + RW, 'gi');
-  const MED_STATUS = [
-    ['not_administered', /не вводил|не введ[её]н|не получал|фактически не/i],
-    ['cancelled', /отмен[её]н\S*|отменены|прекращ[её]н\S*|снят[аоы]? с /i],
-    ['planned', null],
-    ['administered', /введ[её]н(?:а|о|ы)?(?![а-яё])|вводил(?:ся|ась|ись)?|получа(?:ет|л)|начат[аыо]?(?![а-яё])/i],
-    ['prescribed', /назнач|лист назначений|^\s*\d\d[.\/]\d\d[.\/]\d{2,4}[^|]*\|/i],
+  /*
+   * Статус привязывается к КОНКРЕТНОМУ препарату (ревью ChatGPT к 8622515): предложение делится на части по «,», «;»,
+   * «а», «но», «однако», «затем»; у препарата — статус маркеров своей части. Часть без маркера наследует статус
+   * предложения, только если он в предложении один. Часть без препарата («фактически не вводился») относится к
+   * предыдущей части с препаратом, только если там один препарат; иначе — «не определён». То же для следующего
+   * предложения без препарата. «Начат» — не введение дозы. Таблица — по заголовку («назнач» / «введ»), иначе
+   * «упомянуто». Скопированный и названный ошибочным текст не используется (guardSpans).
+   */
+  const MED_MARK = [
+    ['not_administered', /не\s+вводил[\wА-Яа-яЁё]*|не\s+введ[её]н[\wА-Яа-яЁё]*|не\s+получал[\wА-Яа-яЁё]*|фактически\s+не(?![а-яё])|введ[её]н[оаы]?\s+не\s+был[оаи]?|не\s+был[оаи]?\s+введ[\wА-Яа-яЁё]*/i],
+    ['withheld', /не\s+вводить|не\s+назначать|воздерж[\wА-Яа-яЁё]*/i],
+    ['not_prescribed', /не\s+назнач[\wА-Яа-яЁё]*/i],
+    ['cancelled', /отмен[её]н[\wА-Яа-яЁё]*|отменены|прекращ[её]н[\wА-Яа-яЁё]*|снят[аоы]?\s+с\s/i],
+    ['planned', PLAN],
+    ['administered', /введ[её]н(?:а|о|ы)?(?![а-яё])|вводил(?:ся|ась|ись|и)?(?![а-яё])|получа(?:ет|л|ла|ли)(?![а-яё])/i],
+    ['started', /начат[аыо]?(?![а-яё])|начаты(?![а-яё])/i],
+    ['prescribed', /назнач[\wА-Яа-яЁё]*|лист[\wА-Яа-яЁё]* назначени/i],
   ];
-  const MED_LABEL = { not_administered: 'не введено', cancelled: 'отменено', planned: 'план / условие', administered: 'введено', prescribed: 'назначено', mentioned: 'упомянуто' };
+  const MED_RANK = Object.fromEntries(MED_MARK.map(([k], i) => [k, i]));
+  const MED_LABEL = { not_administered: 'не введено', withheld: 'указание не вводить', not_prescribed: 'не назначено', cancelled: 'отменено',
+    planned: 'план / условие', administered: 'введено', started: 'начато (введение дозы не подтверждено)', prescribed: 'назначено',
+    mentioned: 'упомянуто', unknown: 'не определён' };
+  /** Маркер с наивысшим приоритетом в тексте части: {status, index (в строке), end} или null. */
+  function medMark(line, s, e) {
+    const t = line.slice(s, e); let best = null;
+    for (const [st, re] of MED_MARK) {
+      const m = new RegExp(re.source, re.flags.replace('g', '')).exec(t);
+      if (m && (!best || MED_RANK[st] < MED_RANK[best.status])) best = { status: st, index: s + m.index, end: s + m.index + m[0].length };
+    }
+    return best;
+  }
+  /** Предложения строки: «.», «!», «?» + пробел/конец (не между цифрами, не «мг.», «в/в.» перед строчной). */
+  function sentences(line) {
+    const out = []; let s = 0; const re = /[.!?](?=\s|$)/g; let m;
+    while ((m = re.exec(line))) {
+      if (/\d/.test(line[m.index - 1] || '') && /\d/.test(line[m.index + 2] || '')) continue;
+      if (/^\s+[а-яё]/.test(line.slice(m.index + 1))) continue; // сокращение: «рт. ст.», «в/в. медленно»
+      out.push({ s, e: m.index }); s = m.index + 1;
+    }
+    if (s < line.length) out.push({ s, e: line.length });
+    return out;
+  }
+  const UNIT_SPLIT = /[,;]|\s(?:а|но|однако|затем)\s/gi;
+  function units(line, sn) {
+    const out = []; let s = sn.s; const t = line.slice(sn.s, sn.e); UNIT_SPLIT.lastIndex = 0; let m;
+    while ((m = UNIT_SPLIT.exec(t))) { out.push({ s, e: sn.s + m.index }); s = sn.s + m.index + m[0].length; }
+    out.push({ s, e: sn.e });
+    return out;
+  }
   function medicationEvents(text, tz) {
-    const out = [];
+    const out = []; let table = null;
     for (const rec of records(text)) {
-      const line = rec.line; MED_RE.lastIndex = 0; let m;
-      while ((m = MED_RE.exec(line))) {
-        const raw = m[1]; const drug = drugName(raw) || raw.toLowerCase().replace(/(иммуноглобулин|сурфактант)[а-яё]*/, '$1');
-        if (OTHER.test(line.slice(clause(line, m.index).s, clause(line, m.index).e))) continue; // мать, другой ребёнок
-        const sent = ownSentences(line, m.index), sg = segment(line, m.index), cl = clause(line, m.index);
-        let status = 'mentioned';
-        for (const [st, re] of MED_STATUS) {
-          if (st === 'planned') { if (PLAN.test(line.slice(sg.s, sg.e)) || PLAN.test(line.slice(cl.s, cl.e)) || COND_CLAUSE.test(line.slice(cl.s, cl.e))) { status = st; break; } continue; }
-          if (re.test(sent) || (st === 'prescribed' && /\|/.test(line))) { status = st; break; }
+      const line = rec.line;
+      // таблица: блок строк с «|»; вид — по заголовку
+      if (/\|/.test(line)) { if (!table) { table = { kind: /назнач/i.test(line) ? 'prescribed' : /введ/i.test(line) ? 'administered' : 'mentioned' }; continue; } }
+      else table = null;
+      const spans = guardSpans(line);
+      let prev = null; // события предыдущего предложения этой строки (для «Фактически не вводился.»)
+      for (const sn of sentences(line)) {
+        const us = units(line, sn).map(u => {
+          const drugs = []; MED_RE.lastIndex = 0; let m; const t = line.slice(u.s, u.e);
+          while ((m = MED_RE.exec(t))) {
+            const at = u.s + m.index;
+            if (inSpan(spans.copy, at) || inSpan(spans.wrong, at)) continue; // скопированное и ошибочное — не источник
+            drugs.push({ raw: m[1], index: at });
+          }
+          return Object.assign(u, { drugs, other: OTHER.test(t), mark: medMark(line, u.s, u.e) });
+        });
+        if (COND_CLAUSE.test(line.slice(sn.s, sn.e))) for (const u of us) if (u.drugs.length) u.mark = { status: 'planned', index: u.s, end: u.s };
+        const sentStatuses = [...new Set(us.filter(u => u.mark).map(u => u.mark.status))];
+        const evs = [];
+        let lastDrugUnit = null;
+        for (const u of us) {
+          if (!u.drugs.length) {
+            // часть без препарата уточняет предыдущую часть с препаратом
+            if (u.mark && lastDrugUnit) {
+              if (lastDrugUnit.evs.length === 1) Object.assign(lastDrugUnit.evs[0], { status: u.mark.status, mark: u.mark, carried: true });
+              else for (const e of lastDrugUnit.evs) Object.assign(e, { status: 'unknown', mark: null, ambiguous: 'уточнение без названия препарата относится к нескольким препаратам' });
+            }
+            continue;
+          }
+          if (u.other) { lastDrugUnit = { evs: [] }; continue; } // мать, другой ребёнок
+          let st, mk = u.mark;
+          if (mk) st = mk.status;
+          else if (table) { st = table.kind; mk = null; }
+          else if (sentStatuses.length === 1) { mk = us.find(x => x.mark).mark; st = mk.status; }
+          else if (sentStatuses.length > 1) { st = 'unknown'; mk = null; }
+          else st = 'mentioned';
+          lastDrugUnit = { evs: u.drugs.map(d => ({ d, u, status: st, mark: mk, ambiguous: st === 'unknown' ? 'в предложении несколько статусов, у этого препарата своего нет' : null })) };
+          evs.push(...lastDrugUnit.evs);
         }
-        // время введения — по глаголу введения в том же предложении, а не по названию препарата
-        let d = null;
-        if (status === 'administered') { const vr = /введ[её]н(?:а|о|ы)?(?![а-яё])|вводил(?:ся|ась|ись)?/ig; vr.lastIndex = cl.s; const v = vr.exec(line); if (v && v.index < cl.e) d = eventDT(line, v.index, tz, null, v.index + v[0].length); }
-        out.push({ drug, status, status_label: MED_LABEL[status], at: status === 'administered' && d && d.basis === 'event_time' ? d.value : null,
-          fragment: { text: line.slice(cl.s, cl.e).trim(), start: rec.start + cl.s, end: rec.start + cl.e } });
+        // предложение без препарата, но со статусом — уточняет предыдущее предложение с одним препаратом
+        if (!evs.length && prev && prev.length && sentStatuses.length) {
+          const mk = us.find(x => x.mark).mark;
+          if (prev.length === 1 && sentStatuses.length === 1) Object.assign(prev[0], { status: mk.status, mark: mk, carried: true });
+          else for (const e of prev) Object.assign(e, { status: 'unknown', mark: null, ambiguous: 'следующее предложение без названия препарата относится к нескольким препаратам' });
+        }
+        if (evs.length) { prev = evs; out.push({ line, rec, sn, evs }); }
       }
     }
-    return out;
+    const res = [];
+    for (const blk of out) for (const e of blk.evs) {
+      const { line, rec, sn } = blk;
+      const drug = drugName(e.d.raw) || e.d.raw.toLowerCase().replace(/(иммуноглобулин|сурфактант)[а-яё]*/, '$1');
+      // время — только у маркера введения этого препарата и только своё время события
+      let at = null;
+      if (e.status === 'administered' && e.mark) { const d = eventDT(line, e.mark.index, tz, null, e.mark.end); if (d && d.basis === 'event_time') at = d.value; }
+      const r = { drug, status: e.status, status_label: MED_LABEL[e.status], at,
+        fragment: { text: line.slice(sn.s, sn.e).trim(), start: rec.start + sn.s + (line.slice(sn.s, sn.e).length - line.slice(sn.s, sn.e).trimStart().length), end: rec.start + sn.s + line.slice(sn.s, sn.e).trimEnd().length } };
+      if (e.ambiguous) r.note = e.ambiguous;
+      res.push(r);
+    }
+    return res;
   }
 
   /*
