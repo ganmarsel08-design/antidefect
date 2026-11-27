@@ -791,7 +791,9 @@
   const XRAY = /рентген|\brg\b|r-?графи|рентгеногр/i, NOT_XRAY = /узи|\bуз\b|ультразв|\bкт\b|компьютерн|мрт|магнитно/i;
   const PLAN_ROW = /план(?:ируется|ово\s+на|\s+на)|назнач(?:ен|ено|ить)|запланир|будет\s+выполн|выполнить|не\s+выполн|отмен[её]н|отмена|не\s+проводил|не\s+сделан|отложен|не\s+состоял/i;
   /** Источник пробы: только однозначно артериальная; отрицание («не артериальная»), противоречие и неизвестность → не артериальная. */
-  const SRC = t => { t = String(t || ''); if (!t.trim()) return null; const neg = /(?:^|[^а-яё])не\s*-?\s*артериальн|неартериальн/i.test(t), art = /артериальн|артер/i.test(t.replace(/(?:^|[^а-яё])не\s*-?\s*артериальн\S*/gi, ' ')), non = /вен|капил|смешанн|неизвест|неопредел|не\s+указан/i.test(t); return neg || non ? (art && !neg ? 'conflict' : 'nonarterial') : art ? 'arterial' : 'nonarterial'; };
+  /** Сомнение или непригодность пробы/результата в строке таблицы («?», «предположительно», «уточнить», «недостоверно», «гемолиз», «ошибочный»). */
+  const ROW_DOUBT = /\?|предполож|возможн|вероятн|уточн|сомнит|под\s+вопрос|недостовер|ошибочн|неверн|аннулир|гемолиз|сгуст|не\s+пригод|непригод|забракован/i;
+  const SRC = t => { t = String(t || ''); if (!t.trim()) return null; if (ROW_DOUBT.test(t)) return 'uncertain'; const neg = /(?:^|[^а-яё])не\s*-?\s*артериальн|неартериальн/i.test(t), art = /артериальн|артер/i.test(t.replace(/(?:^|[^а-яё])не\s*-?\s*артериальн\S*/gi, ' ')), non = /вен|капил|смешанн|неизвест|неопредел|не\s+указан/i.test(t); return neg || non ? (art && !neg ? 'conflict' : 'nonarterial') : art ? 'arterial' : 'nonarterial'; };
   function tableHits(text, tz, info) {
     const recs = records(text), out = [];
     for (let i = 0; i < recs.length; i++) {
@@ -822,7 +824,7 @@
           const cell = 'sample' in map ? String(r.c[map.sample] || '').trim() : '';
           const src = cell ? SRC(cell) : capSrc; // конкретная проба важнее подписи; непустая ячейка не наследует подпись
           const ph = cellNum(r.c[map.ph]), pc = cellNum(r.c[map.paco2]);
-          if (src === 'arterial' && !isNaN(ph) && !isNaN(pc))
+          if (src === 'arterial' && !ROW_DOUBT.test(r.c.join(' ')) && !isNaN(ph) && !isNaN(pc))
             out.push({ f: 'blood_gases', tbl: true, v: { drawn_at: r.at, ph, paco2_mmhg: pc }, start: r.start, end: r.end, list: 'blood_gases',
               tb: atKind === 'draw' ? 'event_time' : 'unknown', ts: atKind === 'draw' ? 'колонка «время забора» таблицы' : 'общая колонка даты/времени таблицы — не доказывает время забора' });
         }
