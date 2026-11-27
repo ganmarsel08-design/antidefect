@@ -250,7 +250,7 @@ def main():
             _tt = dd[fld]['type'] in ('datetime', 'date', 'list') or fld == 'gi_passage_restored'
             if f.get('record_status') == 'current' and f.get('value') is not None:
                 if _tt and f.get('time_kind') is None:
-                    E(f'{hid}/{fid}: у временного факта {fld} не указан time_kind (event_time / document_time)')
+                    E(f'{hid}/{fid}: у временного факта {fld} не указан time_kind (допустимо только event_time)')
             if not _tt and f.get('time_kind') is not None:
                 E(f'{hid}/{fid}: time_kind указан у невременного поля {fld}')
             if f.get('time_basis') not in BASIS:

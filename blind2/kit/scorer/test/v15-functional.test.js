@@ -161,3 +161,17 @@ test('полнота дозовых полей против словаря: вс
   for (const f of byUnit) assert.ok(M.DOSE.test(f), 'дозовое по единице, но не в шаблоне: ' + f);
   for (const [f, d] of Object.entries(db)) if (d.type === 'datetime' || /_interval_h$|_minutes$/.test(f)) assert.ok(!M.DOSE.test(f), 'не доза: ' + f);
 });
+
+test('диагностика time_kind называет только event_time; в CHANGES нет нормативного разрешения document_time (ревью 144a5cd)', () => {
+  const f2 = g => g.histories[1].facts.find(x => x.field === 'blood_culture_drawn_at');
+  const miss = validate(g => { delete f2(g).time_kind; });
+  const m = /не указан time_kind[^\n]*/.exec(miss); assert.ok(m, 'нет сообщения об отсутствии time_kind');
+  assert.match(m[0], /event_time/); assert.doesNotMatch(m[0], /document_time/);
+  const bad = validate(g => { f2(g).time_kind = 'document_time'; });
+  const b = /недопустимое time_kind[^\n]*/.exec(bad); assert.ok(b);
+  assert.match(b[0], /только event_time/);
+  const ch = fs.readFileSync(path.join(KIT, 'CHANGES-1.4-1.5.md'), 'utf8');
+  assert.doesNotMatch(ch, /`event_time` \/ `document_time` \/ пусто/);
+  assert.doesNotMatch(ch, /^5-старый\./m);
+  assert.doesNotMatch(ch, /факт эталона `time_kind=document_time` vs кандидат/);
+});
