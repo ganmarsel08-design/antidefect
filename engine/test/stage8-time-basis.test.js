@@ -265,18 +265,41 @@ test('список из двух элементов: подтверждение 
   assert.ok(!('blood_gases' in CB.build(s).case.data));
 });
 
-test('список: исправление одним основанием при сохранённых временах записи не принимается; новое время — врача', () => {
-  const s = sess('02.03.2026 08:00 — pH 7,31, PaCO2 48 мм рт. ст.\n02.03.2026 14:00 — pH 7,44, PaCO2 32 мм рт. ст.');
+test('список: исправление — новые/изменённые элементы только с ручным основанием, старая цитата не удаляется (ревью c963363 №3)', () => {
+  const T = '02.03.2026 08:00 — pH 7,31, PaCO2 48 мм рт. ст.\n02.03.2026 14:00 — pH 7,44, PaCO2 32 мм рт. ст.';
+  const s = sess(T);
   const it = item(s, 'blood_gases'); const r = CB.riskyElems(it.candidate);
-  const v = JSON.parse(JSON.stringify(it.value)); v[0].ph = 7.30;          // pH исправлен, оба времени прежние
-  assert.throws(() => CB.edit(s, it.candidate.id, v, { reason: 'опечатка pH' }), /поэлементно/);
-  assert.throws(() => CB.edit(s, it.candidate.id, v, { reason: 'опечатка pH', items: [{ index: 0, at: r[0].at, timeIsEvent: true, basisReason: 'a' }] }), /элемент №2/);
-  CB.edit(s, it.candidate.id, v, { reason: 'опечатка pH', items: r.map(e => ({ index: e.index, at: e.at, timeIsEvent: true, basisReason: 'лист газов ' + e.at })) });
-  assert.equal(CB.build(s).case.data.blood_gases[0].ph, 7.30);
-  // оба времени заменены врачом — поэлементное подтверждение не нужно, достаточно основания правки
-  const s2 = sess('02.03.2026 08:00 — pH 7,31, PaCO2 48 мм рт. ст.\n02.03.2026 14:00 — pH 7,44, PaCO2 32 мм рт. ст.');
+  const v = JSON.parse(JSON.stringify(it.value)); v[0].ph = 7.30;          // pH исправлен, время прежнее: элемент ИЗМЕНЁН → ручной
+  assert.throws(() => CB.edit(s, it.candidate.id, v, { reason: 'опечатка pH' }), /поэлементно|ручное основание/);
+  // неизменённый элемент №2 подтверждается по цитате, изменённый №1 — отдельным ручным основанием
+  assert.throws(() => CB.edit(s, it.candidate.id, v, { reason: 'опечатка pH', items: [{ index: 1, at: r[1].at, timeIsEvent: true, basisReason: 'лист газов' }] }), /ручное основание/);
+  CB.edit(s, it.candidate.id, v, { reason: 'опечатка pH', items: [{ index: 1, at: r[1].at, timeIsEvent: true, basisReason: 'лист газов ' + r[1].at }],
+    manual_items: [{ index: 0, at: r[0].at, reason: 'pH исправлен по листу газов' }] });
+  const b = CB.build(s);
+  assert.equal(b.case.data.blood_gases[0].ph, 7.30);
+  assert.equal(b.case.sources.blood_gases.manual_elements.length, 1, 'ручной элемент записан отдельно');
+  assert.equal(b.case.sources.blood_gases.manual_elements[0].status, 'ручное исправление врача');
+  assert.ok(b.case.sources.blood_gases.replaced_elements.some(x => /08:00/.test(x.fragment)), 'старая цитата не удалена');
+  // оба времени заменены: каждый новый элемент — отдельное ручное основание, общего reason недостаточно
+  const s2 = sess(T);
   const it2 = item(s2, 'blood_gases'); const w = JSON.parse(JSON.stringify(it2.value));
   w[0].drawn_at = '2026-03-02T07:50+05:00'; w[1].drawn_at = '2026-03-02T13:50+05:00';
-  CB.edit(s2, it2.candidate.id, w, { reason: 'лист газов: заборы 07:50 и 13:50' });
+  assert.throws(() => CB.edit(s2, it2.candidate.id, w, { reason: 'лист газов: заборы 07:50 и 13:50' }), /ручное основание/);
+  CB.edit(s2, it2.candidate.id, w, { reason: 'лист газов', manual_items: [{ index: 0, at: w[0].drawn_at, reason: 'лист газов 07:50' }, { index: 1, at: w[1].drawn_at, reason: 'лист газов 13:50' }] });
   assert.deepEqual(CB.build(s2).case.data.blood_gases.map(x => x.drawn_at), ['2026-03-02T07:50+05:00', '2026-03-02T13:50+05:00']);
+  assert.equal(CB.build(s2).case.sources.blood_gases.replaced_elements.length, 2);
+  // добавлена строка и перестановка: сохранённые элементы подтверждаются по значению, новая строка — вручную
+  const s3 = sess(T);
+  const it3 = item(s3, 'blood_gases'); const r3 = CB.riskyElems(it3.candidate);
+  const x = JSON.parse(JSON.stringify(it3.value)).reverse(); x.push({ drawn_at: '2026-03-02T18:00+05:00', ph: 7.4, paco2_mmhg: 40 });
+  assert.throws(() => CB.edit(s3, it3.candidate.id, x, { reason: 'добавлена проба', items: r3.map(e => ({ index: e.index, at: e.at, timeIsEvent: true, basisReason: 'лист ' + e.at })) }), /ручное основание/);
+  CB.edit(s3, it3.candidate.id, x, { reason: 'добавлена проба', items: r3.map(e => ({ index: e.index, at: e.at, timeIsEvent: true, basisReason: 'лист ' + e.at })), manual_items: [{ index: 2, at: '2026-03-02T18:00+05:00', reason: 'лист газов 18:00' }] });
+  assert.equal(CB.build(s3).case.data.blood_gases.length, 3);
+  // две строки с одним временем и разными результатами не склеиваются при сопоставлении
+  const s4 = sess('02.03.2026 08:00 — pH 7,31, PaCO2 48 мм рт. ст.\n02.03.2026 08:00 — pH 7,20, PaCO2 60 мм рт. ст.');
+  const it4 = item(s4, 'blood_gases');
+  if (it4 && Array.isArray(it4.value) && it4.value.length === 2) {
+    const y = JSON.parse(JSON.stringify(it4.value)); y[1].paco2_mmhg = 55;
+    assert.throws(() => CB.edit(s4, it4.candidate.id, y, { reason: 'правка' }), /поэлементно|ручное основание/);
+  }
 });

@@ -141,10 +141,17 @@
       const rsn = !c.manual && CB.needsTimeConfirm(it) ? h('input', { placeholder: 'основание исправления (откуда время события)', 'data-edit-reason': c.id, style: 'width:95%' }) : null;
       // список: элементы, чьё время записи остаётся в новом значении, подтверждаются поэлементно
       const eb = rsn ? elemBox(CB.riskyElems(c), 'edit') : [];
-      td.append(inp, rsn, ...elemNodes(eb), h('button', { 'data-act': 'save', onclick: () => { try {
+      const mbox = h('div', null);
+      td.append(inp, rsn, ...elemNodes(eb), mbox, h('button', { 'data-act': 'save', onclick: () => { try {
         const nv = parseValue(it.value, inp.value.trim());
-        const keep = eb.filter(b => Array.isArray(nv) && nv.some(v => v && Object.values(v).includes(b.e.at)));
-        CB.edit(S.session, c.id, nv, rsn ? Object.assign({ reason: rsn.value }, eb.length ? { items: elemItems(keep) } : {}) : undefined); renderData(); } catch (e) { msg.textContent = e.message; } } }, 'Сохранить'), msg);
+        const cls = rsn && Array.isArray(nv) ? CB.classifyEdit(c, nv) : { keep: [], manual: [] };
+        const keep = eb.filter(b => cls.keep.some(k => k.index === b.e.index));
+        // новые/изменённые элементы — не из текста: отдельное ручное основание для каждого (появляется при первом нажатии)
+        const mi = cls.manual.map(m => { let f = mbox.querySelector('[data-edit-manual="' + c.id + ':' + m.index + '"]');
+          if (!f) { f = h('input', { placeholder: 'основание для нового/изменённого элемента №' + (m.index + 1) + ' (' + m.at + ')', 'data-edit-manual': c.id + ':' + m.index, style: 'width:95%' }); mbox.append(f); }
+          return { index: m.index, at: m.at, reason: f.value }; });
+        if (mi.some(x => !x.reason.trim())) { msg.textContent = 'Укажите основание для каждого нового или изменённого элемента — он не подтверждается старой цитатой.'; return; }
+        CB.edit(S.session, c.id, nv, rsn ? Object.assign({ reason: rsn.value }, eb.length ? { items: elemItems(keep) } : {}, mi.length ? { manual_items: mi } : {}) : undefined); renderData(); } catch (e) { msg.textContent = e.message; } } }, 'Сохранить'), msg);
       inp.focus();
     };
     const tr = h('tr', { 'data-c': c.id, 'data-field': c.field },

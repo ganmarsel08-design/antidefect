@@ -789,7 +789,9 @@
   const AT_KIND = u => (/забор/i.test(u) ? 'draw' : /исследован|выполнено/i.test(u) ? 'study' : /результат/i.test(u) ? 'result' : /изменени/i.test(u) ? 'change' : /записи/i.test(u) ? 'record' : 'generic');
   const cellNum = cell => (/^-?\d+(?:[.,]\d+)?$/.test((cell || '').trim()) ? +cell.trim().replace(',', '.') : NaN);
   const XRAY = /рентген|\brg\b|r-?графи|рентгеногр/i, NOT_XRAY = /узи|\bуз\b|ультразв|\bкт\b|компьютерн|мрт|магнитно/i;
-  const PLAN_ROW = /план(?:ируется|ово\s+на|\s+на)|назнач(?:ен|ено|ить)|запланир|будет\s+выполн|выполнить|не\s+выполн/i;
+  const PLAN_ROW = /план(?:ируется|ово\s+на|\s+на)|назнач(?:ен|ено|ить)|запланир|будет\s+выполн|выполнить|не\s+выполн|отмен[её]н|отмена|не\s+проводил|не\s+сделан|отложен|не\s+состоял/i;
+  /** Источник пробы: только однозначно артериальная; отрицание («не артериальная»), противоречие и неизвестность → не артериальная. */
+  const SRC = t => { t = String(t || ''); if (!t.trim()) return null; const neg = /(?:^|[^а-яё])не\s*-?\s*артериальн|неартериальн/i.test(t), art = /артериальн|артер/i.test(t.replace(/(?:^|[^а-яё])не\s*-?\s*артериальн\S*/gi, ' ')), non = /вен|капил|смешанн|неизвест|неопредел|не\s+указан/i.test(t); return neg || non ? (art && !neg ? 'conflict' : 'nonarterial') : art ? 'arterial' : 'nonarterial'; };
   function tableHits(text, tz, info) {
     const recs = records(text), out = [];
     for (let i = 0; i < recs.length; i++) {
@@ -809,13 +811,16 @@
       if (dup.length) { info.warnings.push(`таблица (строка «${recs[i].line.slice(0, 60)}»): повторяется колонка ${[...new Set(dup)].join(', ')} — таблица не разобрана`); continue; }
       const atKind = AT_KIND(unit.at || hc[map.at]);
       // подпись таблицы: до двух строк выше заголовка
-      const caption = recs.slice(Math.max(0, i - 2), i).map(r => r.line).join(' ');
-      const capSrc = /артериальн/i.test(caption) ? 'arterial' : /венозн|капилляр|смешанн/i.test(caption) ? 'nonarterial' : null;
+      // подпись — только строки НАД заголовком и не строки другой таблицы; чужая секция («|») подпись не даёт
+      const caption = recs.slice(Math.max(0, i - 2), i).map(r => r.line).filter(l => !/\|/.test(l)).join(' ');
+      const capSrc = /артериальн|венозн|капилляр|смешанн/i.test(caption) ? SRC(caption) : null;
+      const planCap = /план\s+обследовани|план\s+исследовани|назначени/i.test(caption);
       for (const r of rows) {
         if (!r.ok) continue;
         // газы крови
         if ('ph' in map && 'paco2' in map && /мм\s*рт/.test(unit.paco2 || '') && atKind !== 'result') {
-          const src = 'sample' in map ? (/артер/i.test(r.c[map.sample]) ? 'arterial' : /вен|капил/i.test(r.c[map.sample]) ? 'nonarterial' : capSrc) : capSrc;
+          const cell = 'sample' in map ? String(r.c[map.sample] || '').trim() : '';
+          const src = cell ? SRC(cell) : capSrc; // конкретная проба важнее подписи; непустая ячейка не наследует подпись
           const ph = cellNum(r.c[map.ph]), pc = cellNum(r.c[map.paco2]);
           if (src === 'arterial' && !isNaN(ph) && !isNaN(pc))
             out.push({ f: 'blood_gases', tbl: true, v: { drawn_at: r.at, ph, paco2_mmhg: pc }, start: r.start, end: r.end, list: 'blood_gases',
@@ -824,7 +829,8 @@
         // рентгенограммы: модальность — только из ячейки исследования
         if ('study' in map && XRAY.test(r.c[map.study]) && !NOT_XRAY.test(r.c[map.study])) {
           const all = r.c.join(' ');
-          if (PLAN_ROW.test(all)) continue; // план / назначение / «не выполнено» — не факт исследования
+          if (planCap || PLAN_ROW.test(all)) continue;
+          if ('result' in map && !String(r.c[map.result] || '').trim()) continue; // заключения нет → выполнение исследования не доказано // план / назначение / «не выполнено» — не факт исследования
           const pos = 'position' in map ? r.c[map.position] : r.c[map.study];
           const position = /не\s+(?:в\s+)?(?:вертик|латер|горизонт|на\s+боку|лёжа|лежа)/i.test(pos) ? null
             : /вертик/i.test(pos) ? 'vertical' : /латер|на боку/i.test(pos) ? 'lateral' : /горизонт|лёжа|лежа/i.test(pos) ? 'horizontal' : null;
