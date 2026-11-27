@@ -35,6 +35,9 @@ function extractionMetrics(rs, sets) {
     precision_found: aggregate(rs, r => cnt(r.units, u => u.cls === 'В'), r => cnt(r.units, u => u.cls === 'В' || u.cls === 'О')),
     classes: ['В', 'ВА', 'П', 'О'].reduce((o, c) => (o[c] = rs.reduce((a, r) => a + cnt(r.units, u => u.cls === c), 0), o), {}),
     lp_single: rs.reduce((a, r) => a + lpSingle(r), 0), lp_alt: rs.reduce((a, r) => a + r.lp.filter(x => !x.single).length, 0),
+    time_kind_confirm: rs.reduce((a, r) => a + cnt(r.units, u => u.tk && u.tk.tkConfirm), 0), // значение верно, но время события подано как запись/неизвестное — требует подтверждения
+    time_kind_doc_as_event: rs.reduce((a, r) => a + cnt(r.units, u => u.tk && u.tk.tkErr), 0),
+    time_kind_gold_missing: rs.reduce((a, r) => a + cnt(r.units, u => u.tk && u.tk.tkMissing), 0),
     wrong_place: rs.reduce((a, r) => a + cnt(r.units, u => (u.cls === 'В' || u.cls === 'ВА') && u.fragOk === false), 0),
   };
 }
@@ -160,6 +163,7 @@ function report(m, e2e, impact, reading, gold) {
   for (const [n, a] of [['Все', x], ['DOCX сквозное', m.extraction_docx_e2e], ['DOCX по эталону чтения', m.extraction_docx_reference_text], ['TXT', m.extraction_txt], ...Object.entries(m.by_protocol)])
     L.push(`| ${n} | ${a.recall.k}/${a.recall.n} ${pct(a.recall.p)} | ${pct(a.recall_strict.p)} | ${a.precision.k}/${a.precision.n} ${pct(a.precision.p)} | ${pct(a.precision_found.p)} |`);
   L.push('', `Классы единиц: В ${x.classes['В']}, ВА ${x.classes['ВА']}, П ${x.classes['П']}, О ${x.classes['О']}; ложные извлечения: однозначные ${x.lp_single}, в альтернативах ${x.lp_alt}; верное значение из другого места: ${x.wrong_place}.`, '');
+  L.push(`Тип времени: время записи выдано за время события ${x.time_kind_doc_as_event} (ошибка, входит в нулевой критерий времени); значение верно, но время события подано как запись/неизвестное — «требует подтверждения» ${x.time_kind_confirm}; у факта эталона не указан time_kind ${x.time_kind_gold_missing}.`, '');
   L.push(`Контроль заимствования: полнота на фактах с совпадением формулировки с описанием поля — ${m.borrowed.borrowed.k}/${m.borrowed.borrowed.n} (${pct(m.borrowed.borrowed.p)}), на остальных — ${m.borrowed.not_borrowed.k}/${m.borrowed.not_borrowed.n} (${pct(m.borrowed.not_borrowed.p)}).`, '');
   L.push('По основанию времени: ' + Object.entries(m.by_time_basis).map(([k, a]) => `${k} ${a.k}/${a.n}`).join('; ') + '.', '');
   L.push('## Чтение DOCX', '', '| История | Слова эталона | Полнота текста | Точность текста | Ожидаемые непрочитанные | Выявлено | Ложные предупреждения | Утечки |', '|---|---|---|---|---|---|---|---|');

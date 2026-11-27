@@ -66,8 +66,8 @@
      "field": "blood_culture_drawn_at",
      "value": "2026-01-10T08:00+05:00",
      "unit_as_written": null,
-     "time_basis": "explicit",
-     "event_at": "2026-01-10T08:00+05:00",
+     "time_basis": "date_from_heading",
+     "event_at": null,
      "event_date": null,
      "quote": "10.01.2026 08:00 — кровь на посев взята",
      "location": "body",
@@ -75,7 +75,8 @@
      "superseded_by": null,
      "same_as": null,
      "primary": null,
-     "note": ""
+     "note": "",
+     "time_kind": "document_time"
     },
     {
      "fid": "Т1-F5",
@@ -180,7 +181,7 @@
      "value": "2026-01-11T09:15+05:00",
      "unit_as_written": null,
      "time_basis": "explicit",
-     "event_at": "2026-01-11T09:15+05:00",
+     "event_at": null,
      "event_date": null,
      "quote": "кровь взята 11.01.2026 09:15",
      "location": "footnote",
@@ -188,7 +189,8 @@
      "superseded_by": null,
      "same_as": null,
      "primary": null,
-     "note": ""
+     "note": "",
+     "time_kind": "event_time"
     },
     {
      "fid": "Т2-F5",

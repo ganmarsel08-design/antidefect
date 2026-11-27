@@ -245,6 +245,13 @@ def main():
                 E(f'{hid}/{fid}: недопустимое место {f.get("location")}')
             if f.get('time_kind') not in TIME_KIND:
                 E(f'{hid}/{fid}: недопустимое time_kind (event_time / document_time)')
+            # 1.5: у временных фактов (дата-время, дата, элементы списков, динамика пассажа) тип времени обязателен; у прочих — не указывается
+            _tt = dd[fld]['type'] in ('datetime', 'date', 'list') or fld == 'gi_passage_restored'
+            if f.get('record_status') == 'current' and f.get('value') is not None:
+                if _tt and f.get('time_kind') is None:
+                    E(f'{hid}/{fid}: у временного факта {fld} не указан time_kind (event_time / document_time)')
+            if not _tt and f.get('time_kind') is not None:
+                E(f'{hid}/{fid}: time_kind указан у невременного поля {fld}')
             if f.get('time_basis') not in BASIS:
                 E(f'{hid}/{fid}: недопустимое time_basis')
             if f.get('record_status') not in ('current', 'superseded'):

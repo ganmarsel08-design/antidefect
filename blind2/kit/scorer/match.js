@@ -5,7 +5,7 @@ const C = require('./common.js');
 
 const READABLE = new Set(['body', 'table']);
 // 1.5: дозовые поля — по величине дозы, а не по подстроке; время первой дозы (…_dose_administered_at) — поле времени
-const DOSE = /^(?!.*_at$)(?:.*_dose_(?:mg|mg_kg|units_per_kg|per_kg)|surfactant_initial_dose_mg_kg)$/;
+const DOSE = /^(?!.*_at$)(?:.*_dose_(?:mg|mg_kg|units_per_kg|per_kg(?:_calculated)?)|surfactant_initial_dose_mg_kg)$/;
 const TIME_TRAPS = new Set(['time_without_date', 'date_without_time', 'relative_time', 'midnight_crossing']);
 const DOSE_TRAPS = new Set(['unit_not_field_unit', 'dose_without_unit']);
 const NEG_TRAPS = new Set(['negation', 'plan', 'conditional']);
@@ -14,6 +14,21 @@ function subclass(f, type) {
   if (DOSE.test(f)) return 'доза';
   return { number: 'число', datetime: 'время', date: 'время', tri: 'да/нет', enum: 'перечень', text: 'текст' }[type] || 'значение';
 }
+/** Тип времени элемента списка по time_basis_items кандидата (самый рискованный из относящихся к элементу); нет данных → null. */
+const TBR = { event_time: 0, document_time: 1, unknown: 2 };
+function tbOfItems(c, i) {
+  const es = (c.time_basis_items || []).filter(x => x.index === i).map(x => (x.time_basis in TBR ? x.time_basis : 'unknown'));
+  if (es.length) return es.sort((a, b) => TBR[b] - TBR[a])[0];
+  return c.time_basis || null;
+}
+/** Тип времени: эталон time_kind (event_time / document_time) против time_basis кандидата. Верное значение с неверным типом — не успех.
+ *  Время записи, выданное за время события → ошибка (tkErr). Время события, поданное как запись/неизвестное → верно, но «требует подтверждения». */
+function tkAssess(facts, v) {
+  const ks = [...new Set(facts.map(f => f.time_kind || null))];
+  const gk = ks.length === 1 ? ks[0] : 'mixed';
+  const tb = v && v.tb ? v.tb : null;
+  return { gk, tb, tkErr: gk === 'document_time' && tb === 'event_time', tkConfirm: gk === 'event_time' && tb !== 'event_time', tkMissing: gk === null };
+}
 const timeOf = (f, e) => (f === 'vent_changes' || f === 'xrays') ? e.at : e.drawn_at;
 
 /** Значения кандидатов поля: [{v (сырое), c (каноническое), frs:[{start,end}], single, kind}] */
@@ -21,13 +36,13 @@ function candValues(cands, f, type) {
   const out = [];
   for (const c of cands.filter(x => x.field === f)) {
     if (C.isList(f)) {
-      (c.value || []).forEach((e, i) => out.push({ v: e, c: C.canonElem(f, e), frs: [(c.fragments || [])[i] || c].filter(Boolean), single: true, kind: 'элемент', cid: c.id, ck: `${c.id}#e${i}` }));
+      (c.value || []).forEach((e, i) => out.push({ v: e, c: C.canonElem(f, e), frs: [(c.fragments || [])[i] || c].filter(Boolean), single: true, kind: 'элемент', cid: c.id, ck: `${c.id}#e${i}`, tb: tbOfItems(c, i) }));
     } else if (c.timeline) {
-      c.timeline.forEach((t, i) => out.push({ v: t.v, c: t.v, at: t.at || null, date: t.date || null, frs: [t.fragment], single: true, kind: 'наблюдение', cid: c.id, ck: `${c.id}#t${i}` }));
+      c.timeline.forEach((t, i) => out.push({ v: t.v, c: t.v, at: t.at || null, date: t.date || null, frs: [t.fragment], single: true, kind: 'наблюдение', cid: c.id, ck: `${c.id}#t${i}`, tb: t.time_basis || c.time_basis || null }));
     } else if (c.alternatives) {
-      c.alternatives.forEach((a, i) => out.push({ v: a.value, c: C.canon(a.value, type), frs: a.fragments || [], single: false, kind: 'альтернатива', cid: c.id, ck: `${c.id}#a${i}` }));
+      c.alternatives.forEach((a, i) => out.push({ v: a.value, c: C.canon(a.value, type), frs: a.fragments || [], single: false, kind: 'альтернатива', cid: c.id, ck: `${c.id}#a${i}`, tb: a.time_basis || c.time_basis || null }));
     } else {
-      out.push({ v: c.value, c: C.canon(c.value, type), frs: c.fragments || [{ start: c.start, end: c.end }], single: true, kind: 'значение', cid: c.id, ck: `${c.id}#v` });
+      out.push({ v: c.value, c: C.canon(c.value, type), frs: c.fragments || [{ start: c.start, end: c.end }], single: true, kind: 'значение', cid: c.id, ck: `${c.id}#v`, tb: c.time_basis || null });
     }
   }
   return out;
@@ -60,15 +75,25 @@ function scoreHistory({ h, text, extraction, dd, sets }) {
     const mk = (u) => { u.history = h.id; u.field = F; u.critical = critical.has(F); u.type = type; units.push(u); return u; };
 
     if (C.isList(F)) {
-      const gu = []; for (const f of cur) { const e = C.canonElem(F, f.value), k = C.LIST_KEY[F](e); let u = gu.find(x => x.key === k); if (!u) gu.push(u = { key: k, elem: e, facts: [] }); u.facts.push(f); }
+      // 1.5: единица = ключ + полное содержание элемента. Точные дубли сворачиваются; два РАЗНЫХ элемента с одним ключом (одно время,
+      // разные значения) — разные единицы с пометкой conflict, а не «первый выигрывает». Порядок фактов и кандидатов на результат не влияет.
+      const gu = []; for (const f of cur) { const e = C.canonElem(F, f.value), k = C.LIST_KEY[F](e); let u = gu.find(x => x.key === k && C.same(x.elem, e)); if (!u) gu.push(u = { key: k, elem: e, facts: [] }); u.facts.push(f); }
+      for (const u of gu) u.conflict = gu.filter(x => x.key === u.key).length > 1;
+      gu.sort((a, b) => (a.key + JSON.stringify(a.elem)).localeCompare(b.key + JSON.stringify(b.elem)));
+      const nz = v => Object.fromEntries(Object.entries(v.c).map(([k, x]) => [k, x === undefined ? null : x]));
       const supE = sup.map(f => C.canonElem(F, f.value));
       const pending = [];
+      // проход 1: точное совпадение элемента; проход 2: совпадение по ключу (расхождение свойств → О)
+      const first = new Map();
+      for (const u of gu) { const i = cv.findIndex((v, j) => !used.has(j) && C.same(nz(v), u.elem)); if (i >= 0) { used.add(i); first.set(u, i); } }
       for (const u of gu) {
-        const i = cv.findIndex((v, j) => !used.has(j) && C.LIST_KEY[F](v.c) === u.key);
+        const i = first.has(u) ? first.get(u) : cv.findIndex((v, j) => !used.has(j) && C.LIST_KEY[F](v.c) === u.key);
+        if (!first.has(u) && i >= 0) used.add(i); // (used пополняется до использования ниже)
         if (i < 0) { pending.push(u); continue; }
-        used.add(i); const v = cv[i];
+        const v = cv[i];
         const bad = Object.keys(u.elem).filter(k => !C.same(u.elem[k], v.c[k] === undefined ? null : v.c[k]));
-        mk({ key: u.key, expected: u.elem, got: v.v, cls: bad.length ? 'О' : 'В', sub: bad.length ? 'свойства: ' + bad.join(', ') : null, silent: bad.length > 0, timeErr: false, ck: v.ck, fragOk: fragHits(v.frs, u.facts), fids: u.facts.map(f => f.fid), quote: u.facts[0].quote });
+        const tk = tkAssess(u.facts, v), tkBad = !bad.length && tk.tkErr;
+        mk({ key: u.key, expected: u.elem, got: v.v, cls: bad.length || tkBad ? 'О' : 'В', sub: bad.length ? 'свойства: ' + bad.join(', ') : tkBad ? 'время записи выдано за время события' : null, silent: bad.length > 0 || tkBad, timeErr: tkBad, conflict: u.conflict || undefined, tk: tk.gk === 'mixed' ? null : tk, ck: v.ck, fragOk: fragHits(v.frs, u.facts), fids: u.facts.map(f => f.fid), quote: u.facts[0].quote });
       }
       for (const u of pending) { // ключ (время) не совпал: ищем элемент с теми же прочими свойствами → ошибка времени
         const i = cv.findIndex((v, j) => !used.has(j) && Object.keys(u.elem).filter(k => !/^(at|drawn_at)$/.test(k)).every(k => C.same(u.elem[k], v.c[k] === undefined ? null : v.c[k])));
@@ -83,7 +108,7 @@ function scoreHistory({ h, text, extraction, dd, sets }) {
       const gu = []; for (const f of cur) { const t = f.event_at || null, d = f.event_date || (t ? t.slice(0, 10) : null); if (!gu.some(u => u.v === f.value && u.at === t && u.date === d)) gu.push({ v: f.value, at: t, date: d, facts: cur.filter(x => x.value === f.value && (x.event_at || null) === t) }); }
       const hit = (u, v) => v.c === u.v && (u.at ? v.at === u.at : (!v.at && v.date === u.date));
       const pending = [];
-      for (const u of gu) { const i = cv.findIndex((v, j) => !used.has(j) && hit(u, v)); if (i < 0) { pending.push(u); continue; } used.add(i); mk({ key: `${u.v}@${u.at || u.date}`, expected: u.v, got: cv[i].v, cls: 'В', fragOk: fragHits(cv[i].frs, u.facts), fids: u.facts.map(f => f.fid), quote: u.facts[0].quote }); }
+      for (const u of gu) { const i = cv.findIndex((v, j) => !used.has(j) && hit(u, v)); if (i < 0) { pending.push(u); continue; } used.add(i); const tk = tkAssess(u.facts, cv[i]), tkBad = tk.tkErr && !!u.at; mk({ key: `${u.v}@${u.at || u.date}`, expected: u.v, got: cv[i].v, cls: tkBad ? 'О' : 'В', sub: tkBad ? 'время записи выдано за время события' : null, silent: tkBad ? cv[i].single : undefined, timeErr: tkBad, tk, ck: cv[i].ck, fragOk: fragHits(cv[i].frs, u.facts), fids: u.facts.map(f => f.fid), quote: u.facts[0].quote }); }
       for (const u of pending) {
         const i = cv.findIndex((v, j) => !used.has(j) && (v.date === u.date || (v.at && u.at && v.at.slice(0, 10) === u.at.slice(0, 10))));
         if (i >= 0) { used.add(i); const v = cv[i]; const te = v.c === u.v; mk({ key: `${u.v}@${u.at || u.date}`, expected: { v: u.v, at: u.at, date: u.date }, got: { v: v.c, at: v.at, date: v.date }, cls: 'О', sub: te ? 'время' : 'да/нет', silent: true, timeErr: te, ck: v.ck, negErr: !te && v.c === true && u.v === false, fids: u.facts.map(f => f.fid), quote: u.facts[0].quote }); }
@@ -111,7 +136,9 @@ function scoreHistory({ h, text, extraction, dd, sets }) {
       const i = si >= 0 ? si : ai;
       if (i < 0) { pending.push(u); continue; }
       used.add(i);
-      mk({ key: JSON.stringify(u.c), expected: u.v, got: cv[i].v, cls: si >= 0 ? 'В' : 'ВА', fragOk: fragHits(cv[i].frs, u.facts), fids: u.facts.map(f => f.fid), quote: u.facts[0].quote });
+      const timeF = type === 'datetime' || type === 'date', tk = timeF ? tkAssess(u.facts, cv[i]) : null, tkBad = !!(tk && tk.tkErr);
+      // верное значение, но время записи выдано за время события: однозначное — ошибка О (молчаливая, входит в нулевой критерий времени); в альтернативе — ВА с пометкой
+      mk({ key: JSON.stringify(u.c), expected: u.v, got: cv[i].v, cls: tkBad && si >= 0 ? 'О' : si >= 0 ? 'В' : 'ВА', sub: tkBad ? 'время записи выдано за время события' : null, silent: tkBad && si >= 0 ? true : undefined, timeErr: tkBad && si >= 0, tk, ck: cv[i].ck, fragOk: fragHits(cv[i].frs, u.facts), fids: u.facts.map(f => f.fid), quote: u.facts[0].quote });
     }
     const wrong = cv.map((v, j) => ({ v, j })).filter(({ v, j }) => !used.has(j) && !supC.some(s => C.same(s, v.c)));
     for (const u of pending) {
@@ -185,4 +212,4 @@ function zeroCounts(r) {
   return out;
 }
 
-module.exports = { scoreHistory, zeroCounts, candValues, READABLE, DOSE };
+module.exports = { scoreHistory, zeroCounts, candValues, tkAssess, READABLE, DOSE };

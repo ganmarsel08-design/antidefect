@@ -27,7 +27,11 @@ function goldData(h, dd, tz) {
   for (const [F, fs] of by) {
     const type = (dd[F] || {}).type;
     if (C.isList(F)) {
-      const seen = []; for (const f of fs) { const k = C.LIST_KEY[F](C.canonElem(F, f.value)); if (!seen.some(x => x.k === k)) seen.push({ k, v: f.value }); }
+      // 1.5: точные дубли (ключ и всё содержание) сворачиваются; одинаковый ключ с РАЗНЫМ содержанием — конфликт эталона:
+      // без утверждённого правила «первый выигрывает» не применяется, поле помечается неоднозначным (зависимые выводы не засчитываются
+      // как однозначный эталон), результат не зависит от порядка фактов.
+      const seen = []; for (const f of fs) { const e = C.canonElem(F, f.value), k = C.LIST_KEY[F](e); if (!seen.some(x => x.k === k && C.same(x.e, e))) seen.push({ k, e, v: f.value }); }
+      if (seen.some(x => seen.some(y => y !== x && y.k === x.k))) { ambiguous.push(F); continue; }
       data[F] = seen.map(x => x.v); continue;
     }
     if (F === 'gi_passage_restored') {
