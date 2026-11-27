@@ -73,6 +73,8 @@
       if (Array.isArray(x.time_basis_items)) {
         for (const e of x.time_basis_items) if (RK(e.time_basis))
           rows.push(`<tr data-time-field="${esc(field)}"><td>${esc(field)} №${(e.index | 0) + 1}</td><td>${esc(BL[e.time_basis])}</td><td>${q(e.fragment)}</td><td>${e.time_confirmation ? esc(e.time_confirmation) : '<b>основание отсутствует</b>'}</td></tr>`);
+        for (const m of x.manual_elements || [])
+          rows.push(`<tr data-time-field="${esc(field)}"><td>${esc(field)} №${(m.index | 0) + 1}</td><td>ручное исправление врача (элемент не из текста)</td><td>${(m.replaces || []).length ? 'заменяет: ' + m.replaces.map(r => q(r.fragment)).join('; ') : '<b>цитата отсутствует</b>'}</td><td>${esc(m.reason)}</td></tr>`);
       } else if (RK(x.time_basis))
         rows.push(`<tr data-time-field="${esc(field)}"><td>${esc(field)}</td><td>${esc(BL[x.time_basis])}</td><td>${q(x.fragment)}</td><td>${x.time_confirmation ? esc(x.time_confirmation) : '<b>основание отсутствует</b>'}</td></tr>`);
     }
