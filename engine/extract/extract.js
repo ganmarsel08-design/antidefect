@@ -642,18 +642,21 @@
    * предложения без препарата. «Начат» — не введение дозы. Таблица — по заголовку («назнач» / «введ»), иначе
    * «упомянуто». Скопированный и названный ошибочным текст не используется (guardSpans).
    */
+  /** Пометка, что ошибочна сама запись о препарате/введении (не другой объект). */
+  const MED_ERR = /(?:введ[её]н[аоы]?|назнач[\wА-Яа-яЁё]*)\s+(?:ошибочно|по\s+ошибке)|запис[\wА-Яа-яЁё]*\s+(?:[А-Яа-яЁё]+\s+){0,2}(?:аннулир|ошибочн|неверн|недействит)[\wА-Яа-яЁё]*/i;
   const MED_MARK = [
     ['not_administered', /не\s+вводил[\wА-Яа-яЁё]*|не\s+введ[её]н[\wА-Яа-яЁё]*|не\s+получал[\wА-Яа-яЁё]*|фактически\s+не(?![а-яё])|введ[её]н[оаы]?\s+не\s+был[оаи]?|не\s+был[оаи]?\s+введ[\wА-Яа-яЁё]*/i],
     ['withheld', /не\s+вводить|не\s+назначать|воздерж[\wА-Яа-яЁё]*/i],
     ['not_prescribed', /не\s+назнач[\wА-Яа-яЁё]*/i],
-    ['cancelled', /отмен[её]н[\wА-Яа-яЁё]*|отменены|прекращ[её]н[\wА-Яа-яЁё]*|снят[аоы]?\s+с\s/i],
+    ['continued', /не\s+отмен[её]н[\wА-Яа-яЁё]*|не\s+отменены|не\s+прекращ[её]н[\wА-Яа-яЁё]*|продолж[ае]н[\wА-Яа-яЁё]*|продолжа(?:ет|ется|ют|ются)(?![а-яё])/i],
+    ['cancelled', /(?<!не\s)(?<!не\s\s)отмен[её]н[\wА-Яа-яЁё]*|(?<!не\s)отменены|(?<!не\s)прекращ[её]н[\wА-Яа-яЁё]*|снят[аоы]?\s+с\s/i],
     ['planned', PLAN],
     ['administered', /введ[её]н(?:а|о|ы)?(?![а-яё])|вводил(?:ся|ась|ись|и)?(?![а-яё])|получа(?:ет|л|ла|ли)(?![а-яё])/i],
     ['started', /начат[аыо]?(?![а-яё])|начаты(?![а-яё])/i],
     ['prescribed', /назнач[\wА-Яа-яЁё]*|лист[\wА-Яа-яЁё]* назначени/i],
   ];
   const MED_RANK = Object.fromEntries(MED_MARK.map(([k], i) => [k, i]));
-  const MED_LABEL = { not_administered: 'не введено', withheld: 'указание не вводить', not_prescribed: 'не назначено', cancelled: 'отменено',
+  const MED_LABEL = { not_administered: 'не введено', withheld: 'указание не вводить', not_prescribed: 'не назначено', cancelled: 'отменено', continued: 'продолжено (не отменено)',
     planned: 'план / условие', administered: 'введено', started: 'начато (введение дозы не подтверждено)', prescribed: 'назначено',
     mentioned: 'упомянуто', unknown: 'не определён' };
   /** Маркер с наивысшим приоритетом в тексте части: {status, index (в строке), end} или null. */
@@ -703,6 +706,9 @@
           return Object.assign(u, { drugs, other: OTHER.test(t), mark: medMark(line, u.s, u.e) });
         });
         if (COND_CLAUSE.test(line.slice(sn.s, sn.e))) for (const u of us) if (u.drugs.length) u.mark = { status: 'planned', index: u.s, end: u.s };
+        // сомнение во фразе («?», «уточнить», «под вопросом») или запись названа ошибочной/аннулированной → статус не определён
+        const snText = line.slice(sn.s, sn.e), qMark = line[sn.e] === '?';
+        const doubt = qMark || UNCERTAIN_WORDS.test(snText) || MED_ERR.test(snText);
         const sentStatuses = [...new Set(us.filter(u => u.mark).map(u => u.mark.status))];
         const evs = [];
         let lastDrugUnit = null;
@@ -731,6 +737,10 @@
           if (prev.length === 1 && sentStatuses.length === 1) Object.assign(prev[0], { status: mk.status, mark: mk, carried: true });
           else for (const e of prev) Object.assign(e, { status: 'unknown', mark: null, ambiguous: 'следующее предложение без названия препарата относится к нескольким препаратам' });
         }
+        if (doubt) for (const e of evs) if (e.status !== 'unknown') Object.assign(e, { status: 'unknown', mark: null, ambiguous: qMark || UNCERTAIN_WORDS.test(snText) ? 'в записи сомнение («?», «уточнить» и т. п.)' : 'запись названа ошибочной / аннулированной' });
+        // следующее предложение без препарата с сомнением/пометкой ошибки — предыдущие события не определены
+        if (!evs.length && prev && prev.length && (UNCERTAIN_WORDS.test(snText) || MED_ERR.test(snText)))
+          for (const e of prev) Object.assign(e, { status: 'unknown', mark: null, ambiguous: MED_ERR.test(snText) ? 'запись названа ошибочной / аннулированной' : 'в записи сомнение («?», «уточнить» и т. п.)' });
         if (evs.length) { prev = evs; out.push({ line, rec, sn, evs }); }
       }
     }
