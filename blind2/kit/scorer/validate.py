@@ -16,10 +16,11 @@ W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
 LOCS = {'body', 'table', 'textbox', 'image', 'embedded_object', 'header', 'footer', 'footnote', 'endnote', 'comment'}
 TRAP_TYPES = {'negation', 'plan', 'conditional', 'mother', 'other_patient', 'other_protocol_mention', 'past_history', 'duplicate_copy',
               'corrected_record', 'unit_not_field_unit', 'dose_without_unit', 'time_without_date', 'date_without_time', 'relative_time',
-              'midnight_crossing', 'abbreviation', 'typo', 'latin_cyrillic_mix', 'reference_range', 'template_placeholder', 'deleted_tracked_text'}
+              'midnight_crossing', 'document_time_as_event', 'abbreviation', 'typo', 'latin_cyrillic_mix', 'reference_range', 'template_placeholder', 'deleted_tracked_text'}
 BASIS = {'explicit', 'date_from_heading', 'relative_computed', 'date_only', None}
 # 1.5 (набор №2): тип времени — время события или время документа (записи); см. blind2/kit/CHANGES-1.4-1.5.md
-TIME_KIND = {'event_time', 'document_time', None}
+# Единственный вариант: время записи НЕ размечается действующим фактом (ни с какой меткой); ловушка document_time_as_event.
+TIME_KIND = {'event_time', None}
 DT = re.compile(r'^\d{4}-\d\d-\d\dT\d\d:\d\d\+05:00$')
 IDS = ['СЛП-РДС-0%d' % i for i in range(1, 6)] + ['СЛП-НЭК-0%d' % i for i in range(1, 6)] + ['СЛП-СЕП-0%d' % i for i in range(1, 6)]
 DOCX_IDS = {'СЛП-РДС-01', 'СЛП-РДС-02', 'СЛП-РДС-03', 'СЛП-НЭК-01', 'СЛП-НЭК-02', 'СЛП-НЭК-03', 'СЛП-НЭК-04', 'СЛП-СЕП-01', 'СЛП-СЕП-02', 'СЛП-СЕП-03'}
@@ -244,7 +245,7 @@ def main():
             if f.get('location') not in LOCS or (fmt == 'txt' and f.get('location') != 'body'):
                 E(f'{hid}/{fid}: недопустимое место {f.get("location")}')
             if f.get('time_kind') not in TIME_KIND:
-                E(f'{hid}/{fid}: недопустимое time_kind (event_time / document_time)')
+                E(f'{hid}/{fid}: недопустимое time_kind (допустимо только event_time; время записи не размечается фактом — используйте ловушку document_time_as_event)')
             # 1.5: у временных фактов (дата-время, дата, элементы списков, динамика пассажа) тип времени обязателен; у прочих — не указывается
             _tt = dd[fld]['type'] in ('datetime', 'date', 'list') or fld == 'gi_passage_restored'
             if f.get('record_status') == 'current' and f.get('value') is not None:
@@ -297,6 +298,11 @@ def main():
                     E(f'{hid}/{t.get("tid")}: удалённый текст не найден в XML')
             elif has_quote(t.get('quote', ''), loc) is False:
                 E(f'{hid}/{t.get("tid")}: цитата ловушки не найдена в месте {loc}')
+            if t.get('type') == 'document_time_as_event':
+                if (dd.get(t.get('field')) or {}).get('type') not in ('datetime', 'date'):
+                    E(f'{hid}/{t.get("tid")}: document_time_as_event — только для поля даты-времени')
+                if t.get('must_not_value') != 'any':
+                    E(f'{hid}/{t.get("tid")}: document_time_as_event — must_not_value должен быть "any"')
             # 1.5: ловушка «никакого значения» не может противоречить действующему факту того же поля из той же цитаты
             if t.get('must_not_value') == 'any' and t.get('field'):
                 for f in h.get('facts', []):

@@ -30,12 +30,13 @@ function validate(mutate) {
 test('1.5: ловушка «any», противоречащая действующему факту той же цитаты, — ошибка набора', () => {
   const base = validate(() => {});
   assert.doesNotMatch(base, /противоречит действующему факту/);
-  const out = validate(g => { const h = g.histories[0]; const f = h.facts.find(x => x.field === 'blood_culture_drawn_at');
-    h.traps.push({ tid: 'Т1-T9', type: 'time_without_date', quote: f.quote, location: 'body', field: f.field, must_not_value: 'any', correct_reading: 'тест' }); });
-  assert.match(out, /must_not_value=\\?"any\\?" противоречит действующему факту Т1-F4/);
+  const out = validate(g => { const h = g.histories[0]; const f = h.facts.find(x => x.field === 'gestational_age_weeks');
+    h.traps.push({ tid: 'Т1-T9', type: 'abbreviation', quote: f.quote, location: 'body', field: f.field, must_not_value: 'any', correct_reading: 'тест' }); });
+  assert.match(out, /must_not_value=\\?"any\\?" противоречит действующему факту Т1-F1/);
 });
 
-test('1.5: time_kind — только event_time / document_time', () => {
-  assert.doesNotMatch(validate(g => { g.histories[0].facts.find(x => x.field === 'blood_culture_drawn_at').time_kind = 'document_time'; }), /недопустимое time_kind/);
-  assert.match(validate(g => { g.histories[0].facts.find(x => x.field === 'blood_culture_drawn_at').time_kind = 'record'; }), /недопустимое time_kind/);
+test('1.5: time_kind — только event_time (время записи фактом не размечается)', () => {
+  assert.doesNotMatch(validate(g => { g.histories[1].facts.find(x => x.field === 'blood_culture_drawn_at').time_kind = 'event_time'; }), /недопустимое time_kind/);
+  assert.match(validate(g => { g.histories[1].facts.find(x => x.field === 'blood_culture_drawn_at').time_kind = 'document_time'; }), /недопустимое time_kind/);
+  assert.match(validate(g => { g.histories[1].facts.find(x => x.field === 'blood_culture_drawn_at').time_kind = 'record'; }), /недопустимое time_kind/);
 });

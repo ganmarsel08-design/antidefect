@@ -6,7 +6,7 @@ const C = require('./common.js');
 const READABLE = new Set(['body', 'table']);
 // 1.5: дозовые поля — по величине дозы, а не по подстроке; время первой дозы (…_dose_administered_at) — поле времени
 const DOSE = /^(?!.*_at$)(?:.*_dose_(?:mg|mg_kg|units_per_kg|per_kg(?:_calculated)?)|surfactant_initial_dose_mg_kg)$/;
-const TIME_TRAPS = new Set(['time_without_date', 'date_without_time', 'relative_time', 'midnight_crossing']);
+const TIME_TRAPS = new Set(['document_time_as_event', 'time_without_date', 'date_without_time', 'relative_time', 'midnight_crossing']);
 const DOSE_TRAPS = new Set(['unit_not_field_unit', 'dose_without_unit']);
 const NEG_TRAPS = new Set(['negation', 'plan', 'conditional']);
 
@@ -21,13 +21,15 @@ function tbOfItems(c, i) {
   if (es.length) return es.sort((a, b) => TBR[b] - TBR[a])[0];
   return c.time_basis || null;
 }
-/** Тип времени: эталон time_kind (event_time / document_time) против time_basis кандидата. Верное значение с неверным типом — не успех.
- *  Время записи, выданное за время события → ошибка (tkErr). Время события, поданное как запись/неизвестное → верно, но «требует подтверждения». */
+/** Тип времени (единственный вариант, 1.5): в эталоне время записи фактом НЕ размечается (валидатор: time_kind только event_time);
+ *  «время записи выдано за время события» ловит ловушка document_time_as_event (только кандидат с time_basis=event_time).
+ *  Здесь: факт с event_time верен по значению, но время подано как запись/неизвестное/без данных → «требует подтверждения». */
 function tkAssess(facts, v) {
+  if (facts.some(f => f.time_kind === 'document_time')) throw new Error('эталон: time_kind=document_time недопустим (время записи фактом не размечается) — набор должен был не пройти формальную проверку');
   const ks = [...new Set(facts.map(f => f.time_kind || null))];
   const gk = ks.length === 1 ? ks[0] : 'mixed';
   const tb = v && v.tb ? v.tb : null;
-  return { gk, tb, tkErr: gk === 'document_time' && tb === 'event_time', tkConfirm: gk === 'event_time' && tb !== 'event_time', tkMissing: gk === null };
+  return { gk, tb, tkErr: false, tkConfirm: gk === 'event_time' && tb !== 'event_time', tkMissing: gk === null };
 }
 const timeOf = (f, e) => (f === 'vent_changes' || f === 'xrays') ? e.at : e.drawn_at;
 
@@ -148,7 +150,7 @@ function scoreHistory({ h, text, extraction, dd, sets }) {
         mk({ key: JSON.stringify(u.c), expected: u.v, got: w.v.v, cls: 'О', sub: subclass(F, type), silent: w.v.single, ck: w.v.ck, timeErr: type === 'datetime' || type === 'date', doseErr: DOSE.test(F), negErr: type === 'tri' && u.c === false && w.v.c === true, fragOk: fragHits(w.v.frs, u.facts), fids: u.facts.map(f => f.fid), quote: u.facts[0].quote });
       } else mk({ key: JSON.stringify(u.c), expected: u.v, got: null, cls: 'П', fids: u.facts.map(f => f.fid), quote: u.facts[0].quote });
     }
-    cv.forEach((v, j) => { if (!used.has(j)) lp.push({ history: h.id, field: F, got: v.v, single: v.single, superseded: supC.some(s => C.same(s, v.c)), frs: v.frs, ck: v.ck, timeField: type === 'datetime' || type === 'date', doseField: DOSE.test(F) }); });
+    cv.forEach((v, j) => { if (!used.has(j)) lp.push({ history: h.id, field: F, got: v.v, single: v.single, superseded: supC.some(s => C.same(s, v.c)), frs: v.frs, ck: v.ck, timeField: type === 'datetime' || type === 'date', doseField: DOSE.test(F), tb: v.tb || null }); });
   }
 
   // ловушки
@@ -163,8 +165,9 @@ function scoreHistory({ h, text, extraction, dd, sets }) {
     if (!sp.length) return { tid: t.tid, history: h.id, type: t.type, field: t.field, status: 'не проверяема: цитата не найдена в поданном тексте', triggered: [] };
     const cv = t.field ? candValues(cands, t.field, type) : [];
     const mnv = t.must_not_value;
+    // document_time_as_event: срабатывает только если время из цитаты записи подано как время события (time_basis=event_time)
     const trig = cv.filter(v => v.frs.some(fr => fr && sp.some(s => C.overlap([fr.start, fr.end], s))) &&
-      (mnv === 'any' || C.same(v.c, C.isList(t.field) ? C.canonElem(t.field, mnv) : C.canon(mnv, type))));
+      (t.type === 'document_time_as_event' ? v.tb === 'event_time' : (mnv === 'any' || C.same(v.c, C.isList(t.field) ? C.canonElem(t.field, mnv) : C.canon(mnv, type)))));
     return { tid: t.tid, history: h.id, type: t.type, field: t.field, quote: t.quote, status: trig.length ? 'сработала' : 'выдержана', triggered: trig.map(v => ({ got: v.v, single: v.single, ck: v.ck })) };
   });
   // ЛП: тип по пересекающимся ловушкам
@@ -203,7 +206,8 @@ function zeroCounts(r) {
     if (NEG_TRAPS.has(t.type)) { z.negplan.n++; for (const v of t.triggered) err(z.negplan, v.ck, t); }
   }
   // опасные однозначные ЛП: доза — в полях доз; время — в полях даты-времени, элементах списков, наблюдениях динамики
-  for (const x of r.lp.filter(x => x.single)) {
+  // время записи (ловушка document_time_as_event), поданное как запись/неизвестное, — не опасное ложное извлечение: программа не выдала его за время события
+  for (const x of r.lp.filter(x => x.single && !((x.trap_types || []).includes('document_time_as_event') && x.tb !== 'event_time'))) {
     if (x.doseField && !z.dose.errs.has(x.ck)) { z.dose.errs.set(x.ck, x); z.dose.lpOnly++; }
     if (x.timeField && !z.time.errs.has(x.ck)) { z.time.errs.set(x.ck, x); z.time.lpOnly++; }
   }

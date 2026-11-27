@@ -25,13 +25,33 @@ const run = (gk, cand) => {
   return { r, u: r.units[0], z: M.zeroCounts(r) };
 };
 
-test('тип времени: время записи (эталон) выдано за время события → ошибка О, молчаливая, в нулевом критерии времени; значение верное, но не засчитано', () => {
-  const { u, z } = run('document_time', { time_basis: 'event_time' });
-  assert.equal(u.cls, 'О'); assert.equal(u.silent, true); assert.equal(u.timeErr, true); assert.match(u.sub, /время записи выдано за время события/);
-  assert.equal(z.time.k, 1);
+const DT_TRAP = [{ tid: 'T-DOC', type: 'document_time_as_event', quote: 'взята 02.03.2026 07:30', location: 'body', field: 'blood_culture_drawn_at', must_not_value: 'any' }];
+const runDoc = cand => {
+  const c = Object.assign({ id: 'c1', field: 'blood_culture_drawn_at', value: T, fragments: [at('взята 02.03.2026 07:30')] }, cand);
+  const r = M.scoreHistory({ h: H([], DT_TRAP), text, dd, sets, extraction: { candidates: [c] } });
+  return { r, t: r.traps[0], z: M.zeroCounts(r) };
+};
+test('единственный вариант: время записи фактом не размечается; ловушка document_time_as_event срабатывает на кандидате с event_time, входит в нулевой критерий времени', () => {
+  const { t, z } = runDoc({ time_basis: 'event_time' });
+  assert.equal(t.status, 'сработала'); assert.equal(z.time.k, 1); assert.equal(z.time.n >= 1, true);
 });
-test('тип времени: document_time/unknown у кандидата при document_time в эталоне — верно; отсутствие time_basis не засчитывается как событие', () => {
-  for (const tb of ['document_time', 'unknown', undefined]) { const { u, z } = run('document_time', tb === undefined ? {} : { time_basis: tb }); assert.equal(u.cls, 'В', String(tb)); assert.equal(z.time.k, 0); }
+test('единственный вариант: document_time / unknown / нет time_basis у кандидата — ловушка выдержана', () => {
+  for (const tb of ['document_time', 'unknown', undefined]) { const { t, z } = runDoc(tb === undefined ? {} : { time_basis: tb }); assert.equal(t.status, 'выдержана', String(tb)); assert.equal(z.time.k, 0); }
+});
+test('единственный вариант: ловушка в альтернативе event_time — срабатывает, но не как однозначная ошибка', () => {
+  const { t, z } = runDoc({ value: undefined, alternatives: [{ value: T, fragments: [at('взята 02.03.2026 07:30')], time_basis: 'event_time' }] });
+  assert.equal(t.status, 'сработала'); assert.equal(z.time.k, 0, 'альтернатива не однозначна');
+});
+test('единственный вариант: элемент списка с event_time по time_basis_items', () => {
+  const el = { drawn_at: T, ph: 7.3, paco2_mmhg: 30 };
+  const trap = [{ tid: 'T-DOC2', type: 'document_time_as_event', quote: '07:30 pH 7,3 PaCO2 30', location: 'body', field: 'blood_gases', must_not_value: 'any' }];
+  const mk = tb => ({ candidates: [{ id: 'c', field: 'blood_gases', value: [el], fragments: [at('07:30 pH 7,3 PaCO2 30')], time_basis_items: [{ index: 0, time_basis: tb }] }] });
+  assert.equal(M.scoreHistory({ h: H([], trap), text, dd, sets, extraction: mk('event_time') }).traps[0].status, 'сработала');
+  assert.equal(M.scoreHistory({ h: H([], trap), text, dd, sets, extraction: mk('document_time') }).traps[0].status, 'выдержана');
+});
+test('единственный вариант: факт эталона с time_kind=document_time недопустим и для оценщика (останов, а не молчаливое решение)', () => {
+  const h = H([fact('F1', 'blood_culture_drawn_at', T, 'взята 02.03.2026 07:30', { time_kind: 'document_time' })]);
+  assert.throws(() => M.scoreHistory({ h, text, dd, sets, extraction: { candidates: [{ id: 'c1', field: 'blood_culture_drawn_at', value: T, time_basis: 'event_time', fragments: [at('взята 02.03.2026 07:30')] }] } }), /time_kind=document_time недопустим/);
 });
 test('тип времени: событие в эталоне — event_time верно; document_time/unknown/нет — значение верно, «требует подтверждения»', () => {
   assert.equal(run('event_time', { time_basis: 'event_time' }).u.tk.tkConfirm, false);
@@ -39,19 +59,6 @@ test('тип времени: событие в эталоне — event_time в�
 });
 test('тип времени: у факта эталона нет time_kind — помечается, не молча', () => {
   assert.equal(run(undefined, { time_basis: 'event_time' }).u.tk.tkMissing, true);
-});
-test('тип времени: альтернативы — верное значение в альтернативе с event_time при document_time не становится однозначной ошибкой', () => {
-  const { u, z } = run('document_time', { value: undefined, alternatives: [{ value: T, fragments: [at('взята 02.03.2026 07:30')], time_basis: 'event_time' }, { value: '2026-03-02T08:30+05:00', fragments: [] }] });
-  assert.equal(u.cls, 'ВА'); assert.equal(u.tk.tkErr, true); assert.equal(z.time.k, 0);
-});
-test('тип времени: элементы списка (time_basis_items) — document_time эталона выдан за event_time → ошибка элемента', () => {
-  const el = { drawn_at: T, ph: 7.3, paco2_mmhg: 30 };
-  const h = H([fact('F1', 'blood_gases', el, '07:30 pH 7,3 PaCO2 30', { time_kind: 'document_time' })]);
-  const mk = tb => ({ candidates: [{ id: 'c', field: 'blood_gases', value: [el], fragments: [at('07:30 pH 7,3 PaCO2 30')], time_basis_items: [{ index: 0, time_basis: tb }] }] });
-  const bad = M.scoreHistory({ h, text, dd, sets, extraction: mk('event_time') });
-  assert.equal(bad.units[0].cls, 'О'); assert.equal(bad.units[0].timeErr, true); assert.equal(M.zeroCounts(bad).time.k, 1);
-  const ok = M.scoreHistory({ h, text, dd, sets, extraction: mk('document_time') });
-  assert.equal(ok.units[0].cls, 'В');
 });
 
 test('дозовые поля: время первой дозы — не доза; негативный функциональный тест (ошибка времени не попадает в дозовый критерий)', () => {
@@ -128,15 +135,23 @@ function validate(mutate) {
   const r = spawnSync('python3', ['-I', '-B', path.join(KIT, 'scorer/validate.py'), '--input', dir, '--dict', path.join(REPO, 'rules/pilot-rules.json'), '--sets', path.join(KIT, 'field-sets.json'), '--technical-test'], { encoding: 'utf8', env: Object.assign({}, process.env, { PYTHONDONTWRITEBYTECODE: '1' }) });
   return r.stdout + r.stderr;
 }
-test('валидатор: исходный технический набор проходит; у временного факта нет time_kind — ошибка; time_kind у невременного поля — ошибка', () => {
-  assert.doesNotMatch(validate(() => {}), /не указан time_kind|указан у невременного/);
-  assert.match(validate(g => { delete g.histories[0].facts.find(x => x.field === 'blood_culture_drawn_at').time_kind; }), /не указан time_kind/);
+test('валидатор: исходный набор проходит; нет time_kind у временного факта — ошибка; time_kind у невременного поля — ошибка; document_time — ошибка; ловушка document_time_as_event проверяется', () => {
+  assert.doesNotMatch(validate(() => {}), /не указан time_kind|указан у невременного|недопустимое time_kind/);
+  const f2 = g => g.histories[1].facts.find(x => x.field === 'blood_culture_drawn_at');
+  assert.match(validate(g => { delete f2(g).time_kind; }), /не указан time_kind/);
   assert.match(validate(g => { g.histories[0].facts.find(x => x.field === 'gestational_age_weeks').time_kind = 'event_time'; }), /указан у невременного поля/);
+  assert.match(validate(g => { f2(g).time_kind = 'document_time'; }), /недопустимое time_kind/);
+  assert.match(validate(g => { g.histories[0].traps.find(x => x.type === 'document_time_as_event').field = 'gestational_age_weeks'; }), /только для поля даты-времени/);
+  assert.match(validate(g => { g.histories[0].traps.find(x => x.type === 'document_time_as_event').must_not_value = true; }), /must_not_value должен быть \\?"any\\?"/);
+  // действующий факт того же поля из той же цитаты вместе с ловушкой — ошибка набора (единственный вариант)
+  assert.match(validate(g => { g.histories[0].facts.push({ fid: 'Т1-F99', field: 'blood_culture_drawn_at', value: '2026-01-10T08:00+05:00', unit_as_written: null, time_basis: 'date_from_heading', time_kind: 'event_time', event_at: null, event_date: null, quote: '10.01.2026 08:00 — кровь на посев взята', location: 'body', record_status: 'current', superseded_by: null, same_as: null, primary: null, note: '' }); }), /противоречит действующему факту/);
 });
-test('технический эталон Т1-F4: заголовок записи — document_time, не явное время события (политика PR №15)', () => {
+test('технический эталон: заголовок записи не размечен фактом, есть ловушка document_time_as_event (единственный вариант, политика PR №15)', () => {
   const g = JSON.parse(fs.readFileSync(path.join(KIT, 'scorer/test/tech/blind1-gold.json'), 'utf8'));
-  const f = g.histories[0].facts.find(x => x.fid === 'Т1-F4');
-  assert.equal(f.time_kind, 'document_time'); assert.equal(f.time_basis, 'date_from_heading'); assert.equal(f.event_at, null);
+  const h = g.histories[0];
+  assert.ok(!h.facts.some(f => f.fid === 'Т1-F4'));
+  assert.ok(h.traps.some(t => t.type === 'document_time_as_event' && t.field === 'blood_culture_drawn_at'));
+  assert.ok(g.histories.every(x => x.facts.every(f => f.time_kind !== 'document_time')));
 });
 
 test('полнота дозовых полей против словаря: все числовые поля с единицей мг, мг/кг, Ед/кг — дозовые; поля времени и «_interval» — нет', () => {
