@@ -456,7 +456,7 @@
     if (NEG.test(line.slice(cl.s, e).replace(line.slice(s, e), ' '))) return false;
     // хвост предложения после действия (в т.ч. после «;» и «,»): отрицание, сомнение, «уточнить», план, условие, чужой пациент
     const tm = /[.!?](?=\s|$)/.exec(line.slice(e)), tail = line.slice(e, tm ? e + tm.index : line.length);
-    if (/отмен[её]н|отмена|не\s+проводил|отложен/i.test(tail) || NEG.test(tail) || UNKNOWN.test(tail) || UNCERTAIN_WORDS.test(t + ' ' + tail) || PLAN.test(tail) || OTHER.test(tail)) return false;
+    if (/отмен[её]н|отмена|не\s+проводил|отложен|ошибочн|ошибк|неверн|аннулир|недействит/i.test(tail) || NEG.test(tail) || UNKNOWN.test(tail) || UNCERTAIN_WORDS.test(t + ' ' + tail) || PLAN.test(tail) || OTHER.test(tail)) return false;
     if (/[;,]\s*(?:при|если)\s/i.test(tail)) return false;
     // остаток предложения (после «;», «,», «—»): результат/ответ/сомнение или вторая отметка времени без своего маркера — не однозначное время события
     if (/\?|предполож|возможно|результат|ответ/i.test(tail) || timesIn(tail).length > 0) return false;
