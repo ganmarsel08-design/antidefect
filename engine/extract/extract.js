@@ -936,7 +936,9 @@
             const e = rec.start + (o.e !== undefined ? o.e : m.index + m[0].length);
             if (UNCERTAIN_FIELDS.test(o.f) && uncertain(line, m.index, m.index + m[0].length, o.f)) continue; // предварительное, под вопросом, исключить
             const hit = Object.assign({}, o, { start: s, end: Math.max(e, s + 1), list: rule.list || null });
-            if (o.f === 'birth_weight_g' && typeof o.v === 'number' && (o.v < BW_MIN || o.v > BW_MAX)) Object.assign(hit, { out_of_range: true, note: `масса при рождении вне диапазона правдоподобия ${BW_MIN}–${BW_MAX} г — требует проверки` });
+            if (CRITICAL.test(o.f) && !/_at$/.test(o.f) && !UNCERTAIN_FIELDS.test(o.f)) { const cl = clause(line, m.index), ct = line.slice(cl.s, cl.e + 1);
+              if (/\?/.test(ct) || UNCERTAIN_WORDS.test(ct) || /(?:^|[.;]\s*)уточнить/i.test(line.slice(cl.e))) Object.assign(hit, { doubt: true, note: (o.note ? o.note + '; ' : '') + 'в записи сомнение («?», «уточнить» и т. п.) — требует проверки' }); }
+            if (o.f === 'birth_weight_g' && typeof o.v === 'number' && (o.v < BW_MIN || o.v > BW_MAX)) Object.assign(hit, { out_of_range: true, note: (hit.note ? hit.note + '; ' : '') + `масса при рождении вне диапазона правдоподобия ${BW_MIN}–${BW_MAX} г — требует проверки` });
             // тип времени обязателен у каждого временного значения; не определён правилом → unknown (не event_time)
             // явные дата и время сразу после глагола действия в той же фразе — время события, если во фразе одно время,
             // нет плана/условия, отрицания, неопределённости, другого пациента (разрешено рецензентом 26.11, ответ 2)
