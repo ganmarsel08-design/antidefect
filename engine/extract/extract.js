@@ -30,7 +30,7 @@
   const NOT_BEFORE = `(?<![${L}])`; // начало слова для кириллицы (\b в JS не работает с кириллицей)
 
   /** Поля, которые врач подтверждает только по одному (решение 4 от 20.11). */
-  /** Диапазон правдоподобия массы при рождении (нижняя граница — решение владельца 28.11; верхняя — предложение, ждёт подтверждения). */
+  /** Диапазон правдоподобия массы при рождении (500–6000 г — решение владельца 28.11). */
   const BW_MIN = 500, BW_MAX = 6000;
   const CRITICAL = /^(weight_kg|weight_measured_at|birth_weight_g|gestational_age_weeks|postnatal_age_days|.*_dose_.*|.*_interval_h|.*_units_.*|.*_administered_at|.*_prescribed_at|rds_diagnosed|nec_stage|nec_suspected|sepsis_suspected|early_onset_sepsis_suspected|red_flag_count|risk_factor_or_sign_count|cpap_pressure_cmh2o|fio2|spo2_target_.*|sepsis_indication_identified_at|blood_culture_drawn_at|abx_course_(started|ended)_at|gi_passage_restored)$/;
   const group = f => /^(gestational|birth_weight|weight|postnatal|facility)/.test(f) ? 'Ребёнок и организация'
