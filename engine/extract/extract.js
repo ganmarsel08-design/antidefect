@@ -30,6 +30,8 @@
   const NOT_BEFORE = `(?<![${L}])`; // начало слова для кириллицы (\b в JS не работает с кириллицей)
 
   /** Поля, которые врач подтверждает только по одному (решение 4 от 20.11). */
+  /** Диапазон правдоподобия массы при рождении (нижняя граница — решение владельца 28.11; верхняя — предложение, ждёт подтверждения). */
+  const BW_MIN = 500, BW_MAX = 6000;
   const CRITICAL = /^(weight_kg|weight_measured_at|birth_weight_g|gestational_age_weeks|postnatal_age_days|.*_dose_.*|.*_interval_h|.*_units_.*|.*_administered_at|.*_prescribed_at|rds_diagnosed|nec_stage|nec_suspected|sepsis_suspected|early_onset_sepsis_suspected|red_flag_count|risk_factor_or_sign_count|cpap_pressure_cmh2o|fio2|spo2_target_.*|sepsis_indication_identified_at|blood_culture_drawn_at|abx_course_(started|ended)_at|gi_passage_restored)$/;
   const group = f => /^(gestational|birth_weight|weight|postnatal|facility)/.test(f) ? 'Ребёнок и организация'
     : /^(antenatal|rds_|cord_|condition_allows|cpap|oxygen|fio2|intubat|surfactant|spo2|mechanical|blood_gases|vent_|paco2|threshold)/.test(f) ? 'Родзал и респираторная поддержка'
@@ -934,6 +936,7 @@
             const e = rec.start + (o.e !== undefined ? o.e : m.index + m[0].length);
             if (UNCERTAIN_FIELDS.test(o.f) && uncertain(line, m.index, m.index + m[0].length, o.f)) continue; // предварительное, под вопросом, исключить
             const hit = Object.assign({}, o, { start: s, end: Math.max(e, s + 1), list: rule.list || null });
+            if (o.f === 'birth_weight_g' && typeof o.v === 'number' && (o.v < BW_MIN || o.v > BW_MAX)) Object.assign(hit, { out_of_range: true, note: `масса при рождении вне диапазона правдоподобия ${BW_MIN}–${BW_MAX} г — требует проверки` });
             // тип времени обязателен у каждого временного значения; не определён правилом → unknown (не event_time)
             // явные дата и время сразу после глагола действия в той же фразе — время события, если во фразе одно время,
             // нет плана/условия, отрицания, неопределённости, другого пациента (разрешено рецензентом 26.11, ответ 2)
