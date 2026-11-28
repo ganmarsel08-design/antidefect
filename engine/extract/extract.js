@@ -30,6 +30,8 @@
   const NOT_BEFORE = `(?<![${L}])`; // начало слова для кириллицы (\b в JS не работает с кириллицей)
 
   /** Поля, которые врач подтверждает только по одному (решение 4 от 20.11). */
+  /** Диапазон правдоподобия массы при рождении (500–6000 г — решение владельца 28.11). */
+  const BW_MIN = 500, BW_MAX = 6000;
   const CRITICAL = /^(weight_kg|weight_measured_at|birth_weight_g|gestational_age_weeks|postnatal_age_days|.*_dose_.*|.*_interval_h|.*_units_.*|.*_administered_at|.*_prescribed_at|rds_diagnosed|nec_stage|nec_suspected|sepsis_suspected|early_onset_sepsis_suspected|red_flag_count|risk_factor_or_sign_count|cpap_pressure_cmh2o|fio2|spo2_target_.*|sepsis_indication_identified_at|blood_culture_drawn_at|abx_course_(started|ended)_at|gi_passage_restored)$/;
   const group = f => /^(gestational|birth_weight|weight|postnatal|facility)/.test(f) ? 'Ребёнок и организация'
     : /^(antenatal|rds_|cord_|condition_allows|cpap|oxygen|fio2|intubat|surfactant|spo2|mechanical|blood_gases|vent_|paco2|threshold)/.test(f) ? 'Родзал и респираторная поддержка'
@@ -102,6 +104,11 @@
     }
     return { s, e };
   }
+  /** Пометка, что ошибочна/аннулирована именно эта запись или её время/дата (не другой объект: «ошибка маркировки», «неверный номер направления»). */
+  const W_ = '[\\wА-Яа-яЁё]*', BAD = '(?:ошибочн' + W_ + '|неверн' + W_ + '|недействит' + W_ + '|аннулир' + W_ + ')';
+  const ERR_REC = new RegExp('^\\s*[—–(-]?\\s*' + BAD + '(?![\\wА-Яа-яЁё]*\\s+(?!запис|врем|дат|указан|внесен)[А-Яа-яЁё])' +
+    '|' + BAD + '\\s+(?:запис|врем|дат|внесен|указан' + W_ + '(?:\\s+(?:врем|дат)|\\s*(?:[.,;)]|$)))' +
+    '|(?:запис|врем|дат)' + W_ + '\\s+(?:[А-Яа-яЁё]+\\s+){0,2}' + BAD, 'i');
   /** Время, которое относится не к самому событию (назначение, план, ошибочная запись). */
   const FOREIGN_TIME = /(?:назнач[\wА-Яа-яЁё]*|планир[\wА-Яа-яЁё]*|ошибочно[^,]*|вместо|после\s+\S+(?:\s+\S+)?|через\s+\S+(?:\s+\S+)?|до\s+\S+)\s*\(?\s*(?:в\s+)?$/;
   /** Число сказуемых-причастий в части предложения («прекращено», «установлен», «взята»…). */
@@ -248,8 +255,8 @@
     { re: /[Нн]ачата антибактериальная терапия/g, emit: () => [{ f: 'antibiotics_started', v: true }] },
     { re: /[Аа]нтибактериальная терапия: /g, emit: () => [{ f: 'antibiotics_started', v: true }] },
     { re: /[Аа]нтибактериальная терапия не назначалась/g, emit: () => [{ f: 'antibiotics_started', v: false }] },
-    { re: /[Кк]ровь на посев взята (\d\d)\.(\d\d)\.(\d{4}) (\d\d):(\d\d)/g, emit: (m, c) => [{ f: 'blood_culture_drawn_at', v: iso(m, 1, c.tz) }] },
-    { re: /[Пп]ервая доза (?!антибиотик)[а-яё]+ введена (\d\d)\.(\d\d)\.(\d{4}) (\d\d):(\d\d)/g, emit: (m, c) => [{ f: 'first_abx_dose_administered_at', v: iso(m, 1, c.tz) }] },
+    { inline: true, re: /[Кк]ровь на посев взята (\d\d)\.(\d\d)\.(\d{4}) (\d\d):(\d\d)/g, emit: (m, c) => [{ f: 'blood_culture_drawn_at', v: iso(m, 1, c.tz) }] },
+    { inline: true, re: /[Пп]ервая доза (?!антибиотик)[а-яё]+ введена (\d\d)\.(\d\d)\.(\d{4}) (\d\d):(\d\d)/g, emit: (m, c) => [{ f: 'first_abx_dose_administered_at', v: iso(m, 1, c.tz) }] },
     { re: new RegExp(DT + ' — кровь на посев взята', 'g'), emit: (m, c) => [{ f: 'blood_culture_drawn_at', v: iso(m, 1, c.tz) }] },
     // «из периферической вены» не доказывает отдельную вену (ревью ChatGPT к PR №13) — только явное «отдельной»
     { re: /из отдельной (?:периферической )?вены/g, when: l => /посев/.test(l), emit: () => [{ f: 'sample_site', v: 'separate_vein' }] },
@@ -445,7 +452,26 @@
   const UNKNOWN = /не (?:указан|отмечен|записан|отражен|зафиксирован|уточн)|сведений\s*(?:в [^,;.]*)?нет|нет сведений|_{3,}/i;
   const PLAN = /планиру|запланир|решено начать|решить вопрос|рассмотреть|при необходимости|в случае|(?:^|\s)если\s|рекомендован|показано|продолжен[\wА-Яа-яЁё]* до получения/i;
   const COND_CLAUSE = /^\s*(?:\d\d:\d\d\s*—\s*)?(?:При|при)\s/;
-  const OTHER = /[Мм]атер|[Мм]ать[\s:,]|у матери|[Мм]атеринск|у (?:первого|второго|другого|соседн)[\wА-Яа-яЁё]* ребён|соседн[\wА-Яа-яЁё]* койк|предыдущ[\wА-Яа-яЁё]* ребён|в анамнезе|[Дд]ля справки/;
+  const OTHER = /[Мм]атер|[Мм]ать[\s:,]|у матери|[Мм]атеринск|[Уу] (?:первого|второго|другого|соседн)[\wА-Яа-яЁё]* ре(?:бён|бен)|соседн[\wА-Яа-яЁё]* койк|предыдущ[\wА-Яа-яЁё]* ре(?:бён|бен)|в анамнезе|[Дд]ля справки/;
+  /** Привязка явного времени к действию: одна отметка времени во фразе и никаких признаков плана, условия, отрицания,
+   *  неопределённости, другого пациента, результата. Иначе — unknown, как раньше. */
+  function inlineEvent(line, s, e) {
+    const cl = clause(line, s);
+    // заголовок записи в начале строки («ДД.ММ.ГГГГ ЧЧ:ММ —», «ЧЧ:ММ —») — время записи, не второе время фразы
+    const hd = /^\s*(?:\d\d\.\d\d\.\d{4}\s+)?\d\d:\d\d\s*(?:—|–|-)\s*/.exec(line);
+    const t = line.slice(Math.max(cl.s, hd && cl.s < hd[0].length ? hd[0].length : cl.s), cl.e);
+    if (timesIn(t).length !== 1) return false;
+    if (/^\s*\?/.test(line.slice(e))) return false;
+    if (PLAN.test(t) || COND_CLAUSE.test(t) || OTHER.test(t) || UNKNOWN.test(t) || /\?|предполож|возможно|результат|ответ/i.test(t)) return false;
+    if (NEG.test(line.slice(cl.s, e).replace(line.slice(s, e), ' '))) return false;
+    // хвост предложения после действия (в т.ч. после «;» и «,»): отрицание, сомнение, «уточнить», план, условие, чужой пациент
+    const tm = /[.!?](?=\s|$)/.exec(line.slice(e)), tail = line.slice(e, tm ? e + tm.index : line.length);
+    if (/отмен[её]н|отмена|не\s+проводил|отложен/i.test(tail) || ERR_REC.test(tail) || NEG.test(tail) || UNKNOWN.test(tail) || UNCERTAIN_WORDS.test(t + ' ' + tail) || PLAN.test(tail) || OTHER.test(tail)) return false;
+    if (/[;,]\s*(?:при|если)\s/i.test(tail)) return false;
+    // остаток предложения (после «;», «,», «—»): результат/ответ/сомнение или вторая отметка времени без своего маркера — не однозначное время события
+    if (/\?|предполож|возможно|результат|ответ/i.test(tail) || timesIn(tail).length > 0) return false;
+    return true;
+  }
   function blocked(g, line, s, e) {
     const sg = segment(line, s), seg = line.slice(sg.s, sg.e), cl = clause(line, s), cls = line.slice(cl.s, cl.e);
     if (g.includes('u') && UNKNOWN.test(seg)) return true;
@@ -915,7 +941,13 @@
             const e = rec.start + (o.e !== undefined ? o.e : m.index + m[0].length);
             if (UNCERTAIN_FIELDS.test(o.f) && uncertain(line, m.index, m.index + m[0].length, o.f)) continue; // предварительное, под вопросом, исключить
             const hit = Object.assign({}, o, { start: s, end: Math.max(e, s + 1), list: rule.list || null });
+            if (CRITICAL.test(o.f) && !/_at$/.test(o.f) && !UNCERTAIN_FIELDS.test(o.f)) { const cl = clause(line, m.index), ct = line.slice(cl.s, cl.e + 1);
+              if (/\?/.test(ct) || UNCERTAIN_WORDS.test(ct) || /(?:^|[.;]\s*)уточнить/i.test(line.slice(cl.e))) Object.assign(hit, { doubt: true, note: (o.note ? o.note + '; ' : '') + 'в записи сомнение («?», «уточнить» и т. п.) — требует проверки' }); }
+            if (o.f === 'birth_weight_g' && typeof o.v === 'number' && (o.v < BW_MIN || o.v > BW_MAX)) Object.assign(hit, { out_of_range: true, note: (hit.note ? hit.note + '; ' : '') + `масса при рождении вне диапазона правдоподобия ${BW_MIN}–${BW_MAX} г — требует проверки` });
             // тип времени обязателен у каждого временного значения; не определён правилом → unknown (не event_time)
+            // явные дата и время сразу после глагола действия в той же фразе — время события, если во фразе одно время,
+            // нет плана/условия, отрицания, неопределённости, другого пациента (разрешено рецензентом 26.11, ответ 2)
+            if (isTimeHit(hit) && !hit.tb && rule.inline && inlineEvent(line, m.index, m.index + m[0].length)) { hit.tb = 'event_time'; hit.ts = 'явные дата и время сразу после действия в той же фразе'; }
             if (isTimeHit(hit) && !hit.tb) { hit.tb = 'unknown'; hit.ts = 'тип времени не определён (правило без привязки времени)'; }
             if (old) superseded.push(hit); else hits.push(hit);
           }
