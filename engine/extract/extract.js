@@ -793,6 +793,8 @@
   /** Источник пробы: только однозначно артериальная; отрицание («не артериальная»), противоречие и неизвестность → не артериальная. */
   /** Сомнение или непригодность пробы/результата в строке таблицы («?», «предположительно», «уточнить», «недостоверно», «гемолиз», «ошибочный»). */
   const ROW_DOUBT = /\?|предполож|возможн|вероятн|уточн|сомнит|под\s+вопрос|недостовер|ошибочн|неверн|аннулир|гемолиз|сгуст|не\s+пригод|непригод|забракован/i;
+  /** Строка таблицы о другом человеке (мать, другой ребёнок). */
+  const OTHER_ROW = t => (t = t.replace(/материал[а-яё]*/gi, ' '), OTHER.test(t)) || /(?:^|[^а-яё])(?:мат(?:ь|ери)|рожениц[\wа-яё]*|мамы)(?![а-яё])/i.test(t);
   const SRC = t => { t = String(t || ''); if (!t.trim()) return null; if (ROW_DOUBT.test(t)) return 'uncertain'; const neg = /(?:^|[^а-яё])не\s*-?\s*артериальн|неартериальн/i.test(t), art = /артериальн|артер/i.test(t.replace(/(?:^|[^а-яё])не\s*-?\s*артериальн\S*/gi, ' ')), non = /вен|капил|смешанн|неизвест|неопредел|не\s+указан/i.test(t); return neg || non ? (art && !neg ? 'conflict' : 'nonarterial') : art ? 'arterial' : 'nonarterial'; };
   function tableHits(text, tz, info) {
     const recs = records(text), out = [];
@@ -824,7 +826,7 @@
           const cell = 'sample' in map ? String(r.c[map.sample] || '').trim() : '';
           const src = cell ? SRC(cell) : capSrc; // конкретная проба важнее подписи; непустая ячейка не наследует подпись
           const ph = cellNum(r.c[map.ph]), pc = cellNum(r.c[map.paco2]);
-          if (src === 'arterial' && !ROW_DOUBT.test(r.c.join(' ')) && !isNaN(ph) && !isNaN(pc))
+          if (src === 'arterial' && !ROW_DOUBT.test(r.c.join(' ')) && !OTHER_ROW(r.c.join(' ')) && !isNaN(ph) && !isNaN(pc))
             out.push({ f: 'blood_gases', tbl: true, v: { drawn_at: r.at, ph, paco2_mmhg: pc }, start: r.start, end: r.end, list: 'blood_gases',
               tb: atKind === 'draw' ? 'event_time' : 'unknown', ts: atKind === 'draw' ? 'колонка «время забора» таблицы' : 'общая колонка даты/времени таблицы — не доказывает время забора' });
         }
@@ -832,7 +834,8 @@
         if ('study' in map && XRAY.test(r.c[map.study]) && !NOT_XRAY.test(r.c[map.study])) {
           const all = r.c.join(' ');
           if (planCap || PLAN_ROW.test(all)) continue;
-          if ('result' in map && !String(r.c[map.result] || '').trim()) continue; // заключения нет → выполнение исследования не доказано // план / назначение / «не выполнено» — не факт исследования
+          if (OTHER_ROW(all)) continue; // исследование другого человека
+          if ('result' in map && /^[\s\-—–.]*(?:н\/д|нет\s+данных)?[\s\-—–.]*$/i.test(String(r.c[map.result] || ''))) continue; // заключения нет → выполнение исследования не доказано // план / назначение / «не выполнено» — не факт исследования
           const pos = 'position' in map ? r.c[map.position] : r.c[map.study];
           const position = /не\s+(?:в\s+)?(?:вертик|латер|горизонт|на\s+боку|лёжа|лежа)/i.test(pos) ? null
             : /вертик/i.test(pos) ? 'vertical' : /латер|на боку/i.test(pos) ? 'lateral' : /горизонт|лёжа|лежа/i.test(pos) ? 'horizontal' : null;
