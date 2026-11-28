@@ -41,7 +41,10 @@
   const ABX = 'ампициллин|гентамицин|метронидазол|бензилпенициллин|цефотаксим|амикацин|ванкомицин|меропенем|цефтазидим|амоксициллин';
 
   const num = s => Number(String(s).replace(/\s/g, '').replace(',', '.'));
-  const iso = (m, i, tz) => `${m[i + 2]}-${m[i + 1]}-${m[i]}T${m[i + 3]}:${m[i + 4]}${tz}`;
+  /** Календарная проверка: 31.02, 13-й месяц, 25:30 — не дата-время (значение не выдаётся). */
+  const validYMD = (y, mo, d) => { y = +y; mo = +mo; d = +d; if (!(mo >= 1 && mo <= 12 && d >= 1)) return false; const dim = [31, (y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0)) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][mo - 1]; return d <= dim; };
+  const validHM = (h, mi) => +h >= 0 && +h <= 23 && +mi >= 0 && +mi <= 59;
+  const iso = (m, i, tz) => validYMD(m[i + 2], m[i + 1], m[i]) && validHM(m[i + 3], m[i + 4]) ? `${m[i + 2]}-${m[i + 1]}-${m[i]}T${m[i + 3]}:${m[i + 4]}${tz}` : null;
 
   /** Разбивка на записи (строки) со смещениями. */
   function records(text) {
@@ -63,8 +66,8 @@
   /** Все даты в строке: [{date, index, end}]. */
   function datesIn(line) {
     const out = []; let m;
-    DATE_RE.lastIndex = 0; while ((m = DATE_RE.exec(line))) out.push({ date: ymd(m[1], m[2], m[3]), index: m.index, end: m.index + m[0].length });
-    MDATE_RE.lastIndex = 0; while ((m = MDATE_RE.exec(line))) out.push({ date: ymd(m[1].padStart(2, '0'), monthNum(m[2]), m[3]), index: m.index, end: m.index + m[0].length });
+    DATE_RE.lastIndex = 0; while ((m = DATE_RE.exec(line))) if (validYMD(m[3].length === 2 ? '20' + m[3] : m[3], m[2], m[1])) out.push({ date: ymd(m[1], m[2], m[3]), index: m.index, end: m.index + m[0].length });
+    MDATE_RE.lastIndex = 0; while ((m = MDATE_RE.exec(line))) if (validYMD(m[3], monthNum(m[2]), m[1])) out.push({ date: ymd(m[1].padStart(2, '0'), monthNum(m[2]), m[3]), index: m.index, end: m.index + m[0].length });
     return out.sort((x, y) => x.index - y.index);
   }
   const TIME_SRC = '(?<![\\d:.,])([01]\\d|2[0-3]):([0-5]\\d)(?![\\d:])';
@@ -926,6 +929,7 @@
           const out = rule.special ? special(rule.special, m, c) : rule.emit(m, c);
           const old = inSpan(spans.wrong, m.index);
           for (const o of out) {
+            if (o.v === null && /_at$/.test(o.f)) continue; // недопустимая календарная дата/время
             const s = rec.start + (o.s !== undefined ? o.s : m.index);
             const e = rec.start + (o.e !== undefined ? o.e : m.index + m[0].length);
             if (UNCERTAIN_FIELDS.test(o.f) && uncertain(line, m.index, m.index + m[0].length, o.f)) continue; // предварительное, под вопросом, исключить
