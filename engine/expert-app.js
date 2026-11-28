@@ -162,6 +162,11 @@
     $('cnt').textContent = `Найдено: ${s.items.filter(x => !x.candidate.manual).length} · решено ${b.completeness.decided} из ${b.completeness.total}`;
     const dw = clear($('docxwarn'));
     if (s.warnings.length) dw.appendChild(h('div', { class: 'warnbox' }, 'Извлечение неполное — часть документа не прочитана: ' + s.warnings.join('; ')));
+    // этап 3 issue #10: статус препаратов — только для сведения врача, в случай не входит
+    const me = (S.extraction && S.extraction.medication_events) || [];
+    if (me.length) dw.appendChild(h('details', { class: 'muted', 'data-test': 'med-status' }, h('summary', null, `Препараты в тексте: план / назначено / введено / отменено (${me.length}) — для сведения, в случай не входит`),
+      h('table', null, h('tr', null, h('th', null, 'Препарат'), h('th', null, 'Статус в записи'), h('th', null, 'Время введения (только своё время события)'), h('th', null, 'Фрагмент')),
+        me.map(e => h('tr', { 'data-status': e.status }, h('td', null, e.drug), h('td', null, e.status_label, e.note ? h('div', { class: 'muted' }, e.note) : null), h('td', null, e.at ? e.at.slice(0, 16).replace('T', ' ') : '—'), h('td', null, '«' + e.fragment.text + '»'))))));
     const groups = new Map();
     for (const it of s.items) { const g = it.candidate.group; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(it); }
     const G = clear($('groups'));
