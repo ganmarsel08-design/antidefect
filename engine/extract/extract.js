@@ -24,7 +24,7 @@
 }(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const VERSION = '0.8.1-dev';
+  const VERSION = '0.8.2-dev';
   const DT = '(\\d\\d)\\.(\\d\\d)\\.(\\d{4}) (\\d\\d):(\\d\\d)';
   const L = 'А-Яа-яЁё';
   const NOT_BEFORE = `(?<![${L}])`; // начало слова для кириллицы (\b в JS не работает с кириллицей)
@@ -41,7 +41,10 @@
   const ABX = 'ампициллин|гентамицин|метронидазол|бензилпенициллин|цефотаксим|амикацин|ванкомицин|меропенем|цефтазидим|амоксициллин';
 
   const num = s => Number(String(s).replace(/\s/g, '').replace(',', '.'));
-  const iso = (m, i, tz) => `${m[i + 2]}-${m[i + 1]}-${m[i]}T${m[i + 3]}:${m[i + 4]}${tz}`;
+  /** Календарная проверка: 31.02, 13-й месяц, 25:30 — не дата-время (значение не выдаётся). */
+  const validYMD = (y, mo, d) => { y = +y; mo = +mo; d = +d; if (!(mo >= 1 && mo <= 12 && d >= 1)) return false; const dim = [31, (y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0)) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][mo - 1]; return d <= dim; };
+  const validHM = (h, mi) => +h >= 0 && +h <= 23 && +mi >= 0 && +mi <= 59;
+  const iso = (m, i, tz) => validYMD(m[i + 2], m[i + 1], m[i]) && validHM(m[i + 3], m[i + 4]) ? `${m[i + 2]}-${m[i + 1]}-${m[i]}T${m[i + 3]}:${m[i + 4]}${tz}` : null;
 
   /** Разбивка на записи (строки) со смещениями. */
   function records(text) {
@@ -63,8 +66,8 @@
   /** Все даты в строке: [{date, index, end}]. */
   function datesIn(line) {
     const out = []; let m;
-    DATE_RE.lastIndex = 0; while ((m = DATE_RE.exec(line))) out.push({ date: ymd(m[1], m[2], m[3]), index: m.index, end: m.index + m[0].length });
-    MDATE_RE.lastIndex = 0; while ((m = MDATE_RE.exec(line))) out.push({ date: ymd(m[1].padStart(2, '0'), monthNum(m[2]), m[3]), index: m.index, end: m.index + m[0].length });
+    DATE_RE.lastIndex = 0; while ((m = DATE_RE.exec(line))) if (validYMD(m[3].length === 2 ? '20' + m[3] : m[3], m[2], m[1])) out.push({ date: ymd(m[1], m[2], m[3]), index: m.index, end: m.index + m[0].length });
+    MDATE_RE.lastIndex = 0; while ((m = MDATE_RE.exec(line))) if (validYMD(m[3], monthNum(m[2]), m[1])) out.push({ date: ymd(m[1].padStart(2, '0'), monthNum(m[2]), m[3]), index: m.index, end: m.index + m[0].length });
     return out.sort((x, y) => x.index - y.index);
   }
   const TIME_SRC = '(?<![\\d:.,])([01]\\d|2[0-3]):([0-5]\\d)(?![\\d:])';
@@ -759,6 +762,127 @@
     return res;
   }
 
+  /*
+   * Этап 6 issue #10 — табличные данные: газы крови, настройки ИВЛ, рентгенограммы.
+   * Таблица = строка-заголовок с «|» и следующие строки с тем же числом ячеек. Колонки узнаются по заголовку.
+   * Строка берётся, только если в ней есть своя дата и время (время забора / исследования — время события).
+   * Защиты: единица pCO2 в кПа — не извлекается (пересчёта нет); значения вне физиологически возможного диапазона —
+   * не извлекаются; скопированные строки — не источник. Изменения ИВЛ из таблицы вычисляются по соседним строкам
+   * и помечаются «вычислено из таблицы» — подтверждает врач.
+   */
+  /*
+   * Таблицы (ревью ChatGPT к 2177b19). Строго:
+   *  - газы крови → blood_gases только при ЯВНОЙ единице мм рт. ст. в заголовке pCO2 и ЯВНОМ артериальном источнике
+   *    (подпись таблицы или ячейка «проба/кровь»); венозная/капиллярная/неуказанная — не paco2_mmhg. Физиологических
+   *    диапазонов нет (не утверждены): значение передаётся как записано, только после поэлементного подтверждения;
+   *  - смысл колонки времени: «время забора» / «время исследования» → event_time; общая «Дата/время» → unknown;
+   *    «время результата» не подменяет время забора (газы не извлекаются);
+   *  - изменения ИВЛ по разнице строк НЕ передаются в vent_changes (это изменение между наблюдениями, а не действие
+   *    в момент второй строки) — только наблюдения вне словаря (table_observations), с обеими строками и интервалом;
+   *    FiO2 по времени — там же, как записано, без пересчёта и без изменения fio2 стабилизации;
+   *  - рентген: модальность только из ячейки исследования (УЗИ/КТ/МРТ — нет), план — не факт, отрицания учитываются;
+   *  - повтор колонки одного смысла — таблица неоднозначна и не разбирается (предупреждение).
+   */
+  const COL = [
+    ['at', /^(?:дата\s*(?:и|\/)?\s*время(?:\s+(забора|исследования|результата|изменения|записи))?|время(?:\s+(забора|исследования|результата|изменения|записи))?|дата|(забор)|(выполнено))$/i],
+    ['ph', /^p[hн]$/i],
+    ['paco2', /^(?:p?a?co2|ра?со2|р?асо2|pco2|рсо2|раco2|pаco2)(?:\s*,?\s*(мм\s*рт\.?\s*ст\.?|кпа|kpa))?$/i],
+    ['pip', /^pip(?:\s*,?\s*см\s*(?:h2o|н2о|вод\.?\s*ст\.?))?$/i],
+    ['peep', /^peep(?:\s*,?\s*см\s*(?:h2o|н2о|вод\.?\s*ст\.?))?$/i],
+    ['fio2', /^fio2(?:\s*,?\s*(доля|%))?$/i],
+    ['rate', /^(?:частота|чд|f)(?:\s*,?\s*(?:\/мин|в\s*мин))?$/i],
+    ['mode', /^режим(?:\s+ивл)?$/i],
+    ['sample', /^(?:проба|кровь|образец|источник)$/i],
+    ['study', /^(?:исследование|рентген\S*|вид исследования)$/i],
+    ['position', /^положение$/i],
+    ['reason', /^(?:показание|причина|экстренно\s*\/\s*планово|срочность)$/i],
+    ['result', /^(?:заключение|результат|описание)$/i],
+  ];
+  const cells = l => l.split('|').map(x => x.trim());
+  const AT_KIND = u => (/забор/i.test(u) ? 'draw' : /исследован|выполнено/i.test(u) ? 'study' : /результат/i.test(u) ? 'result' : /изменени/i.test(u) ? 'change' : /записи/i.test(u) ? 'record' : 'generic');
+  const cellNum = cell => (/^-?\d+(?:[.,]\d+)?$/.test((cell || '').trim()) ? +cell.trim().replace(',', '.') : NaN);
+  const XRAY = /рентген|\brg\b|r-?графи|рентгеногр/i, NOT_XRAY = /узи|\bуз\b|ультразв|\bкт\b|компьютерн|мрт|магнитно/i;
+  const PLAN_ROW = /план(?:ируется|ово\s+на|\s+на)|назнач(?:ен|ено|ить)|запланир|будет\s+выполн|выполнить|не\s+выполн|отмен[её]н|отмена|не\s+проводил|не\s+сделан|отложен|не\s+состоял/i;
+  /** Источник пробы: только однозначно артериальная; отрицание («не артериальная»), противоречие и неизвестность → не артериальная. */
+  /** Сомнение или непригодность пробы/результата в строке таблицы («?», «предположительно», «уточнить», «недостоверно», «гемолиз», «ошибочный»). */
+  const ROW_DOUBT = /\?|предполож|возможн|вероятн|уточн|сомнит|под\s+вопрос|недостовер|ошибочн|неверн|аннулир|гемолиз|сгуст|не\s+пригод|непригод|забракован/i;
+  /** Строка таблицы о другом человеке (мать, другой ребёнок). */
+  const OTHER_ROW = t => (t = t.replace(/материал[а-яё]*/gi, ' '), OTHER.test(t)) || /(?:^|[^а-яё])(?:мат(?:ь|ери)|рожениц[\wа-яё]*|мамы)(?![а-яё])/i.test(t);
+  const SRC = t => { t = String(t || ''); if (!t.trim()) return null; if (ROW_DOUBT.test(t)) return 'uncertain'; const neg = /(?:^|[^а-яё])не\s*-?\s*артериальн|неартериальн/i.test(t), art = /артериальн|артер/i.test(t.replace(/(?:^|[^а-яё])не\s*-?\s*артериальн\S*/gi, ' ')), non = /вен|капил|смешанн|неизвест|неопредел|не\s+указан/i.test(t); return neg || non ? (art && !neg ? 'conflict' : 'nonarterial') : art ? 'arterial' : 'nonarterial'; };
+  function tableHits(text, tz, info) {
+    const recs = records(text), out = [];
+    for (let i = 0; i < recs.length; i++) {
+      const hc = cells(recs[i].line); if (hc.length < 2 || !/\|/.test(recs[i].line)) continue;
+      if (i > 0 && /\|/.test(recs[i - 1].line)) continue; // не заголовок: продолжение таблицы
+      const map = {}, unit = {}, dup = [];
+      hc.forEach((h, k) => { for (const [key, re] of COL) { const m = re.exec(h); if (m) { if (key in map) dup.push(key); else { map[key] = k; unit[key] = (m.slice(1).find(Boolean) || '').toLowerCase(); } break; } } });
+      if (!('at' in map) || Object.keys(map).length < 2) continue;
+      const rows = [];
+      let j = i + 1;
+      for (; j < recs.length && /\|/.test(recs[j].line); j++) {
+        const c = cells(recs[j].line);
+        const copied = /скопир|копи[яи]/i.test(recs[j].line);
+        const t = c.length === hc.length ? timesIn(c[map.at]).find(x => x.date) : null;
+        rows.push({ c, ok: c.length === hc.length && !copied && !!t, copied, at: t ? `${t.date}T${t.time}${tz}` : null, start: recs[j].start, end: recs[j].start + recs[j].line.length, line: recs[j].line });
+      }
+      if (dup.length) { info.warnings.push(`таблица (строка «${recs[i].line.slice(0, 60)}»): повторяется колонка ${[...new Set(dup)].join(', ')} — таблица не разобрана`); continue; }
+      const atKind = AT_KIND(unit.at || hc[map.at]);
+      // подпись таблицы: до двух строк выше заголовка
+      // подпись — только строки НАД заголовком и не строки другой таблицы; чужая секция («|») подпись не даёт
+      const caption = recs.slice(Math.max(0, i - 2), i).map(r => r.line).filter(l => !/\|/.test(l)).join(' ');
+      const capSrc = /артериальн|венозн|капилляр|смешанн/i.test(caption) ? SRC(caption) : null;
+      const planCap = /план\s+обследовани|план\s+исследовани|назначени/i.test(caption);
+      for (const r of rows) {
+        if (!r.ok) continue;
+        // газы крови
+        if ('ph' in map && 'paco2' in map && /мм\s*рт/.test(unit.paco2 || '') && atKind !== 'result') {
+          const cell = 'sample' in map ? String(r.c[map.sample] || '').trim() : '';
+          const src = cell ? SRC(cell) : capSrc; // конкретная проба важнее подписи; непустая ячейка не наследует подпись
+          const ph = cellNum(r.c[map.ph]), pc = cellNum(r.c[map.paco2]);
+          if (src === 'arterial' && !ROW_DOUBT.test(r.c.join(' ')) && !OTHER_ROW(r.c.join(' ')) && !isNaN(ph) && !isNaN(pc))
+            out.push({ f: 'blood_gases', tbl: true, v: { drawn_at: r.at, ph, paco2_mmhg: pc }, start: r.start, end: r.end, list: 'blood_gases',
+              tb: atKind === 'draw' ? 'event_time' : 'unknown', ts: atKind === 'draw' ? 'колонка «время забора» таблицы' : 'общая колонка даты/времени таблицы — не доказывает время забора' });
+        }
+        // рентгенограммы: модальность — только из ячейки исследования
+        if ('study' in map && XRAY.test(r.c[map.study]) && !NOT_XRAY.test(r.c[map.study])) {
+          const all = r.c.join(' ');
+          if (planCap || PLAN_ROW.test(all)) continue;
+          if (OTHER_ROW(all)) continue; // исследование другого человека
+          if ('result' in map && /^[\s\-—–.]*(?:н\/д|нет\s+данных)?[\s\-—–.]*$/i.test(String(r.c[map.result] || ''))) continue; // заключения нет → выполнение исследования не доказано // план / назначение / «не выполнено» — не факт исследования
+          const pos = 'position' in map ? r.c[map.position] : r.c[map.study];
+          const position = /не\s+(?:в\s+)?(?:вертик|латер|горизонт|на\s+боку|лёжа|лежа)/i.test(pos) ? null
+            : /вертик/i.test(pos) ? 'vertical' : /латер|на боку/i.test(pos) ? 'lateral' : /горизонт|лёжа|лежа/i.test(pos) ? 'horizontal' : null;
+          const rs = 'reason' in map ? r.c[map.reason] : '';
+          const reason = /не\s+(?:экстрен|срочн|планов)/i.test(rs) ? null : /экстрен|срочн/i.test(rs) ? 'urgent' : /планов|контрол/i.test(rs) ? 'planned' : null;
+          out.push({ f: 'xrays', tbl: true, v: { at: r.at, position, reason, result: 'result' in map ? r.c[map.result] : null }, start: r.start, end: r.end, list: 'xrays',
+            tb: atKind === 'study' ? 'event_time' : 'unknown', ts: atKind === 'study' ? 'колонка «время исследования» таблицы' : 'общая колонка даты/времени таблицы — не доказывает время исследования' });
+        }
+      }
+      // ИВЛ / FiO2 по времени: наблюдения вне словаря; изменение — только между соседними пригодными строками
+      const VP = { pip: 'PIP', peep: 'PEEP', fio2: 'FiO2', rate: 'Частота' };
+      const vkeys = Object.keys(VP).filter(k => k in map);
+      if (vkeys.length) {
+        const obs = rows.map(r => r.ok ? { at: r.at, time_basis: atKind === 'change' ? 'event_time' : 'unknown', mode: 'mode' in map ? r.c[map.mode] : null,
+          values: Object.fromEntries(vkeys.map(k => [VP[k], { value: cellNum(r.c[map[k]]), written: r.c[map[k]], unit: k === 'fio2' ? (unit.fio2 || null) : null }])),
+          fragment: { text: r.line, start: r.start, end: r.end } } : null);
+        for (const o of obs) if (o) info.observations.push(Object.assign({ kind: 'ventilation' }, o));
+        for (let k = 1; k < obs.length; k++) {
+          const a = obs[k - 1], b = obs[k];
+          if (!a || !b) continue;                          // пропуск, копия, неполная строка между — не сравнивать через неё
+          if (!(a.at < b.at)) continue;                    // обратное или одинаковое время
+          if ((a.mode || '') !== (b.mode || '')) continue; // смена режима/эпизода ИВЛ
+          for (const k2 of vkeys) {
+            const x = a.values[VP[k2]], y = b.values[VP[k2]];
+            if (isNaN(x.value) || isNaN(y.value) || x.value === y.value) continue;
+            info.changes.push({ kind: 'ventilation_change', parameter: VP[k2], from: x.written, to: y.written, unit: x.unit,
+              between: [a.at, b.at], note: 'изменение между наблюдениями; время действия врача неизвестно (в интервале)', fragments: [a.fragment, b.fragment] });
+          }
+        }
+      }
+    }
+    return out;
+  }
+
   /**
    * extract(text, {tz, documentId}) → {version, document_id, tz, candidates[], warnings[]}
    * Кандидат: {id, field, value | timeline, alternatives?, fragment, start, end, fragments[], status:'не подтверждено',
@@ -796,6 +920,7 @@
           const out = rule.special ? special(rule.special, m, c) : rule.emit(m, c);
           const old = inSpan(spans.wrong, m.index);
           for (const o of out) {
+            if (o.v === null && /_at$/.test(o.f)) continue; // недопустимая календарная дата/время
             const s = rec.start + (o.s !== undefined ? o.s : m.index);
             const e = rec.start + (o.e !== undefined ? o.e : m.index + m[0].length);
             if (UNCERTAIN_FIELDS.test(o.f) && uncertain(line, m.index, m.index + m[0].length, o.f)) continue; // предварительное, под вопросом, исключить
@@ -807,6 +932,8 @@
         }
       }
     }
+    const tinfo = { warnings: [], observations: [], changes: [] };
+    for (const th of tableHits(text, tz, tinfo)) hits.push(th);
     // одинаковые значения одного поля из пересекающихся фрагментов (старое и новое правило) — одно попадание
     const key = h => h.f + '|' + JSON.stringify(h.v !== undefined ? h.v : h.obs);
     for (let i = hits.length - 1; i >= 0; i--) {
@@ -846,10 +973,11 @@
         const items = []; const frs = [];
         for (const h of hs) if (!items.some(x => same(x, h.v))) { items.push(h.v); frs.push(frag(h)); }
         const lc = Object.assign(base, { value: items, fragment: frs[0].text, start: frs[0].start, end: frs[0].end, fragments: frs });
+        if (hs.some(h => h.note)) { lc.critical = true; lc.note = [...new Set(hs.filter(h => h.note).map(h => h.note))].join(' '); }
         const tbs = hs.filter(h => h.tb).map(h => h.tb);
         // поэлементно: индекс элемента в value, его цитата и смещения — чтобы подтверждение врача было привязано
         // к конкретному времени и цитате, а не ко всему списку одним основанием (ревью цикла 16:30, issue #10)
-        if (tbs.length) { lc.time_basis_items = hs.filter(h => h.tb).map(h => { const i = items.findIndex(x => same(x, h.v)); return { value: h.v, time_basis: h.tb, time_source: h.ts, index: i, fragment: text.slice(h.start, h.end), start: h.start, end: h.end }; }); if (tbs.includes('document_time') || tbs.includes('unknown')) { lc.critical = true; lc.note = 'В части элементов время — время записи врача, а не доказанное время события: подтвердите или исправьте.'; } }
+        if (tbs.length) { lc.time_basis_items = hs.filter(h => h.tb).map(h => { const i = items.findIndex(x => same(x, h.v)); return Object.assign({ value: h.v, time_basis: h.tb, time_source: h.ts, index: i, fragment: text.slice(h.start, h.end), start: h.start, end: h.end }, h.tbl ? { from_table: true } : {}); }); if (tbs.includes('document_time') || tbs.includes('unknown')) { lc.critical = true; lc.note = 'В части элементов время — время записи врача, а не доказанное время события: подтвердите или исправьте.'; } }
         candidates.push(lc); continue;
       }
       const distinct = [];
@@ -870,7 +998,9 @@
     }
     candidates.sort((a, b) => a.start - b.start);
     candidates.forEach((c, i) => { c.id = 'c' + (i + 1); });
-    return { version: VERSION, document_id: opts.documentId || null, tz, candidates, warnings: opts.warnings ? opts.warnings.slice() : [], medication_events: medicationEvents(text, tz) };
+    return { version: VERSION, document_id: opts.documentId || null, tz, candidates, warnings: (opts.warnings ? opts.warnings.slice() : []).concat(tinfo.warnings), medication_events: medicationEvents(text, tz),
+      // наблюдения из таблиц вне клинического словаря: в случай не входят, только для сведения врача
+      table_observations: { observations: tinfo.observations, changes: tinfo.changes } };
   }
 
   return { VERSION, extract, CRITICAL, group, records };

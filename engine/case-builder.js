@@ -41,7 +41,9 @@
     const v = choice && c.alternatives && c.alternatives[choice.index] ? c.alternatives[choice.index].value : c.value;
     return isTimeField(c, v) ? 'unknown' : null;
   }
-  const needsTimeConfirm = it => RISKY(basisOf(it.candidate, it.choice));
+  // элементы списка из таблиц подтверждаются поэлементно независимо от типа времени (ревью 2177b19, блокер 5)
+  const gated = (c, choice) => RISKY(basisOf(c, choice)) || riskyElems(c).length > 0;
+  const needsTimeConfirm = it => gated(it.candidate, it.choice);
   // основание — непустая строка после trim
   const reasonOf = r => (typeof r === 'string' && r.trim() ? r.trim() : null);
   const explicitEvent = o => !!(o && o.timeIsEvent === true && reasonOf(o.basisReason));
@@ -58,20 +60,32 @@
       const es = c.time_basis_items.filter(x => (x.index != null ? x.index === i : same(x.value, v)));
       const basis = es.length ? es.map(x => (x.time_basis in RANK ? x.time_basis : 'unknown')).sort((a, b) => RANK[b] - RANK[a])[0] : (atOf(v) ? 'unknown' : null);
       const fe = es.find(x => x.fragment), fr = c.fragments && c.fragments[i];
-      return { index: i, value: v, at: atOf(v), basis, fragment: fe ? fe.fragment : fr ? fr.text : null, start: fe ? fe.start : fr ? fr.start : null };
+      return { index: i, value: v, at: atOf(v), basis, from_table: es.some(x => x.from_table), fragment: fe ? fe.fragment : fr ? fr.text : null, start: fe ? fe.start : fr ? fr.start : null };
     });
   }
-  const riskyElems = c => (listElems(c) || []).filter(e => RISKY(e.basis));
+  const riskyElems = c => (listElems(c) || []).filter(e => RISKY(e.basis) || e.from_table);
   /** Элементы, которые должны быть подтверждены: при исправлении — только те, чьё время осталось в новом значении. */
   function requiredElems(it) {
     const r = riskyElems(it.candidate);
-    if (it.status === STATUS.EDITED && Array.isArray(it.value)) return r.filter(e => it.value.some(v => atOf(v) === e.at));
+    if (it.status === STATUS.EDITED && it.edit_map) return r.filter(e => it.edit_map.kept.includes(e.index));
+    if (it.status === STATUS.EDITED && Array.isArray(it.value)) return r.filter(e => it.value.some(v => same(v, e.value)));
     return r;
   }
   function elemConfirm(c, need, items, where) {
     if (!Array.isArray(items)) throw new Error(where + ': у списка ' + c.field + ' время записи / неизвестного типа подтверждается поэлементно — для каждого такого элемента укажите его время и основание');
-    const out = [];
+    const out = [], excluded = [];
+    const all = listElems(c) || [];
+    // отклонение отдельного элемента (ревью 2177b19, блокер 5): {index, at, reject: true, reason} — элемент не передаётся
+    if (where === 'confirm') for (const g of items) if (g && g.reject === true) {
+      const e = all.find(x => x.index === g.index);
+      if (!e) throw new Error(where + ': ' + c.field + ': элемент ' + (g.index != null ? '№' + (g.index + 1) : '?') + ' не существует');
+      if (g.at !== e.at) throw new Error(where + ': ' + c.field + ', элемент №' + (e.index + 1) + ': время элемента не совпадает (' + g.at + ' ≠ ' + e.at + ')');
+      const r = reasonOf(g.reason);
+      if (!r) throw new Error(where + ': ' + c.field + ', элемент №' + (e.index + 1) + ': не указана причина отклонения');
+      excluded.push({ index: e.index, at: e.at, fragment: e.fragment, start: e.start, reason: r });
+    }
     for (const e of need) {
+      if (excluded.some(x => x.index === e.index)) continue;
       const g = items.find(x => x && x.index === e.index);
       if (!g || g.timeIsEvent !== true) throw new Error(where + ': ' + c.field + ', элемент №' + (e.index + 1) + ' (' + e.at + ') не подтверждён как время события');
       if (g.at !== e.at) throw new Error(where + ': ' + c.field + ', элемент №' + (e.index + 1) + ': время элемента не совпадает (' + g.at + ' ≠ ' + e.at + ')');
@@ -79,7 +93,10 @@
       if (!r) throw new Error(where + ': ' + c.field + ', элемент №' + (e.index + 1) + ': не указано основание');
       out.push({ index: e.index, at: e.at, basis: e.basis, fragment: e.fragment, start: e.start, reason: r });
     }
-    for (const g of items) if (!g || !need.some(e => e.index === g.index)) throw new Error(where + ': ' + c.field + ': элемент ' + (g && g.index != null ? '№' + (g.index + 1) : '?') + ' не требует подтверждения времени или не существует');
+    for (const g of items) if (!g || (g.reject !== true && !need.some(e => e.index === g.index))) throw new Error(where + ': ' + c.field + ': элемент ' + (g && g.index != null ? '№' + (g.index + 1) : '?') + ' не требует подтверждения времени или не существует');
+    if (items.filter(g => g && g.reject !== true).some(g => excluded.some(x => x.index === g.index))) throw new Error(where + ': ' + c.field + ': элемент одновременно подтверждён и отклонён');
+    if (where === 'confirm' && excluded.length === all.length) throw new Error(where + ': ' + c.field + ': отклонены все элементы — отклоните сведение целиком');
+    out.excluded = excluded;
     return out;
   }
   /** Подтверждение времени действительно для текущего значения. */
@@ -88,12 +105,18 @@
     if (!tc) return false;
     if (riskyElems(it.candidate).length) {
       const need = requiredElems(it);
+      // новые/изменённые элементы исправленного списка — только с отдельным ручным основанием (значение, время, причина)
+      const man = (it.edit_map && it.edit_map.manual) || [];
+      if (man.length && !man.every(m => (tc.manual || []).some(x => x.index === m.index && x.at === m.at && reasonOf(x.reason)))) return false;
       if (!need.length) return !!reasonOf(tc.reason);
-      return Array.isArray(tc.items) && need.every(e => tc.items.some(x => x.index === e.index && x.at === e.at && reasonOf(x.reason)));
+      const ex = tc.excluded || [];
+      return Array.isArray(tc.items) && need.every(e => ex.some(x => x.index === e.index && x.at === e.at && reasonOf(x.reason)) || tc.items.some(x => x.index === e.index && x.at === e.at && reasonOf(x.reason)));
     }
     return !!reasonOf(tc.reason);
   }
-  const tcLog = tc => (!tc ? null : tc.items ? tc.items.map(x => ({ index: x.index, at: x.at, reason: x.reason })) : tc.reason);
+  const tcLog = tc => (!tc ? null : (tc.items || tc.manual) ? (tc.items || []).map(x => ({ index: x.index, at: x.at, reason: x.reason }))
+    .concat((tc.excluded || []).map(x => ({ index: x.index, at: x.at, rejected: true, reason: x.reason })))
+    .concat((tc.manual || []).map(x => ({ index: x.index, at: x.at, manual: true, reason: x.reason }))) : tc.reason);
 
   /**
    * createSession({extraction, actor, now, synthetic}) — extraction = результат AntidefectExtract.extract().
@@ -149,9 +172,9 @@
     const it = find(s, id);
     if (needsChoice(it.candidate) && !it.choice) throw new Error('confirm: у сведения ' + it.candidate.field + ' несколько значений — сначала выберите одно');
     const basis = basisOf(it.candidate, it.choice);
-    if (RISKY(basis) && riskyElems(it.candidate).length) {
+    if (riskyElems(it.candidate).length) {
       const items = elemConfirm(it.candidate, riskyElems(it.candidate), opts && opts.items, 'confirm');
-      const from = it.status; it.status = STATUS.OK; it.time_confirmation = { basis, items };
+      const from = it.status; it.status = STATUS.OK; it.time_confirmation = { basis, items, excluded: items.excluded };
       log(s, it, 'подтверждено', from, it.value, { time_basis: basis, time_confirmation: tcLog(it.time_confirmation) });
       return it;
     }
@@ -176,21 +199,44 @@
     return { confirmed: done, skipped };
   }
 
+  /** Для интерфейса: какие элементы нового списка совпали с исходными (keep — исходные риск-элементы) и какие новые/изменённые (manual). */
+  function classifyEdit(c, value) {
+    const orig = listElems(c) || [], used = new Set(), keep = [], manual = [];
+    if (!Array.isArray(value)) return { keep, manual };
+    value.forEach((v, j) => { const m = orig.find(e => !used.has(e.index) && same(e.value, v)); if (m) { used.add(m.index); if (RISKY(m.basis) || m.from_table) keep.push(m); } else if (atOf(v)) manual.push({ index: j, at: atOf(v) }); });
+    return { keep, manual };
+  }
   function edit(s, id, value, opts) {
     const it = find(s, id);
     const basis = basisOf(it.candidate, it.choice), reason = reasonOf(opts && opts.reason);
     // время записи / неизвестного типа: «исправление» на то же значение — не исправление, а обход явного подтверждения
     // (ревью ae85d85). Для прочих полей контракт этапа 7 сохранён: правка на то же значение допустима и не меняет данные.
-    if (RISKY(basis) && same(value, it.value)) throw new Error('edit: значение сведения ' + it.candidate.field + ' не изменено — время записи подтверждается только явно («это время события» + основание)');
-    if (RISKY(basis) && !reason) throw new Error('edit: у сведения ' + it.candidate.field + ' время записи врача или время неизвестного типа — укажите основание исправления (откуда время события)');
-    // список: элементы со временем записи, чьё время осталось в новом значении, подтверждаются поэлементно
-    let items = null;
-    if (RISKY(basis) && riskyElems(it.candidate).length) {
-      const keep = Array.isArray(value) ? riskyElems(it.candidate).filter(e => value.some(v => atOf(v) === e.at)) : [];
+    if (gated(it.candidate, it.choice) && same(value, it.value)) throw new Error('edit: значение сведения ' + it.candidate.field + ' не изменено — время записи подтверждается только явно («это время события» + основание)');
+    if (gated(it.candidate, it.choice) && !reason) throw new Error('edit: у сведения ' + it.candidate.field + ' время записи врача или время неизвестного типа — укажите основание исправления (откуда время события)');
+    // список: каждый элемент нового значения сопоставляется с исходным по ПОЛНОМУ значению (не только по времени).
+    // Совпавший риск-элемент подтверждается поэлементно; новый или изменённый — ручной ввод: отдельно значение, время,
+    // основание, привязка к старой цитате (она не удаляется). Автоматически подтверждённым он не считается.
+    let items = null, editMap = null, manual = null;
+    if (riskyElems(it.candidate).length && Array.isArray(value)) {
+      const orig = listElems(it.candidate), used = new Set(), keep = [], man = [];
+      value.forEach((v, j) => { const m = orig.find(e => !used.has(e.index) && same(e.value, v)); if (m) { used.add(m.index); if (RISKY(m.basis) || m.from_table) keep.push(m); } else if (atOf(v)) man.push({ index: j, at: atOf(v), value: v }); });
+      const dropped = orig.filter(e => !used.has(e.index) && (RISKY(e.basis) || e.from_table)).map(e => ({ index: e.index, at: e.at, fragment: e.fragment, start: e.start }));
       if (keep.length) items = elemConfirm(it.candidate, keep, opts && opts.items, 'edit');
+      else if (opts && Array.isArray(opts.items) && opts.items.length) throw new Error('edit: ' + it.candidate.field + ': нет сохранённых элементов, требующих подтверждения времени');
+      const mi = (opts && opts.manual_items) || [];
+      for (const g of mi) if (!g || !man.some(m => m.index === g.index)) throw new Error('edit: ' + it.candidate.field + ': ручной элемент ' + (g && g.index != null ? '№' + (g.index + 1) : '?') + ' не является новым/изменённым элементом списка');
+      manual = man.map(m => {
+        const g = mi.find(x => x.index === m.index);
+        if (!g) throw new Error('edit: ' + it.candidate.field + ', элемент №' + (m.index + 1) + ' (' + m.at + ') новый или изменён — укажите ручное основание (manual_items: index, at, reason)');
+        if (g.at !== m.at) throw new Error('edit: ' + it.candidate.field + ', элемент №' + (m.index + 1) + ': время элемента не совпадает (' + g.at + ' ≠ ' + m.at + ')');
+        const r = reasonOf(g.reason);
+        if (!r) throw new Error('edit: ' + it.candidate.field + ', элемент №' + (m.index + 1) + ': не указано основание ручного исправления');
+        return { index: m.index, at: m.at, value: clone(m.value), reason: r, status: 'ручное исправление врача', replaces: dropped.map(d => ({ index: d.index, at: d.at, fragment: d.fragment, start: d.start })) };
+      });
+      editMap = { kept: keep.map(e => e.index), manual: man.map(m => ({ index: m.index, at: m.at })), dropped };
     }
-    const from = it.value; it.value = clone(value); it.status = STATUS.EDITED; it.choice = it.choice || null;
-    it.time_confirmation = RISKY(basis) ? Object.assign({ basis, reason, by: 'исправление' }, items ? { items } : {}) : null;
+    const from = it.value; it.value = clone(value); it.status = STATUS.EDITED; it.choice = it.choice || null; it.edit_map = editMap;
+    it.time_confirmation = gated(it.candidate, it.choice) ? Object.assign({ basis, reason, by: 'исправление' }, items ? { items } : {}, manual && manual.length ? { manual } : {}, editMap ? { dropped: editMap.dropped } : {}) : null;
     log(s, it, 'исправлено', from, value, { reason: reason, time_basis: basis, time_confirmation: tcLog(it.time_confirmation) });
   }
 
@@ -222,19 +268,26 @@
       const c = it.candidate;
       const unconf = () => unconfirmed.push({ field: c.field, time_basis: basisOf(c, it.choice), status: it.status, fragment: it.choice ? it.choice.fragment : c.fragment,
         elements: riskyElems(c).map(e => ({ index: e.index, at: e.at, fragment: e.fragment })) });
-      if (it.status === STATUS.NEW) { pending.push(c.field); if (!c.manual && RISKY(basisOf(c, it.choice))) unconf(); continue; }
+      if (it.status === STATUS.NEW) { pending.push(c.field); if (!c.manual && gated(c, it.choice)) unconf(); continue; }
       if (it.status === STATUS.REJECTED) { rejected.push(c.field); continue; }
       if (it.value === undefined) { pending.push(c.field); continue; }
       // защита на границе: время записи / неизвестного типа без явного подтверждения не передаётся, как бы ни был выставлен статус
-      if (!c.manual && RISKY(basisOf(c, it.choice)) && !confirmedOK(it)) {
+      if (!c.manual && gated(c, it.choice) && !confirmedOK(it)) {
         pending.push(c.field); unconf(); continue; }
-      data[c.field] = clone(it.value);
+      const exc = it.status === STATUS.OK && it.time_confirmation && it.time_confirmation.excluded;
+      data[c.field] = exc && exc.length && Array.isArray(it.value) ? clone(it.value.filter((_, i) => !exc.some(x => x.index === i))) : clone(it.value);
       sources[c.field] = { document: s.document_id, fragment: c.manual ? null : it.choice ? it.choice.fragment : c.fragment,
         author: s.actor, confidence: c.manual ? 'введено врачом' : it.status === STATUS.EDITED ? 'исправлено врачом' : 'подтверждено врачом' };
       if (!c.manual) { const b = basisOf(c, it.choice); if (b) { sources[c.field].time_basis = b; if (it.time_confirmation && it.time_confirmation.reason) sources[c.field].time_confirmation = it.time_confirmation.reason; }
         if (c.time_basis_items) sources[c.field].time_basis_items = clone(c.time_basis_items).map(x => {
           const ci = it.time_confirmation && it.time_confirmation.items && it.time_confirmation.items.find(y => y.index === x.index);
-          return ci ? Object.assign(x, { time_confirmation: ci.reason }) : x; }); }
+          const xe = it.time_confirmation && it.time_confirmation.excluded && it.time_confirmation.excluded.find(y => y.index === x.index);
+          return ci ? Object.assign(x, { time_confirmation: ci.reason }) : xe ? Object.assign(x, { rejected: xe.reason }) : x; });
+        if (it.status === STATUS.EDITED && it.time_confirmation && it.time_confirmation.manual && it.time_confirmation.manual.length) sources[c.field].manual_elements = clone(it.time_confirmation.manual);
+        if (it.status === STATUS.EDITED && it.time_confirmation && it.time_confirmation.dropped && it.time_confirmation.dropped.length) sources[c.field].replaced_elements = clone(it.time_confirmation.dropped);
+        // индексы в time_basis_items — по исходному списку извлечения; отклонённые элементы в data не переданы
+        if (it.status === STATUS.OK && it.time_confirmation && it.time_confirmation.excluded && it.time_confirmation.excluded.length)
+          sources[c.field].excluded_elements = clone(it.time_confirmation.excluded); }
       used.push(c.field);
     }
     const total = s.items.length, decided = total - s.items.filter(x => x.status === STATUS.NEW).length;
@@ -254,5 +307,5 @@
   /** Отпечаток передаваемых в движок данных: карточки «устарели», только если он изменился. */
   function fingerprint(built) { return JSON.stringify(built.case.data); }
 
-  return { VERSION, STATUS, createSession, choose, confirm, confirmGroup, edit, reject, addManual, build, fingerprint, needsChoice, needsTimeConfirm, basisOf, listElems, riskyElems };
+  return { VERSION, STATUS, createSession, choose, confirm, confirmGroup, edit, reject, addManual, build, fingerprint, needsChoice, needsTimeConfirm, basisOf, listElems, riskyElems, classifyEdit };
 }));
